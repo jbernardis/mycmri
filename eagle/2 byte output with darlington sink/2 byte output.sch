@@ -6176,9 +6176,9 @@ ULN2803 Darlington array. 500mA max per channel, 8-channel package. Spark Fun El
 <label x="27.94" y="33.02" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 <segment>
-<pinref part="X3" gate="-2" pin="KL"/>
-<wire x1="-10.16" y1="25.4" x2="-5.08" y2="25.4" width="0.1524" layer="91"/>
-<label x="-5.08" y="25.4" size="1.27" layer="95" xref="yes"/>
+<pinref part="X3" gate="-4" pin="KL"/>
+<wire x1="-10.16" y1="35.56" x2="-5.08" y2="35.56" width="0.1524" layer="91"/>
+<label x="-5.08" y="35.56" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="CLK" class="0">
@@ -6215,14 +6215,14 @@ ULN2803 Darlington array. 500mA max per channel, 8-channel package. Spark Fun El
 <label x="83.82" y="33.02" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 <segment>
-<pinref part="X3" gate="-4" pin="KL"/>
-<wire x1="-10.16" y1="35.56" x2="-5.08" y2="35.56" width="0.1524" layer="91"/>
-<label x="-5.08" y="35.56" size="1.27" layer="95" xref="yes"/>
+<pinref part="X3" gate="-2" pin="KL"/>
+<wire x1="-10.16" y1="25.4" x2="-5.08" y2="25.4" width="0.1524" layer="91"/>
+<label x="-5.08" y="25.4" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
-<pinref part="X4" gate="-2" pin="KL"/>
-<wire x1="124.46" y1="40.64" x2="119.38" y2="40.64" width="0.1524" layer="91"/>
-<label x="119.38" y="40.64" size="1.27" layer="95" rot="MR0" xref="yes"/>
+<pinref part="X4" gate="-4" pin="KL"/>
+<wire x1="124.46" y1="30.48" x2="119.38" y2="30.48" width="0.1524" layer="91"/>
+<label x="119.38" y="30.48" size="1.27" layer="95" rot="MR0" xref="yes"/>
 </segment>
 </net>
 <net name="DO" class="0">
@@ -6232,9 +6232,9 @@ ULN2803 Darlington array. 500mA max per channel, 8-channel package. Spark Fun El
 <label x="93.98" y="60.96" size="1.27" layer="95" rot="R90" xref="yes"/>
 </segment>
 <segment>
-<pinref part="X4" gate="-4" pin="KL"/>
-<wire x1="124.46" y1="30.48" x2="119.38" y2="30.48" width="0.1524" layer="91"/>
-<label x="119.38" y="30.48" size="1.27" layer="95" rot="MR0" xref="yes"/>
+<pinref part="X4" gate="-2" pin="KL"/>
+<wire x1="124.46" y1="40.64" x2="119.38" y2="40.64" width="0.1524" layer="91"/>
+<label x="119.38" y="40.64" size="1.27" layer="95" rot="MR0" xref="yes"/>
 </segment>
 </net>
 <net name="VCC" class="0">

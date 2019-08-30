@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.3.0">
+<eagle version="9.4.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -5378,14 +5378,14 @@ Source: AVX .. aphvc.pdf</description>
 <nets>
 <net name="DI" class="0">
 <segment>
-<pinref part="X3" gate="-4" pin="KL"/>
-<wire x1="-10.16" y1="35.56" x2="-5.08" y2="35.56" width="0.1524" layer="91"/>
-<label x="-5.08" y="35.56" size="1.27" layer="95" xref="yes"/>
-</segment>
-<segment>
 <pinref part="IC1" gate="A" pin="SER"/>
 <wire x1="27.94" y1="35.56" x2="27.94" y2="33.02" width="0.1524" layer="91"/>
 <label x="27.94" y="33.02" size="1.27" layer="95" rot="R270" xref="yes"/>
+</segment>
+<segment>
+<pinref part="X3" gate="-4" pin="KL"/>
+<wire x1="-10.16" y1="35.56" x2="-5.08" y2="35.56" width="0.1524" layer="91"/>
+<label x="-5.08" y="35.56" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="CLK" class="0">
@@ -5412,11 +5412,6 @@ Source: AVX .. aphvc.pdf</description>
 </net>
 <net name="LATCH" class="0">
 <segment>
-<pinref part="X3" gate="-2" pin="KL"/>
-<wire x1="-10.16" y1="25.4" x2="-5.08" y2="25.4" width="0.1524" layer="91"/>
-<label x="-5.08" y="25.4" size="1.27" layer="95" xref="yes"/>
-</segment>
-<segment>
 <pinref part="X4" gate="-4" pin="KL"/>
 <wire x1="124.46" y1="30.48" x2="119.38" y2="30.48" width="0.1524" layer="91"/>
 <label x="119.38" y="30.48" size="1.27" layer="95" rot="R180" xref="yes"/>
@@ -5430,6 +5425,11 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="IC2" gate="A" pin="RCK"/>
 <wire x1="83.82" y1="35.56" x2="83.82" y2="33.02" width="0.1524" layer="91"/>
 <label x="83.82" y="33.02" size="1.27" layer="95" rot="R270" xref="yes"/>
+</segment>
+<segment>
+<pinref part="X3" gate="-2" pin="KL"/>
+<wire x1="-10.16" y1="25.4" x2="-5.08" y2="25.4" width="0.1524" layer="91"/>
+<label x="-5.08" y="25.4" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="DO" class="0">

@@ -12,10 +12,12 @@ This is very much a work in progress.  At this point, the following eagle design
 All other designs are very early in their life and have not been tested/debugged:
 
 
-- node - an arduino based circuit that can shift in data from many inputs, shift out data to many outputs, drive servos through a pololu maestro board, and report all of this back to a host PC (running JMRI?) via an RS485 bus.  Support for DCC Reverser and CD discharge unit is also being considered.  This circuit will also provide 5 volt power to this ecosystem.
+- node - an arduino based circuit that can shift in data from many inputs, shift out data to many outputs, drive servos through a pololu maestro board, and report all of this back to a host PC (running JMRI?) via an RS485 bus.    This circuit will also provide 5 volt (and possibly 12 volts) power to this ecosystem.
 
 
 - 2 byte input - a circuit design based on 74hc165 shift registers to pull in data from inputs such as buttons, block occupancy detectors, etc.
+
+- 1 byte input - a 1 shift register version of the above.
 
 
 - 2 byte output - a circuit design based on 74hc595 shift registers to turn signals, indicators and other low current devices on or off.
@@ -36,6 +38,8 @@ All other designs are very early in their life and have not been tested/debugged
 - servo driver - an alternative to uring the expensive pololu maestro - under consideration
 
 
-- others as needs/inspirations arise.
+- others as needs/inspirations arise.  Support for DCC Reverser and CD discharge unit is also being considered.
 
 Arduino code will be provided as node functionality is implemented
+
+Linux-based driver code is also part of this repository and is in very early development.
