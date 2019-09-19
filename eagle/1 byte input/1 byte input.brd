@@ -96,6 +96,7 @@
 <text x="27.94" y="1.651" size="1.778" layer="25">GND</text>
 <text x="6.985" y="14.605" size="1.778" layer="25">5V</text>
 <text x="30.48" y="14.351" size="1.778" layer="25">5V</text>
+<text x="20.828" y="28.575" size="1.778" layer="27">4k7</text>
 </plain>
 <libraries>
 <library name="resistor" urn="urn:adsk.eagle:library:348">

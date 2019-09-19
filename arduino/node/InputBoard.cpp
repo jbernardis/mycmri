@@ -1,11 +1,12 @@
 #include <Arduino.h>
 
-#include "InputBoard.h"
+#include "inputboard.h"
 
+#define BITS_PER_CHIP 8
 #define PULSE_WIDTH_USEC   5
 
 InputBoard::InputBoard(int pinLatch, int pinClock, int pinClockEnable, int pinData) {
-    InputBoard(pinLatch, pinClock, pinClockEnable, pinData, 2);
+    InputBoard(pinLatch, pinClock, pinClockEnable, pinData, 16);
 }
 
 InputBoard::InputBoard(int pinLatch, int pinClock, int pinClockEnable, int pinData, int chips) {
@@ -14,7 +15,7 @@ InputBoard::InputBoard(int pinLatch, int pinClock, int pinClockEnable, int pinDa
     pClock = pinClock;
     pClockEnable = pinClockEnable;
     pData = pinData;
-    for (int i = 0; i<MAX_CHIPS; i++)
+    for (int i = 0; i<MAX_ICHIPS; i++)
         chipBits[i] = 0;
 }
 
@@ -24,15 +25,15 @@ void InputBoard::setup(void) {
     pinMode(pClock, OUTPUT);
     pinMode(pData, INPUT);
 
-    digitalWrite(pClock, LOW);
+	digitalWrite(pClock, LOW);
     digitalWrite(pLatch, HIGH);
     digitalWrite(pClockEnable, HIGH);
 }
 
 void InputBoard::retrieve(void) {
-    digitalWrite(pClockEnable, HIGH);
+	digitalWrite(pClockEnable, HIGH);
     digitalWrite(pLatch, LOW);
-    delayMicroseconds(PULSE_WIDTH_USEC);
+    delayMicroseconds(5);
     digitalWrite(pLatch, HIGH);
     digitalWrite(pClockEnable, LOW);
 

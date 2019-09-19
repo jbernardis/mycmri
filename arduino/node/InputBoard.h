@@ -1,8 +1,7 @@
 #ifndef INPUTBOARD_H
 #define INPUTBOARD_H
 
-#define MAX_CHIPS 8
-#define BITS_PER_CHIP 8
+#define MAX_ICHIPS 8
 
 class InputBoard {
     public:
@@ -16,7 +15,7 @@ class InputBoard {
 
     private:
         int nChips, pLatch, pClock, pClockEnable, pData;
-        int chipBits[MAX_CHIPS];
+        int chipBits[MAX_ICHIPS];
 };
 
 #endif
