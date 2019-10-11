@@ -14938,7 +14938,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <text x="93.98" y="55.88" size="2.54" layer="91">Bit Input</text>
 <text x="137.16" y="55.88" size="2.54" layer="91">Bit Output</text>
 <text x="91.44" y="76.2" size="2.54" layer="91">RS485 Interface</text>
-<text x="-22.86" y="99.06" size="2.54" layer="91">output 12v from power supply??</text>
 <text x="200.66" y="55.88" size="2.54" layer="91">LCD Connector</text>
 <text x="175.26" y="55.88" size="2.54" layer="91">Servo Driver</text>
 </plain>
