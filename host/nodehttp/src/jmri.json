@@ -1,0 +1,14 @@
+{
+	"port": 8000,
+	"nodes": [
+		{
+			"port": "/dev/ttyUSB0",
+			"baud": 115200,
+			"address": 0,
+			"inputs": 2,
+			"outputs": 2,
+			"servos": 2,
+			"name": "tower1"
+		}
+	]
+}

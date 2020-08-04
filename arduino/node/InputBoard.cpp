@@ -6,11 +6,7 @@
 #define PULSE_WIDTH_USEC   5
 
 InputBoard::InputBoard(int pinLatch, int pinClock, int pinClockEnable, int pinData) {
-    InputBoard(pinLatch, pinClock, pinClockEnable, pinData, 16);
-}
-
-InputBoard::InputBoard(int pinLatch, int pinClock, int pinClockEnable, int pinData, int chips) {
-    nChips = chips;
+    nChips = 0;
     pLatch = pinLatch;
     pClock = pinClock;
     pClockEnable = pinClockEnable;
@@ -19,7 +15,8 @@ InputBoard::InputBoard(int pinLatch, int pinClock, int pinClockEnable, int pinDa
         chipBits[i] = 0;
 }
 
-void InputBoard::setup(void) {
+void InputBoard::setup(int nchips) {
+    nChips = nchips;
     pinMode(pClockEnable, OUTPUT);
     pinMode(pLatch, OUTPUT);
     pinMode(pClock, OUTPUT);

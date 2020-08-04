@@ -5,9 +5,8 @@
 
 class InputBoard {
     public:
-        InputBoard(int, int, int, int, int);
         InputBoard(int, int, int, int);
-        void setup(void);
+        void setup(int);
         void retrieve(void);
         int getBit(int);
         int getChip(int);

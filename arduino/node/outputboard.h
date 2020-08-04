@@ -5,8 +5,8 @@
 
 class OutputBoard {
 	public:
-		OutputBoard(int pinLatch, int pinClock, int pinData, int chips);
-		void setup(void);
+		OutputBoard(int pinLatch, int pinClock, int pinData);
+		void setup(int nChips);
 		bool setBit(int bit, bool val=true);
 		bool clearBit(int bit);
 		bool toggleBit(int bit);

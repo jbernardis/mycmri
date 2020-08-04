@@ -6,22 +6,25 @@
 
 void myShiftOut(int, int, byte);
 
-OutputBoard::OutputBoard(int pinLatch, int pinClock, int pinData, int chips) {
+OutputBoard::OutputBoard(int pinLatch, int pinClock, int pinData) {
 	pLatch = pinLatch;
 	pClock = pinClock;
 	pData = pinData;
-	nChips = chips;
-	for (int i = 0; i<MAX_OCHIPS; i++)
-		chipBits[i] = 0;
+	nChips = 0;
 }
 
-void OutputBoard::setup(void) {
+void OutputBoard::setup(int chips) {
 	pinMode(pLatch, OUTPUT);
 	pinMode(pData, OUTPUT);  
 	pinMode(pClock, OUTPUT);
+	nChips = chips;
+	for (int i = 0; i<MAX_OCHIPS; i++)
+	    chipBits[i] = 0;
+
+	send();
 }
 
-bool OutputBoard::setBit(int bit, bool val=true) {
+bool OutputBoard::setBit(int bit, bool val) {
 	int cx = int(bit / BITS_PER_CHIP);
 	int bx = bit % BITS_PER_CHIP;
 	
@@ -76,7 +79,6 @@ void OutputBoard::send(void) {
 
 	for (int i = nChips-1; i >= 0; i--)
 		shiftByteOut(chipBits[i]);
-		//shiftOut(pData, pClock, MSBFIRST, chipBits[i]);
 
 	delay(50);
 
