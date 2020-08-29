@@ -1,21 +1,39 @@
+// Still To Do
+//
+// test with 485 chip instead of module
+// experiment with baud rate
+// experiment with softwareserial so tx/rx could be used for debugging
+// multiple nodes
+// button functionality 1) to identify, and 2) to step thru inputs, outputs, turnouts/servos
+// design final board using rj45 jacks
+// design board for rpi 
+
 #include <EEPROM.h>
+
 #include <SimpleTimer.h>
 SimpleTimer timer;
 
 #include "inputboard.h"
 #include "outputboard.h"
 #include "servodriver.h"
+#include "display.h"
+#include "rs485.h"
+#include "button.h"
 
-int _address = 0;
+int _address = 1;
 int _i_chips = 2;
 int _o_chips = 2;
 int _servo_bds = 2;
 
 int ibits;
-int obbits;
+int obits;
 int svbits;
 
 int limitsOffset = 0;
+
+#define BUSBAUD 115200
+#define BUSCONFIG SERIAL_8N2
+RS485 bus(2); // pin 2 for DE control
 
 // Instantiate the object for  Input Boards
 InputBoard inBd(8, 9, 11, 12);
@@ -25,6 +43,10 @@ OutputBoard outBd(5, 6, 7);
 
 // Instantiate the servo driver
 ServoDriver servo;
+
+Display disp;
+
+Button bLight(3, 50);
 
 int * inputValues;
 
@@ -47,6 +69,7 @@ enum {
 enum {
     OUTPUT_ON = '1',
     OUTPUT_OFF = '0',
+    OUTPUT_CURRENT = 'O',
     INPUT_DELTA = 'D',
     INPUT_CURRENT = 'C',
     TURNOUT_NORMAL = 'N',
@@ -72,19 +95,29 @@ int _tx_length = 0;
 char * _tx_buffer;
 int _cmd;
 
+int pulsesPerUpdate = 4;
+int pulsesTilUpdate = 0;
+
 void setup() {
 	ibits = _i_chips * 8;
-	obbits = _o_chips * 8;
+	obits = _o_chips * 8;
 	svbits = _servo_bds * 16;
+	disp.nodeConfig(_address, _i_chips = 2, _o_chips = 2, _servo_bds);
+	disp.begin();
+	disp.showConfig();
+
+	pinMode(LED_BUILTIN, OUTPUT);
 
 	int _tx_l1 = ibits * 2; // one for each input bit plus its index - worst case
-	int _tx_l2 = svbits * 3;
-	_tx_length = (_tx_l1 > _tx_l2? _tx_l1 : _tx_l2);
+	int _tx_l2 = svbits * 4; // normal, everse, initial, current for each servo
+	int _tx_l3 = obits;
+	
+	_tx_length = max(max(_tx_l1, _tx_l2), _tx_l3);
 
 	_rx_buffer = (char *) malloc(_rx_length);
 	_tx_buffer = (char *) malloc(_tx_length);
-	
-	Serial.begin(115200, SERIAL_8N2);
+
+	bus.begin(BUSBAUD, BUSCONFIG);
 	timer.setInterval(250, pulse);
 	
 	pinMode(LED_BUILTIN, OUTPUT);
@@ -104,6 +137,7 @@ void setup() {
 	for (int i=0; i<ibits; i++) {
 		*(inputValues+i) = inBd.getBit(i);
 	}
+	bLight.begin();
 }
 
 void loop() {
@@ -112,11 +146,22 @@ void loop() {
 
 void pulse() {
 	inBd.retrieve();
+
+	pulsesTilUpdate--;
+	if (pulsesTilUpdate <= 0) {
+		pulsesTilUpdate = pulsesPerUpdate;
+		disp.update();
+	}
+
+	if (bLight.pressed()) {
+		disp.message("light button");
+		disp.showConfig();
+	}
 }
 
 void serialEvent() {
-    while (Serial.available()) {
-    	if (process_char(Serial.read()))
+    while (bus.available()) {
+    	if (process_char(bus.read()))
     		return;
     }
 }
@@ -129,7 +174,9 @@ bool process_char(char c) {
 			int ox = (int) _rx_buffer[0];
 			outBd.setBit(ox);
 			outBd.send();
+			disp.outputOn(ox);
 		}
+		acknowledge();
 		break;
 
 	case OUTPUT_OFF:
@@ -137,15 +184,31 @@ bool process_char(char c) {
 			int ox = (int) _rx_buffer[0];
 			outBd.clearBit(ox);
 			outBd.send();
+			disp.outputOff(ox);
 		}
+		acknowledge();
 		break;
+    	
+    case OUTPUT_CURRENT:
+    	outputCurrent();
+    	break;
 		
     case TURNOUT_NORMAL:
-    case TURNOUT_REVERSE:
 		if (_rx_index > 0) {
 	    	int tx = (int) _rx_buffer[0];
-	    	servo.setNR(tx, cmd == TURNOUT_NORMAL? 1 : 0);
+	    	servo.setNR(tx, 1);
+			disp.turnoutNormal(tx);
 		}
+		acknowledge();
+		break;
+
+	case TURNOUT_REVERSE:
+		if (_rx_index > 0) {
+	    	int tx = (int) _rx_buffer[0];
+	    	servo.setNR(tx, 0);
+			disp.turnoutReverse(tx);
+		}
+		acknowledge();
 		break;
 
     case INPUT_DELTA:
@@ -158,6 +221,7 @@ bool process_char(char c) {
     	
     case IDENTIFY:
     	identify();
+    	disp.showConfig();
     	break;
     	
     case SERVO_ANGLE:
@@ -166,25 +230,13 @@ bool process_char(char c) {
 			int angle = (int) _rx_buffer[1];
 			
 			servo.setValue(sv, angle);
+			disp.servoAngle(sv, angle);
 		}
+		acknowledge();
 		break;
 
 	case GET_TURNOUT:
-		if (_rx_index > 0) {
-			int tx = (int) _rx_buffer[0];
-			int norm;
-			int rev;
-			int ini;
-
-			servo.getLimits(tx, &norm, &rev);
-			ini = servo.getInitialPosition(tx);
-			_tx_buffer[0] = tx;
-			_tx_buffer[1] = norm;
-			_tx_buffer[2] = rev;
-			_tx_buffer[3] = ini;
-			_tx_index = 4;
-			transmit(GET_TURNOUT);
-		}
+		servosConfig();
 		break;
 
     case SET_TURNOUT:
@@ -201,17 +253,18 @@ bool process_char(char c) {
 			servo.setLimits(sv, n, r);
 			servo.setInitialPosition(sv, i);
 		}
+		acknowledge();
     	break;
 
 	case STORE:
 		storeLimits();
+		disp.message("Limits stored");
+		acknowledge();
 		break;
 		
 	default:
 		return false;
 	}
-	
-	acknowledge();
    	return true;
 }
 
@@ -244,9 +297,6 @@ uint8_t decode(uint8_t c) {
 
         case DECODE_ADDR:
             if (c == 'A' + _address) {
-                _mode = DECODE_CMD;
-            }
-            else if (c == '0') {  //broadcast address
                 _mode = DECODE_CMD;
             }
             else if (c >= 'A') {
@@ -334,6 +384,35 @@ void inputCurrent() {
    	transmit(INPUT_CURRENT);
 }
 
+
+void outputCurrent() {
+	_tx_index = 0;
+	for (int i=0; i<obits; i++) {
+		int bv = outBd.getBit(i);
+		if (_tx_index < _tx_length) {
+			_tx_buffer[_tx_index++] = bv;
+		}
+	}
+   	transmit(OUTPUT_CURRENT);
+}
+
+void servosConfig() {
+	_tx_index = 0;
+	for (int i=0; i<svbits; i++) {
+		int norm, rev, ini, current;
+
+		servo.getConfig(i, &norm, &rev,  &ini, &current);
+		
+		if (_tx_index < _tx_length-3) {
+			_tx_buffer[_tx_index++] = norm;
+			_tx_buffer[_tx_index++] = rev;
+			_tx_buffer[_tx_index++] = ini;
+			_tx_buffer[_tx_index++] = current;
+		}
+	}
+	transmit(GET_TURNOUT);
+}
+
 void identify() {
 	_tx_buffer[0] = _address;
 	_tx_buffer[1] = _i_chips;
@@ -350,21 +429,21 @@ void acknowledge() {
 
 void transmit(char cmd) {
     delay(50); // tiny delay to let things recover
-    Serial.write(255);
-    Serial.write(255);
-    Serial.write(STX);
-    Serial.write(65 + _address);
-    Serial.write(cmd);
+    bus.write(255);
+    bus.write(255);
+    bus.write(STX);
+    bus.write(65 + _address);
+    bus.write(cmd);
     for (int i=0; i<_tx_index; i++)
     {
         if (_tx_buffer[i] == ETX)
-            Serial.write(ESC); 
+            bus.write(ESC); 
         if (_tx_buffer[i] == ESC)
-            Serial.write(ESC); 
-        Serial.write(_tx_buffer[i]);
+            bus.write(ESC); 
+        bus.write(_tx_buffer[i]);
     }
-    Serial.write(ETX);
-    Serial.flush();
+    bus.write(ETX);
+    bus.flush();
 }
 
 #define SIGBYTE0 't'
@@ -415,15 +494,10 @@ void storeLimits() {
     int n = servo.getNServos();
     EEPROM.update(offset++, n/256);
     EEPROM.update(offset++, n%256);
-    _tx_index = 0;
+
     for (int i = 0; i<n; i++) {
 		int norm, rev;
 		if (servo.getLimits(i, &norm, &rev)) {
-			if (_tx_index < _tx_length-2) {
-				_tx_buffer[_tx_index++] = norm;
-				_tx_buffer[_tx_index++] = rev;
-			}
-
 			EEPROM.update(offset++, norm/256);
 			EEPROM.update(offset++, norm%256);
 			EEPROM.update(offset++, rev/256);
@@ -432,12 +506,8 @@ void storeLimits() {
 
 		int pos = servo.getInitialPosition(i);
 		if (pos >= 0) {
-			if (_tx_index < _tx_length) {
-				_tx_buffer[_tx_index++] = pos;
-			}
 			EEPROM.update(offset++, pos/256);
 			EEPROM.update(offset++, pos%256);
 		}
     }
-    transmit(STORE);
 }

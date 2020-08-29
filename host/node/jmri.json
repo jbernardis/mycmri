@@ -1,10 +1,11 @@
 {
+	"ip": "192.168.1.210",
 	"port": 8000,
+	"tty": "/dev/ttyUSB0",
+	"baud": 115200,
 	"nodes": [
 		{
-			"port": "/dev/ttyUSB0",
-			"baud": 115200,
-			"address": 0,
+			"address": 1,
 			"inputs": 2,
 			"outputs": 2,
 			"servos": 2,

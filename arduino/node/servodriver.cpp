@@ -73,6 +73,18 @@ int ServoDriver::getInitialPosition(int servo) {
 	return(*(lInitial+servo));
 }
 
+bool ServoDriver::getConfig(int servo, int *normal, int *reverse, int *initial, int *current) {
+	if (servo < 0 || servo >= nServos)
+		return(false);
+	
+	*normal = *(lNormal+servo);
+	*reverse = *(lReverse+servo);
+	*initial = *(lInitial+servo);
+	*current = *(value+servo);
+	return(true);
+}
+
+
 bool ServoDriver::setValue(int servo, int val) {
 	if (servo < 0 || servo >= nServos)
 		return(false);

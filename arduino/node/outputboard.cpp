@@ -61,17 +61,20 @@ bool OutputBoard::toggleBit(int bit) {
 		return(setBit(bit, true));
 }
 
-bool OutputBoard::getBit(int bit) {
+int OutputBoard::getBit(int bit) {
 	int cx = int(bit / BITS_PER_CHIP);
 	int bx = bit % BITS_PER_CHIP;
 	
 	if (cx < 0 || cx >= nChips)
-		return(false);
+		return(-1);
 	if (bx < 0)
-		return(false);
+		return(-1);
 
     int cv = chipBits[cx] & (1 << bx);
-	return(cv != 0);
+    if (cv != 0)
+        return(1);
+    else
+        return(0);
 }
 
 void OutputBoard::send(void) {

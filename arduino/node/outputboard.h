@@ -10,7 +10,7 @@ class OutputBoard {
 		bool setBit(int bit, bool val=true);
 		bool clearBit(int bit);
 		bool toggleBit(int bit);
-		bool getBit(int bit);
+		int getBit(int bit);
 		void send(void);
 
 	private:

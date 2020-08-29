@@ -1,32 +1,29 @@
 import select
 import queue
 from threading import Thread
-from socketserver import ThreadingMixIn
+from socketserver import ThreadingMixIn 
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		app = self.server.getApp()
 
-		print("PATH(%s)" % self.path)
+		parsed_path = urlparse(self.path)
+		cmdDict = parse_qs(parsed_path.query)
+		
+		if "cmd" not in cmdDict or len(cmdDict["cmd"]) == 0:
+			self.send_response(400)
+			self.send_header("Content-type", "text/plain")
+			self.end_headers()
+			self.wfile.write(b'missing cmd parameter')
+			return
 
-		if '?' in self.path:
-			try:
-				cmd = self.path.split('?', 1)[1]
-			except:
-				cmd = None
-		else:
-			cmd = None
-
-		if cmd is None:
-			rc = 400
-			body = b'bad request'
-		else:
-			rc, b = app.dispatch(cmd)
-			try:
-				body = b.encode()
-			except:
-				body = b
+		rc, b = app.dispatch(cmdDict)
+		try:
+			body = b.encode()
+		except:
+			body = b
 
 		if rc == 200:
 			self.send_response(200)
@@ -57,8 +54,8 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
 		self.haltServer = True
 
 class JMRIHTTPServer:
-	def __init__(self, port, httpcmdq, httprespq):
-		self.server = ThreadingHTTPServer(("192.168.1.210", port), Handler)
+	def __init__(self, ip, port, httpcmdq, httprespq):
+		self.server = ThreadingHTTPServer((ip, port), Handler)
 		self.server.setApp(self)
 		self.httpcmdq = httpcmdq
 		self.httprespq = httprespq

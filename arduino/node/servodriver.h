@@ -19,6 +19,7 @@ class ServoDriver {
 		int getInitialPosition(int servo);
 		bool setValue(int servo, int val);
 		int getValue(int servo);
+		bool getConfig(int tx, int *norm, int *rev,  int *ini, int *current);
 		bool setNR(int servo, int NR);
 
 	private:
