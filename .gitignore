@@ -1,3 +1,7 @@
 *.b#*
 *.s#*
 *.zip
+*.sch-bak
+*.kicad_pcb-bak
+*.lib
+fp-info-cache

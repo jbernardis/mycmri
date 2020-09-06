@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "Arduino Pro Mini")(type KiCad)(uri "C:/Users/jeffb/Documents/kicad/libraries/Arduino Pro Mini.pretty")(options "")(descr ""))
+  (lib (name digikey-footprints)(type KiCad)(uri O:/kicad/libraries/digikey-kicad-library/digikey-footprints.pretty)(options "")(descr ""))
+)
