@@ -35,14 +35,6 @@ void Display::update(void) {
 
 void Display::clear(void) {
 	lcd.clear();
-	lcd.setBacklight(0);
-}
-
-void Display::setBacklight(bool flag) {
-	if (flag) 
-		lcd.setBacklight(255);
-	else
-		lcd.setBacklight(0);
 }
 
 void Display::showConfig(void) {
@@ -54,8 +46,7 @@ void Display::showConfig(void) {
 	sprintf(buffer, "I:%2d / O:%2d / S:%2d", nInputBytes, nOutputBytes, nServoDrivers);
 	lcd.print(buffer);
 
-	lcd.setBacklight(255);
-	clearTimer = 30;
+	clearTimer = 10;
 }
 
 void Display::outputOn(int ox) {
@@ -92,6 +83,5 @@ void Display::displayAndTime(void) {
 	lcd.setCursor(0, 3);
 	lcd.print(buffer);
 
-	if (clearTimer < 10) 
-		clearTimer = 10;	
+	clearTimer = 10;	
 }

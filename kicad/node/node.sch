@@ -263,10 +263,6 @@ Wire Wire Line
 	5150 2250 5150 2350
 Wire Wire Line
 	5150 3450 5150 3550
-Text GLabel 4250 2750 0    50   Input ~ 0
-RO
-Text GLabel 4250 3050 0    50   Input ~ 0
-DI
 $Comp
 L power:GND #PWR0117
 U 1 1 5D8C18F0
@@ -321,46 +317,8 @@ Wire Wire Line
 	5950 5200 6100 5200
 Wire Wire Line
 	5950 5300 6100 5300
-$Comp
-L Connector_Generic:Conn_01x02 J13
-U 1 1 5D8A0704
-P 4450 2400
-F 0 "J13" H 4530 2392 50  0000 L CNN
-F 1 "Decouple" H 4530 2301 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 4450 2400 50  0001 C CNN
-F 3 "~" H 4450 2400 50  0001 C CNN
-	1    4450 2400
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x02 J14
-U 1 1 5D8A0C96
-P 4550 3400
-F 0 "J14" H 4630 3392 50  0000 L CNN
-F 1 "Decouple" H 4630 3301 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 4550 3400 50  0001 C CNN
-F 3 "~" H 4550 3400 50  0001 C CNN
-	1    4550 3400
-	0    1    1    0   
-$EndComp
 Wire Wire Line
 	4250 2900 4600 2900
-Wire Wire Line
-	4250 2750 4450 2750
-Wire Wire Line
-	4450 2750 4450 2600
-Wire Wire Line
-	4550 2600 4550 2750
-Wire Wire Line
-	4550 2750 4750 2750
-Wire Wire Line
-	4250 3050 4450 3050
-Wire Wire Line
-	4450 3050 4450 3200
-Wire Wire Line
-	4550 3200 4550 3050
-Wire Wire Line
-	4550 3050 4750 3050
 $Comp
 L power:VCC #PWR0101
 U 1 1 5D8E42F8
@@ -783,4 +741,31 @@ Text Notes 7600 5800 2    50   ~ 0
 Servo
 Text Notes 8900 5750 2    50   ~ 0
 LCD
+$Comp
+L Connector_Generic:Conn_01x04 J20
+U 1 1 5F54A055
+P 3800 2950
+F 0 "J20" H 3880 2942 50  0000 L CNN
+F 1 "Servo" H 3880 2851 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 3800 2950 50  0001 C CNN
+F 3 "~" H 3800 2950 50  0001 C CNN
+	1    3800 2950
+	-1   0    0    1   
+$EndComp
+Text GLabel 4050 2650 1    50   Input ~ 0
+RO
+Text GLabel 4050 3150 3    50   Input ~ 0
+DI
+Wire Wire Line
+	4000 2750 4750 2750
+Wire Wire Line
+	4000 3050 4750 3050
+Wire Wire Line
+	4000 2950 4050 2950
+Wire Wire Line
+	4050 2950 4050 3150
+Wire Wire Line
+	4000 2850 4050 2850
+Wire Wire Line
+	4050 2850 4050 2650
 $EndSCHEMATC

@@ -46,7 +46,7 @@ ServoDriver servo;
 
 Display disp;
 
-Button bLight(3, 50);
+Button bID(3, 50);
 
 int * inputValues;
 
@@ -137,7 +137,7 @@ void setup() {
 	for (int i=0; i<ibits; i++) {
 		*(inputValues+i) = inBd.getBit(i);
 	}
-	bLight.begin();
+	bID.begin();
 }
 
 void loop() {
@@ -153,8 +153,7 @@ void pulse() {
 		disp.update();
 	}
 
-	if (bLight.pressed()) {
-		disp.message("light button");
+	if (bID.pressed()) {
 		disp.showConfig();
 	}
 }

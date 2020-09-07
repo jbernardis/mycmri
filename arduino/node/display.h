@@ -9,7 +9,6 @@ class Display {
 		void begin(void);
 		void update(void);
 		void clear(void);
-		void setBacklight(bool);
 		void showConfig();
 		void outputOn(int);
 		void outputOff(int);
