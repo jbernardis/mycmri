@@ -11,6 +11,7 @@ class OutputBoard {
 		bool clearBit(int bit);
 		bool toggleBit(int bit);
 		int getBit(int bit);
+		int getChip(int cx);
 		void send(void);
 
 	private:

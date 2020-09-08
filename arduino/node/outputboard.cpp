@@ -77,6 +77,13 @@ int OutputBoard::getBit(int bit) {
         return(0);
 }
 
+int OutputBoard::getChip(int cx) {
+	if (cx < 0 || cx >= nChips)
+		return(-1);
+
+    return (chipBits[cx]);
+}
+
 void OutputBoard::send(void) {
 	digitalWrite(pLatch, LOW);
 

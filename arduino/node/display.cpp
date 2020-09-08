@@ -23,14 +23,16 @@ void Display::begin(void) {
     clearTimer = 0;
 }
 
-void Display::update(void) {
+bool Display::update(void) {
 	if (clearTimer <= 0)
-		return;
+		return false;
 
 	clearTimer--;
 	if (clearTimer == 0) {
 		clear();
+		return true;
 	}
+	return false;
 }
 
 void Display::clear(void) {
@@ -38,50 +40,69 @@ void Display::clear(void) {
 }
 
 void Display::showConfig(void) {
-	lcd.setCursor(0, 0);
 	sprintf(buffer, "A:%2d", addr);
-	lcd.print(buffer);
+	displayOnLine(buffer, 0, 10);
 	
-	lcd.setCursor(0, 1);
 	sprintf(buffer, "I:%2d / O:%2d / S:%2d", nInputBytes, nOutputBytes, nServoDrivers);
-	lcd.print(buffer);
-
-	clearTimer = 10;
+	displayOnLine(buffer, 1, 10);
 }
 
 void Display::outputOn(int ox) {
-	sprintf(buffer, "Output ON: %2d     ", ox);
-	displayAndTime();
+	sprintf(buffer, "Output ON: %2d", ox);
+	displayOnLine(buffer, 3, 10);
 }
 
 void Display::outputOff(int ox) {
 	sprintf(buffer, "Output OFF: %2d    ", ox);
-	displayAndTime();
+	displayOnLine(buffer, 3, 10);
 }
 
 void Display::turnoutNormal(int tx) {
 	sprintf(buffer, "TO Normal: %2d     ", tx);
-	displayAndTime();
+	displayOnLine(buffer, 3, 10);
 }
 
 void Display::turnoutReverse(int tx) {
 	sprintf(buffer, "TO Reverse: %2d    ", tx);
-	displayAndTime();
+	displayOnLine(buffer, 3, 10);
 }
 	
 void Display::servoAngle(int sx, int angle){
 	sprintf(buffer, "Servo %2d angle %2d ", sx, angle);
-	displayAndTime();
+	displayOnLine(buffer, 3, 10);
 }
 
 void Display::message(const char * msg) {
-	strcpy(buffer, msg);
-	displayAndTime();
+	if (strlen(msg) > 20) {
+		strncpy(buffer, msg, 20);
+		buffer[20] = '\0';
+	}
+	else {
+		strcpy(buffer, msg);
+	}
+	displayOnLine(msg, 3, 10);
 }
 
-void Display::displayAndTime(void) {
-	lcd.setCursor(0, 3);
-	lcd.print(buffer);
+void Display::showInputChip(int cx, int cv) {
+	sprintf(buffer, "ICHIP %d: %02x", cx, cv);
+	displayOnLine(buffer, 0, 10);
+}
 
-	clearTimer = 10;	
+void Display::showOutputChip(int cx, int cv) {
+	sprintf(buffer, "OCHIP %d: %02x", cx, cv);
+	displayOnLine(buffer, 0, 10);
+}
+
+void Display::showServo(int sx, int norm, int rev, int ini, int curr) {
+	sprintf(buffer, "SV %d: n/r/i/c", sx);
+	displayOnLine(buffer, 0, 10);
+	sprintf(buffer, "%d/%d/%d/%d", norm, rev, ini, curr);
+	displayOnLine(buffer, 1, 10);
+}
+
+void Display::displayOnLine(char *s, int l, int t) {
+	sprintf(dbuf, "%-20s", s);
+	lcd.setCursor(0, l);
+	lcd.print(dbuf);
+	clearTimer = t;
 }

@@ -7,7 +7,7 @@ class Display {
 		Display(void);
 		void nodeConfig(int, int, int, int);
 		void begin(void);
-		void update(void);
+		bool update(void);
 		void clear(void);
 		void showConfig();
 		void outputOn(int);
@@ -16,15 +16,19 @@ class Display {
 		void turnoutReverse(int);
 		void servoAngle(int, int);
 		void message(const char *);
+		void showInputChip(int, int);
+		void showOutputChip(int, int);
+		void showServo(int, int, int, int, int);
 
 	private:
 		char buffer[21];
+		char dbuf[21];
 		int addr;
 		int nInputBytes;
 		int nOutputBytes;
 		int nServoDrivers;
 		int clearTimer;
-		void displayAndTime(void);
+		void displayOnLine(char *, int, int);
 };
 
 #endif

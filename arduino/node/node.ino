@@ -46,7 +46,13 @@ ServoDriver servo;
 
 Display disp;
 
-Button bID(3, 50);
+Button bINFO(3, 50);
+#define INFO_ADDRESS 0
+#define INFO_INPUTS 1
+#define INFO_OUTPUTS 2
+#define INFO_SERVOS 3
+int infoIndex;
+int infoMode = INFO_ADDRESS;
 
 int * inputValues;
 
@@ -119,8 +125,6 @@ void setup() {
 
 	bus.begin(BUSBAUD, BUSCONFIG);
 	timer.setInterval(250, pulse);
-	
-	pinMode(LED_BUILTIN, OUTPUT);
 
 	inputValues = (int *) malloc(ibits * sizeof(int));
 
@@ -137,7 +141,7 @@ void setup() {
 	for (int i=0; i<ibits; i++) {
 		*(inputValues+i) = inBd.getBit(i);
 	}
-	bID.begin();
+	bINFO.begin();
 }
 
 void loop() {
@@ -145,16 +149,70 @@ void loop() {
 }
 
 void pulse() {
+	int norm, rev, ini, curr;
+	
 	inBd.retrieve();
 
 	pulsesTilUpdate--;
 	if (pulsesTilUpdate <= 0) {
 		pulsesTilUpdate = pulsesPerUpdate;
-		disp.update();
+		if (disp.update()) {
+			infoMode = INFO_ADDRESS;
+			infoIndex = 0;
+		}
 	}
 
-	if (bID.pressed()) {
-		disp.showConfig();
+	if (bINFO.pressed()) {
+		switch (infoMode) {
+			case INFO_ADDRESS:
+				disp.showConfig();
+				infoMode = INFO_INPUTS;
+				infoIndex = 0;
+				break;
+
+			case INFO_INPUTS:
+				if (infoIndex < _i_chips) {
+					int cv = inBd.getChip(infoIndex);
+					disp.showInputChip(infoIndex, cv);
+					infoIndex++;
+				}
+				else {
+					infoMode = INFO_OUTPUTS;
+					infoIndex = 0;
+				}
+				break;
+
+			case INFO_OUTPUTS:
+				if (infoIndex < _o_chips) {
+					int cv = outBd.getChip(infoIndex);
+					disp.showOutputChip(infoIndex, cv);
+					infoIndex++;
+				}
+				else {
+					infoMode = INFO_SERVOS;
+					infoIndex = 0;
+				}
+				break;
+
+			case INFO_SERVOS:
+				if (infoIndex < svbits) {
+					if (servo.getConfig(infoIndex, &norm, &rev, &ini, &curr))
+						disp.showServo(infoIndex, norm, rev, ini, curr);
+					else
+						disp.message("ERR servo");
+					infoIndex++;
+					
+				}
+				else {
+					infoMode = INFO_ADDRESS;
+					infoIndex = 0;
+				}
+				break;
+
+			default:
+				disp.message("Unknown info state");
+				break;
+		}
 	}
 }
 
