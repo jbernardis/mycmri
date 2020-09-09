@@ -31,8 +31,12 @@ class JMRIMain:
 			print("Configuration file does not specify an ip address for http server")
 			exit(1)
 
-		if "port" not in self.cfg:
+		if "httpport" not in self.cfg:
 			print("Configuration file does not specify an port for http server")
+			exit(1)
+
+		if "socketport" not in self.cfg:
+			print("Configuration file does not specify an port for socket server")
 			exit(1)
 
 		if "tty" not in self.cfg:
@@ -93,9 +97,8 @@ class JMRIMain:
 				
 		self.triggerTable = TriggerTable(towers)
 			
-		self.startHttpServer(self.cfg["ip"], self.cfg["port"])
-		self.socketServer = SktServer(self.cfg["ip"], self.cfg["port"]+1)
-		print("Starting socket server at address: %s:%d" % (self.cfg["ip"], self.cfg["port"]+1))
+		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
+		self.socketServer = SktServer(self.cfg["ip"], self.cfg["socketport"])
 		self.socketServer.start()
 		
 	def process(self):
@@ -177,38 +180,57 @@ class JMRIMain:
 			return
 
 		if verb == "reverse":
-			tx = ord(parm[0])
-			print("  Reverse turnout %d:%d" % (addr, tx))
-			self.bus.setTurnoutReverse(addr, tx)
-			self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][1]
+			self.setTurnoutReverse(addr, parm[0])
 
 		elif verb == "normal":
-			tx = ord(parm[0])
-			print("  Normal turnout %d:%d" % (addr, tx))
-			self.bus.setTurnoutNormal(addr, tx)
-			self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][0]
+			self.setTurnoutNormal(addr, parm[0])
 			
 		elif verb == "outon":
-			ox = ord(parm[0])
-			print("  Output %d:%d ON" % (addr, ox))
-			self.bus.setOutputOn(addr, ox)
-			self.outputMaps[addr][ox] = 1
+			self.setOutputOn(addr, parm[0])
 			
 		elif verb == "outoff":
-			ox = ord(parm[0])
-			print("  Output %d:%d OFF" % (addr, ox))
-			self.bus.setOutputOff(addr, ox)
-			self.outputMaps[addr][ox] = 0
+			self.setOutputOff(addr, parm[0])
 			
 		elif verb == "angle":
-			sx = ord(parm[0])
-			ang = ord(parm[1])
-			print("  Servo %d:%d to angle %d" % (addr, sx, ang))
-			self.bus.setAngle(addr, sx, ang)
-			self.turnoutMaps[addr][sx][3] = ang
+			self.bus.setAngle(addr, parm[0], parm[1])
 			
 		else:
 			print("Unknown action verb: \"%s\".  Skipping action..." % verb)
+			
+	def setTurnoutNormal(self, addr, tx):
+		print("  Normal turnout %d:%d" % (addr, tx))
+		self.bus.setTurnoutNormal(addr, tx)
+		self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][0]
+
+	def setTurnoutReverse(self, addr, tx):
+		print("  Reverse turnout %d:%d" % (addr, tx))
+		self.bus.setTurnoutReverse(addr, tx)
+		self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][1]
+		
+	def setOutputOn(self, addr, ox):
+		print("  Output %d:%d ON" % (addr, ox))
+		self.bus.setOutputOn(addr, ox)
+		self.outputMaps[addr][ox] = 1
+		
+	def setOutputOff(self, addr, ox):
+		print("  Output %d:%d OFF" % (addr, ox))
+		self.bus.setOutputOff(addr, ox)
+		self.outputMaps[addr][ox] = 0
+
+	def setAngle(self, addr, sx, ang):
+		print("  Servo %d:%d to angle %d" % (addr, sx, ang))
+		self.bus.setAngle(addr, sx, ang)
+		self.turnoutMaps[addr][sx][3] = ang
+
+	def setTurnoutLimits(self, addr, tx, norm, rev, ini):		
+		self.bus.setTurnoutLimits(addr, tx, norm, rev, ini)
+		self.turnoutMaps[addr][tx][0] = norm
+		self.turnoutMaps[addr][tx][1] = rev
+		self.turnoutMaps[addr][tx][2] = ini
+		
+	def setConfig(self, addr, naddr, inputs, outputs, servos):
+		self.bus.setConfig(addr, naddr, inputs, outputs, servos)
+
 
 	def outputRcvd(self, addr, vals):
 		print("Output report for addr %d" % addr)
@@ -298,11 +320,9 @@ class JMRIMain:
 					continue
 
 				if verb == "reverse":
-					self.bus.setTurnoutReverse(addr, tx)
-					self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][1]
+					self.setTurnoutReverse(addr, tx)
 				else:
-					self.bus.setTurnoutNormal(addr, tx)
-					self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][0]
+					self.setTurnoutNormal(addr, tx)
 				self.HttpRespQ.put((200, b'command performed'))
 
 
@@ -339,8 +359,7 @@ class JMRIMain:
 					self.HttpRespQ.put((400, b'angle out of range'))
 					continue
 
-				self.bus.setAngle(addr, sx, ang)
-				self.turnoutMaps[addr][sx][3] = ang
+				self.setAngle(addr, sx, ang)
 				self.HttpRespQ.put((200, b'command performed'))
 
 			elif verb in ["outoff", "outon"]:
@@ -361,11 +380,9 @@ class JMRIMain:
 					continue
 
 				if verb == "outoff":
-					self.bus.setOutputOff(addr, ox)
-					self.outputMaps[addr][ox] = 0
+					self.setOutputOff(addr, ox)
 				else:
-					self.bus.setOutputOn(addr, ox)
-					self.outputMaps[addr][ox] = 1
+					self.setOutputOn(addr, ox)
 				self.HttpRespQ.put((200, b'command performed'))
 
 			elif verb in ["inputs", "outputs", "turnouts", "config"]:
@@ -450,10 +467,75 @@ class JMRIMain:
 					self.HttpRespQ.put((400, b'initial angle out of range'))
 					continue
 
-				self.bus.setTurnoutLimits(addr, tx, norm, rev, ini)
-				self.turnoutMaps[addr][tx][0] = norm
-				self.turnoutMaps[addr][tx][1] = rev
-				self.turnoutMaps[addr][tx][2] = ini
+				self.setTurnoutLimits(addr, tx, norm, rev, ini)
+				self.HttpRespQ.put((200, b'command performed'))
+
+			elif verb == "config":
+				try:
+					naddr = int(cmd["addr"][0])
+				except KeyError:
+					self.HttpRespQ.put((400, b'missing address'))
+					continue
+				except ValueError:
+					self.HttpRespQ.put((400, b'invalid value for node address'))
+					continue
+				except:
+					self.HttpRespQ.put((400, b'unexpected error retrieving address'))
+					continue
+
+				if naddr < 1 or naddr > 99:
+					self.HttpRespQ.put((400, b'address out of range'))
+					continue
+
+				try:
+					inputs = int(cmd["inputs"][0])
+				except KeyError:
+					self.HttpRespQ.put((400, b'missing inputs'))
+					continue
+				except ValueError:
+					self.HttpRespQ.put((400, b'invalid value for inputs'))
+					continue
+				except:
+					self.HttpRespQ.put((400, b'unexpected error retrieving inputs'))
+					continue
+
+				if inputs < 0 or inputs > 7:
+					self.HttpRespQ.put((400, b'inputs out of range'))
+					continue
+
+				try:
+					outputs = int(cmd["outputs"][0])
+				except KeyError:
+					self.HttpRespQ.put((400, b'missing outputs'))
+					continue
+				except ValueError:
+					self.HttpRespQ.put((400, b'invalid value for outputs'))
+					continue
+				except:
+					self.HttpRespQ.put((400, b'unexpected error retrieving outputs'))
+					continue
+
+				if outputs < 0 or outputs > 7:
+					self.HttpRespQ.put((400, b'outputs out of range'))
+					continue
+
+				try:
+					servos = int(cmd["servos"][0])
+				except KeyError:
+					self.HttpRespQ.put((400, b'missing servos'))
+					continue
+				except ValueError:
+					self.HttpRespQ.put((400, b'invalid value for servos'))
+					continue
+				except:
+					self.HttpRespQ.put((400, b'unexpected error retrieving servos'))
+					continue
+
+				if servos < 0 or servos > 7:
+					self.HttpRespQ.put((400, b'servos out of range'))
+					continue
+
+				self.setConfig(addr, naddr, inputs, outputs, servos)
 				self.HttpRespQ.put((200, b'command performed'))
 
 			elif verb == "towers":

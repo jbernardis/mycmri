@@ -85,6 +85,7 @@ enum {
     SET_TURNOUT = 'T',
     GET_TURNOUT = 'G',
     ACKNOWLEDGE = '!',
+    CONFIG = 'F',
     STORE = 'W',
 	NOOP = 0x00, // do nothing
 	STX  = 0x02, // start byte
@@ -104,11 +105,14 @@ int _cmd;
 int pulsesPerUpdate = 4;
 int pulsesTilUpdate = 0;
 
+void(* resetFunc) (void) = 0;
+
 void setup() {
+	loadConfig();
 	ibits = _i_chips * 8;
 	obits = _o_chips * 8;
 	svbits = _servo_bds * 16;
-	disp.nodeConfig(_address, _i_chips = 2, _o_chips = 2, _servo_bds);
+	disp.nodeConfig(_address, _i_chips, _o_chips, _servo_bds);
 	disp.begin();
 	disp.showConfig();
 
@@ -313,8 +317,20 @@ bool process_char(char c) {
 		acknowledge();
     	break;
 
+    case CONFIG:
+    	if (_rx_index > 3) {
+    		_address = (int) _rx_buffer[0];
+    		_i_chips = (int) _rx_buffer[1];
+    		_o_chips = (int) _rx_buffer[2];
+ 			_servo_bds = (int) _rx_buffer[3];
+ 			storeConfig();
+ 			resetFunc();
+ 		}
+		acknowledge();
+    	break;
+
 	case STORE:
-		storeLimits();
+		storeConfig();
 		disp.message("Limits stored");
 		acknowledge();
 		break;
@@ -505,10 +521,11 @@ void transmit(char cmd) {
 
 #define SIGBYTE0 't'
 #define SIGBYTE1 'c'
-#define GENERATION 2
+#define GENERATION 4
 
-void loadLimits() {
-    int offset = 0;
+void loadConfig() {
+	limitsOffset = -1;
+	int offset = 0;
     if (EEPROM.read(offset++) != SIGBYTE0) {
         return;
     }
@@ -518,11 +535,27 @@ void loadLimits() {
     if (EEPROM.read(offset++) != GENERATION) {
         return;
     }
+
+    _address = EEPROM.read(offset++);
+    _i_chips = EEPROM.read(offset++);
+    _o_chips = EEPROM.read(offset++);
+    _servo_bds = EEPROM.read(offset++);
+    limitsOffset = offset;	
+}
+
+void loadLimits() {
+	if (limitsOffset < 0)
+		return;
+		
+    int offset = limitsOffset;
 	
 	int nh = EEPROM.read(offset++);
 	int nl = EEPROM.read(offset++);
 	
 	int nlimits = nh * 256 + nl;
+	int nservos = servo.getNServos();
+	if (nservos < nlimits)
+		nlimits = nservos;
 	
 	for (int i=0; i<nlimits; i++) {
 		nh = EEPROM.read(offset++);
@@ -542,11 +575,16 @@ void loadLimits() {
 	}  
 }
 
-void storeLimits() {
+void storeConfig() {
     int offset = 0;
     EEPROM.update(offset++, SIGBYTE0);
     EEPROM.update(offset++, SIGBYTE1);
     EEPROM.update(offset++, GENERATION);
+
+    EEPROM.update(offset++, _address);
+    EEPROM.update(offset++, _i_chips);
+    EEPROM.update(offset++, _o_chips);
+    EEPROM.update(offset++, _servo_bds);
 
     int n = servo.getNServos();
     EEPROM.update(offset++, n/256);

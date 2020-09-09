@@ -7,7 +7,7 @@ from nodesendthreadb import NodeSendThread
 from nodeexceptions import NodeException
 
 from nodetypes import OUTPUT_ON, OUTPUT_OFF, OUTPUT_CURRENT, INPUT_DELTA, INPUT_CURRENT, TURNOUT_NORMAL, \
-		TURNOUT_REVERSE, IDENTIFY, SERVO_ANGLE, SET_TURNOUT, GET_TURNOUT, STORE
+		TURNOUT_REVERSE, IDENTIFY, SERVO_ANGLE, SET_TURNOUT, GET_TURNOUT, STORE, CONFIG
 
 class Bus:
 	def __init__(self):
@@ -138,6 +138,11 @@ class Bus:
 			
 		cmd = SET_TURNOUT + bytes([tx & 0xff, norm & 0xff, rev & 0xff, ival & 0xff])
 		self.cmdQ.put((addr, cmd))
+		
+	def setConfig(self, addr, naddr, inputs, outputs, servos):
+		cmd = CONFIG + bytes([naddr & 0xff, inputs & 0xff, outputs & 0xff, servos & 0xff])
+		self.cmdQ.put((addr, cmd))
+
 		
 	def store(self, addr):
 		self.cmdQ.put((addr, STORE))
