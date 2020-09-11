@@ -68,20 +68,20 @@ enum {
 };
 
 enum {
-    OUTPUT_ON = '1',
-    OUTPUT_OFF = '0',
-    OUTPUT_CURRENT = 'O',
-    INPUT_DELTA = 'D',
-    INPUT_CURRENT = 'C',
-    TURNOUT_NORMAL = 'N',
-    TURNOUT_REVERSE = 'R',
-    IDENTIFY = 'Y',
-    SERVO_ANGLE = 'A',
-    SET_TURNOUT = 'T',
-    GET_TURNOUT = 'G',
-    ACKNOWLEDGE = '!',
-    CONFIG = 'F',
-    STORE = 'W',
+	OUTPUT_ON = '1',
+	OUTPUT_OFF = '0',
+	OUTPUT_CURRENT = 'O',
+	INPUT_DELTA = 'D',
+	INPUT_CURRENT = 'C',
+	TURNOUT_NORMAL = 'N',
+	TURNOUT_REVERSE = 'R',
+	IDENTIFY = 'Y',
+	SERVO_ANGLE = 'A',
+	SET_TURNOUT = 'T',
+	GET_TURNOUT = 'G',
+	ACKNOWLEDGE = '!',
+	CONFIG = 'F',
+	STORE = 'W',
 	NOOP = 0x00, // do nothing
 	STX  = 0x02, // start byte
 	ETX  = 0x03, // end byte
@@ -150,14 +150,7 @@ void loop() {
 void pulse() {
 	int norm, rev, ini, curr;
 
-	if (pulsesTilUpdate == pulsesPerUpdate) {
-		unsigned long then = micros();
-		inBd.retrieve();
-		unsigned long now = micros();
-		char buf[21];
-		sprintf(buf, "%d micros", now-then);
-		disp.message(buf);
-	}
+	inBd.retrieve();
 
 	pulsesTilUpdate--;
 	if (pulsesTilUpdate <= 0) {
