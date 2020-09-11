@@ -22,6 +22,7 @@ class JMRIMain:
 		self.outputMaps = {}
 		self.turnoutMaps = {}
 		self.nodeCfg = {}
+		self.createSocketServer = True
 		towers = []
 		if "nodes" not in self.cfg:
 			print("Configuration file does not have any nodes defined")
@@ -36,8 +37,8 @@ class JMRIMain:
 			exit(1)
 
 		if "socketport" not in self.cfg:
-			print("Configuration file does not specify an port for socket server")
-			exit(1)
+			print("Configuration file does not define socket port. No server will be created.")
+			self.createSocketServer = False
 
 		if "tty" not in self.cfg:
 			print("Configuration file does not specify a tty device for rs485 connection")
@@ -98,8 +99,9 @@ class JMRIMain:
 		self.triggerTable = TriggerTable(towers)
 			
 		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
-		self.socketServer = SktServer(self.cfg["ip"], self.cfg["socketport"])
-		self.socketServer.start()
+		if self.createSocketServer:
+			self.socketServer = SktServer(self.cfg["ip"], self.cfg["socketport"])
+			self.socketServer.start()
 		
 	def process(self):
 		self.HTTPProcess()
@@ -129,7 +131,8 @@ class JMRIMain:
 		imap = self.inputMaps[addr]
 		
 		s = json.dumps({"addr": addr, "values": vals, "delta": delta})
-		self.socketServer.sendToAll(s.encode())
+		if self.createSocketServer:
+			self.socketServer.sendToAll(s.encode())
 		
 		for inp, val in vals:
 			imap[inp] = val == 1

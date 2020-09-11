@@ -86,11 +86,13 @@ void Display::message(const char * msg) {
 void Display::showInputChip(int cx, int cv) {
 	sprintf(buffer, "ICHIP %d: %02x", cx, cv);
 	displayOnLine(buffer, 0, 10);
+	displayOnLine("", 1, 10);
 }
 
 void Display::showOutputChip(int cx, int cv) {
 	sprintf(buffer, "OCHIP %d: %02x", cx, cv);
 	displayOnLine(buffer, 0, 10);
+	displayOnLine("", 1, 10);
 }
 
 void Display::showServo(int sx, int norm, int rev, int ini, int curr) {

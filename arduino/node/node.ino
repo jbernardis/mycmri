@@ -1,11 +1,6 @@
 // Still To Do
 //
-// test with 485 chip instead of module
-// experiment with baud rate
-// experiment with softwareserial so tx/rx could be used for debugging
 // multiple nodes
-// button functionality 1) to identify, and 2) to step thru inputs, outputs, turnouts/servos
-// design final board using rj45 jacks
 // design board for rpi 
 
 #include <EEPROM.h>
@@ -154,8 +149,15 @@ void loop() {
 
 void pulse() {
 	int norm, rev, ini, curr;
-	
-	inBd.retrieve();
+
+	if (pulsesTilUpdate == pulsesPerUpdate) {
+		unsigned long then = micros();
+		inBd.retrieve();
+		unsigned long now = micros();
+		char buf[21];
+		sprintf(buf, "%d micros", now-then);
+		disp.message(buf);
+	}
 
 	pulsesTilUpdate--;
 	if (pulsesTilUpdate <= 0) {
@@ -175,39 +177,50 @@ void pulse() {
 				break;
 
 			case INFO_INPUTS:
-				if (infoIndex < _i_chips) {
+				if (_i_chips == 0) {
+					disp.message("No in chips");
+				}
+				else {
 					int cv = inBd.getChip(infoIndex);
 					disp.showInputChip(infoIndex, cv);
 					infoIndex++;
 				}
-				else {
+				
+				if (infoIndex >= _i_chips) {
 					infoMode = INFO_OUTPUTS;
 					infoIndex = 0;
 				}
 				break;
 
 			case INFO_OUTPUTS:
-				if (infoIndex < _o_chips) {
+				if (_o_chips == 0) {
+					disp.message("No out chips");
+				}
+				else {
 					int cv = outBd.getChip(infoIndex);
 					disp.showOutputChip(infoIndex, cv);
 					infoIndex++;
 				}
-				else {
+				
+				if (infoIndex >= _o_chips) {
 					infoMode = INFO_SERVOS;
 					infoIndex = 0;
 				}
 				break;
 
 			case INFO_SERVOS:
-				if (infoIndex < svbits) {
+				if (svbits == 0) {
+					disp.message("No servo drivers");
+				}
+				else {
 					if (servo.getConfig(infoIndex, &norm, &rev, &ini, &curr))
 						disp.showServo(infoIndex, norm, rev, ini, curr);
 					else
 						disp.message("ERR servo");
-					infoIndex++;
-					
+					infoIndex++;				
 				}
-				else {
+				
+				if (infoIndex >= svbits) {
 					infoMode = INFO_ADDRESS;
 					infoIndex = 0;
 				}
