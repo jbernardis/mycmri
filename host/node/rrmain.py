@@ -594,8 +594,9 @@ class JMRIMain:
 		print("Stopping HTTP Server...")
 		self.stopHttpServer()
 		
-		print("Stopping socket server...")
-		self.socketServer.kill()
+                if self.createSocketServer:
+		    print("Stopping socket server...")
+		    self.socketServer.kill()
 
 		print("disconnecting nodes...")
 		self.disconnectNodes()

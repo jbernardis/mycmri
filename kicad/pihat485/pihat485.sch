@@ -1,0 +1,296 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_02x07_Odd_Even J1
+U 1 1 5F5AE539
+P 5500 2850
+F 0 "J1" H 5550 3367 50  0000 C CNN
+F 1 "Conn_02x07_Odd_Even" H 5550 3276 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x07_P2.54mm_Vertical" H 5500 2850 50  0001 C CNN
+F 3 "~" H 5500 2850 50  0001 C CNN
+	1    5500 2850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Interface_UART:MAX485E U1
+U 1 1 5F5B08C0
+P 5600 4300
+F 0 "U1" H 5850 3900 50  0000 C CNN
+F 1 "MAX485E" H 5850 4800 50  0000 C CNN
+F 2 "Package_DIP:DIP-8_W7.62mm" H 5600 3600 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/MAX1487E-MAX491E.pdf" H 5600 4350 50  0001 C CNN
+	1    5600 4300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:RJ45 J3
+U 1 1 5F5B2D86
+P 7650 2700
+F 0 "J3" H 7707 3367 50  0000 C CNN
+F 1 "RJ45" H 7707 3276 50  0000 C CNN
+F 2 "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal" V 7650 2725 50  0001 C CNN
+F 3 "~" V 7650 2725 50  0001 C CNN
+	1    7650 2700
+	-1   0    0    1   
+$EndComp
+$Comp
+L Connector:RJ45 J4
+U 1 1 5F5B4415
+P 7650 4250
+F 0 "J4" H 7707 4917 50  0000 C CNN
+F 1 "RJ45" H 7707 4826 50  0000 C CNN
+F 2 "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal" V 7650 4275 50  0001 C CNN
+F 3 "~" V 7650 4275 50  0001 C CNN
+	1    7650 4250
+	-1   0    0    1   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J2
+U 1 1 5F5B53BB
+P 7000 1800
+F 0 "J2" H 7080 1792 50  0000 L CNN
+F 1 "Conn_01x02" H 7080 1701 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7000 1800 50  0001 C CNN
+F 3 "~" H 7000 1800 50  0001 C CNN
+	1    7000 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 5F5B6046
+P 6550 1900
+F 0 "R1" H 6620 1946 50  0000 L CNN
+F 1 "120R" V 6550 1800 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" V 6480 1900 50  0001 C CNN
+F 3 "~" H 6550 1900 50  0001 C CNN
+	1    6550 1900
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	7250 2500 6950 2500
+Wire Wire Line
+	7250 2400 6950 2400
+Wire Wire Line
+	6950 2400 6950 2500
+$Comp
+L power:GND #PWR0101
+U 1 1 5F5C02B7
+P 6950 2500
+F 0 "#PWR0101" H 6950 2250 50  0001 C CNN
+F 1 "GND" H 6955 2327 50  0000 C CNN
+F 2 "" H 6950 2500 50  0001 C CNN
+F 3 "" H 6950 2500 50  0001 C CNN
+	1    6950 2500
+	1    0    0    -1  
+$EndComp
+Connection ~ 6950 2500
+Wire Wire Line
+	7250 4050 6950 4050
+Wire Wire Line
+	7250 3950 6950 3950
+Wire Wire Line
+	6950 3950 6950 4050
+$Comp
+L power:GND #PWR0102
+U 1 1 5F5C0C02
+P 6950 4050
+F 0 "#PWR0102" H 6950 3800 50  0001 C CNN
+F 1 "GND" H 6955 3877 50  0000 C CNN
+F 2 "" H 6950 4050 50  0001 C CNN
+F 3 "" H 6950 4050 50  0001 C CNN
+	1    6950 4050
+	1    0    0    -1  
+$EndComp
+Connection ~ 6950 4050
+Wire Wire Line
+	7250 2700 7150 2700
+Wire Wire Line
+	7250 2800 7150 2800
+Wire Wire Line
+	7250 4250 7150 4250
+Wire Wire Line
+	7250 4350 7150 4350
+Text GLabel 7150 2700 0    50   Input ~ 0
+A
+Text GLabel 7150 4250 0    50   Input ~ 0
+A
+Text GLabel 7150 2800 0    50   Input ~ 0
+B
+Text GLabel 7150 4350 0    50   Input ~ 0
+B
+NoConn ~ 7250 2600
+NoConn ~ 7250 2900
+NoConn ~ 7250 3000
+NoConn ~ 7250 3100
+NoConn ~ 7250 4150
+NoConn ~ 7250 4450
+NoConn ~ 7250 4550
+NoConn ~ 7250 4650
+Wire Wire Line
+	6000 4200 6100 4200
+Wire Wire Line
+	6000 4500 6100 4500
+Text GLabel 6100 4500 2    50   Input ~ 0
+A
+Text GLabel 6100 4200 2    50   Input ~ 0
+B
+$Comp
+L power:VCC #PWR0103
+U 1 1 5F5C5301
+P 4800 3050
+F 0 "#PWR0103" H 4800 2900 50  0001 C CNN
+F 1 "VCC" H 4815 3223 50  0000 C CNN
+F 2 "" H 4800 3050 50  0001 C CNN
+F 3 "" H 4800 3050 50  0001 C CNN
+	1    4800 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 5F5C5CE4
+P 4800 2550
+F 0 "#FLG0101" H 4800 2625 50  0001 C CNN
+F 1 "PWR_FLAG" V 4800 2677 50  0000 L CNN
+F 2 "" H 4800 2550 50  0001 C CNN
+F 3 "~" H 4800 2550 50  0001 C CNN
+	1    4800 2550
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG0102
+U 1 1 5F5C659C
+P 4800 3050
+F 0 "#FLG0102" H 4800 3125 50  0001 C CNN
+F 1 "PWR_FLAG" V 4800 3177 50  0000 L CNN
+F 2 "" H 4800 3050 50  0001 C CNN
+F 3 "~" H 4800 3050 50  0001 C CNN
+	1    4800 3050
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	5800 2750 6150 2750
+Text GLabel 5250 2850 0    50   Input ~ 0
+DI
+Text GLabel 5250 2750 0    50   Input ~ 0
+RO
+Text GLabel 5800 2650 2    50   Input ~ 0
+DE
+Text GLabel 5800 2550 2    50   Input ~ 0
+RE
+Wire Wire Line
+	5000 4200 5200 4200
+Wire Wire Line
+	5000 4300 5200 4300
+Wire Wire Line
+	5000 4400 5200 4400
+Wire Wire Line
+	5000 4500 5200 4500
+Text GLabel 5000 4300 0    50   Input ~ 0
+RE
+Text GLabel 5000 4400 0    50   Input ~ 0
+DE
+Text GLabel 5000 4500 0    50   Input ~ 0
+DI
+Text GLabel 5000 4200 0    50   Input ~ 0
+RO
+Wire Wire Line
+	5600 3800 5600 3750
+Wire Wire Line
+	5600 4900 5600 4950
+$Comp
+L power:GND #PWR0105
+U 1 1 5F5CEAC4
+P 5600 4950
+F 0 "#PWR0105" H 5600 4700 50  0001 C CNN
+F 1 "GND" H 5605 4777 50  0000 C CNN
+F 2 "" H 5600 4950 50  0001 C CNN
+F 3 "" H 5600 4950 50  0001 C CNN
+	1    5600 4950
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:VCC #PWR0106
+U 1 1 5F5CEF39
+P 5600 3750
+F 0 "#PWR0106" H 5600 3600 50  0001 C CNN
+F 1 "VCC" H 5615 3923 50  0000 C CNN
+F 2 "" H 5600 3750 50  0001 C CNN
+F 3 "" H 5600 3750 50  0001 C CNN
+	1    5600 3750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6800 1900 6700 1900
+Wire Wire Line
+	6400 1900 6300 1900
+Wire Wire Line
+	6300 1800 6800 1800
+Text GLabel 6300 1800 0    50   Input ~ 0
+A
+Text GLabel 6300 1900 0    50   Input ~ 0
+B
+Connection ~ 4800 3050
+$Comp
+L power:GND #PWR?
+U 1 1 5F5DD063
+P 4800 2550
+F 0 "#PWR?" H 4800 2300 50  0001 C CNN
+F 1 "GND" H 4805 2377 50  0000 C CNN
+F 2 "" H 4800 2550 50  0001 C CNN
+F 3 "" H 4800 2550 50  0001 C CNN
+	1    4800 2550
+	1    0    0    -1  
+$EndComp
+Connection ~ 4800 2550
+$Comp
+L power:GND #PWR?
+U 1 1 5F5DDC92
+P 6150 2750
+F 0 "#PWR?" H 6150 2500 50  0001 C CNN
+F 1 "GND" H 6155 2577 50  0000 C CNN
+F 2 "" H 6150 2750 50  0001 C CNN
+F 3 "" H 6150 2750 50  0001 C CNN
+	1    6150 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4800 2550 4950 2550
+Wire Wire Line
+	4800 3050 4950 3050
+Wire Wire Line
+	4950 2950 4950 2550
+Wire Wire Line
+	4950 2950 5300 2950
+Connection ~ 4950 2550
+Wire Wire Line
+	4950 2550 5300 2550
+Wire Wire Line
+	4950 3150 4950 3050
+Wire Wire Line
+	4950 3150 5300 3150
+Connection ~ 4950 3050
+Wire Wire Line
+	4950 3050 5300 3050
+Wire Wire Line
+	5300 2750 5250 2750
+Wire Wire Line
+	5300 2850 5250 2850
+NoConn ~ 5300 2650
+NoConn ~ 5800 2850
+NoConn ~ 5800 2950
+NoConn ~ 5800 3050
+NoConn ~ 5800 3150
+$EndSCHEMATC
