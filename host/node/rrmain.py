@@ -388,14 +388,14 @@ class JMRIMain:
 					self.setOutputOn(addr, ox)
 				self.HttpRespQ.put((200, b'command performed'))
 
-			elif verb in ["inputs", "outputs", "turnouts", "config"]:
+			elif verb in ["inputs", "outputs", "turnouts", "getconfig"]:
 				if verb == "inputs":
 					resp = str(self.inputMaps[addr])
 				elif verb == "outputs":
 					resp = str(self.outputMaps[addr])
 				elif verb == "turnouts":
 					resp = str(self.turnoutMaps[addr])
-				else: # verb == "config"
+				else: # verb == "getconfig"
 					resp = str(self.nodeCfg[addr])
 					
 				self.HttpRespQ.put((200, resp.encode()))
@@ -473,21 +473,21 @@ class JMRIMain:
 				self.setTurnoutLimits(addr, tx, norm, rev, ini)
 				self.HttpRespQ.put((200, b'command performed'))
 
-			elif verb == "config":
+			elif verb == "setconfig":
 				try:
-					naddr = int(cmd["addr"][0])
+					naddr = int(cmd["naddr"][0])
 				except KeyError:
-					self.HttpRespQ.put((400, b'missing address'))
+					self.HttpRespQ.put((400, b'missing new address'))
 					continue
 				except ValueError:
-					self.HttpRespQ.put((400, b'invalid value for node address'))
+					self.HttpRespQ.put((400, b'invalid value for new node address'))
 					continue
 				except:
-					self.HttpRespQ.put((400, b'unexpected error retrieving address'))
+					self.HttpRespQ.put((400, b'unexpected error retrieving new address'))
 					continue
 
 				if naddr < 1 or naddr > 99:
-					self.HttpRespQ.put((400, b'address out of range'))
+					self.HttpRespQ.put((400, b'new address out of range'))
 					continue
 
 				try:
