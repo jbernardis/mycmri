@@ -117,7 +117,7 @@ class JMRIMain:
 		# things to do the first time through		
 		if not addr in self.inputMaps:
 			self.inputMaps[addr] = [True] * (inp*8)		
-			self.outputMaps[addr] = [0] * (outp*8)
+			self.outputMaps[addr] = [False] * (outp*8)
 			self.turnoutMaps[addr] = [[0, 0, 0, 0]] * (servo*16)
 			
 			nm = self.nodeCfg[addr][0]
@@ -213,12 +213,12 @@ class JMRIMain:
 	def setOutputOn(self, addr, ox):
 		print("  Output %d:%d ON" % (addr, ox))
 		self.bus.setOutputOn(addr, ox)
-		self.outputMaps[addr][ox] = 1
+		self.outputMaps[addr][ox] = True
 		
 	def setOutputOff(self, addr, ox):
 		print("  Output %d:%d OFF" % (addr, ox))
 		self.bus.setOutputOff(addr, ox)
-		self.outputMaps[addr][ox] = 0
+		self.outputMaps[addr][ox] = False
 
 	def setAngle(self, addr, sx, ang):
 		print("  Servo %d:%d to angle %d" % (addr, sx, ang))
@@ -239,8 +239,8 @@ class JMRIMain:
 		print("Output report for addr %d" % addr)
 		omap = self.outputMaps[addr]
 		for i in range(len(vals)):
-			omap[i] = vals[i]
-			print("    %2d: %d" % (i, vals[i]), end="")
+			omap[i] = vals[i]==1
+			print("    %2d: %s" % (i, vals[i]==1), end="")
 			if (i+1) % 4 == 0:
 				print("")
 		print("")
