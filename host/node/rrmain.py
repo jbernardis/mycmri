@@ -130,8 +130,8 @@ class JMRIMain:
 	def inputRcvd(self, addr, vals, delta):
 		imap = self.inputMaps[addr]
 		
-		s = json.dumps({"addr": addr, "values": vals, "delta": delta})
-		if self.createSocketServer:
+		if len(vals) > 0 and self.createSocketServer:
+			s = json.dumps({"addr": addr, "values": vals, "delta": delta})
 			self.socketServer.sendToAll(s.encode())
 		
 		for inp, val in vals:
@@ -142,7 +142,7 @@ class JMRIMain:
 			
 			i = 0
 			for inp, val in vals:
-				print("    %2d: %d" % (inp, val), end="")
+				print("    %2d: %s" % (inp, str(val==1)), end="")
 				i += 1
 				if i % 4 == 0:
 					print("")
@@ -159,7 +159,7 @@ class JMRIMain:
 			i = 0
 			for inp, val in vals:
 				self.triggerTable.updateInput(addr, inp, val == 1)
-				print("    %2d: %d" % (inp, val), end="")
+				print("    %2d: %s" % (inp, str(val==1)), end="")
 				i += 1
 				if i % 4 == 0:
 					print("")
@@ -594,9 +594,9 @@ class JMRIMain:
 		print("Stopping HTTP Server...")
 		self.stopHttpServer()
 		
-                if self.createSocketServer:
-		    print("Stopping socket server...")
-		    self.socketServer.kill()
+		if self.createSocketServer:	
+			print("Stopping socket server...")
+			self.socketServer.kill()
 
 		print("disconnecting nodes...")
 		self.disconnectNodes()
