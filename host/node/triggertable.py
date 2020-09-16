@@ -4,10 +4,10 @@ class TriggerTable:
 	def __init__(self, towers):
 		self.towers = towers
 		self.nBytes = {}
-		self.inputMaps = {}
+		self.inputsMap = {}
 		for t in towers:
 			self.nBytes[t[0]] = t[1]
-			self.inputMaps[t[0]] = [0xff]*t[1]
+			self.inputsMap[t[0]] = [0xff]*t[1]
 			
 		self.rules = []
 		self.ruleIndex = {}
@@ -30,9 +30,9 @@ class TriggerTable:
 		mask = 1 << bitIndex
 
 		if ival:
-			self.inputMaps[addr][byteIndex] |= mask
+			self.inputsMap[addr][byteIndex] |= mask
 		else:
-			self.inputMaps[addr][byteIndex] ^= mask
+			self.inputsMap[addr][byteIndex] ^= mask
 		
 	def updateInputs(self, addr, imap):
 		for i in range(len(imap)):
@@ -41,7 +41,7 @@ class TriggerTable:
 	def checkInputTrigger(self, addr, ix):
 		if addr not in self.ruleIndex:
 			return []
-		if addr not in self.inputMaps:
+		if addr not in self.inputsMap:
 			return []
 		if ix not in self.ruleIndex[addr]:
 			return []
@@ -54,7 +54,7 @@ class TriggerTable:
 			tr = self.rules[r][0]
 			for addr, rl in tr.items():
 				for i in range(len(rl)):
-					v = self.inputMaps[addr][i] & rl[i]
+					v = self.inputsMap[addr][i] & rl[i]
 					if v != rl[i]:
 						checkFailed = True
 						break
@@ -65,7 +65,7 @@ class TriggerTable:
 			tr = self.rules[r][1]
 			for addr, rl in tr.items():
 				for i in range(len(rl)):
-					v = ~self.inputMaps[addr][i] & rl[i]
+					v = ~self.inputsMap[addr][i] & rl[i]
 					if v != rl[i]:
 						checkFailed = True
 						break
