@@ -10,13 +10,17 @@ from inputsdlg import InputsDlg
 from outputsdlg import OutputsDlg
 from servosdlg import ServosDlg
 
-import pprint
+import os
 
 SVRLABELW = 80
 CFGLABELW = 80
 
-(InputsEvent, EVT_INPUTS) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
-(MessageEvent, EVT_MESSAGE) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
+iperckt = 8
+operckt = 8
+tperckt = 16
+
+(DeliveryEvent, EVT_DELIVERY) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
+(DisconnectEvent, EVT_DISCONNECT) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
 	
 class NodeTester(wx.Frame):
 	def __init__(self):
@@ -34,9 +38,9 @@ class NodeTester(wx.Frame):
 		self.inputs = 1
 		self.outputs = 1
 		self.servos = 1
-		self.inputMaps = []
-		self.outputMaps = []
-		self.servoMaps = []
+		self.inputsMap = []
+		self.outputsMap = []
+		self.servosMap = []
 		self.subscribed = False
 		self.currentDisplayedAddr = None
 
@@ -52,6 +56,9 @@ class NodeTester(wx.Frame):
 		
 		boxSvr = wx.StaticBox(self, wx.ID_ANY, " Server ")
 		topBorder, botBorder = boxSvr.GetBordersForSizer()
+		if os.name != 'nt':
+			botBorder += 30
+			
 		bsizer = wx.BoxSizer(wx.VERTICAL)
 		bsizer.AddSpacer(topBorder)
 		
@@ -114,8 +121,10 @@ class NodeTester(wx.Frame):
 		
 		sz.AddSpacer(10)
 				
-		boxCfg = wx.StaticBox(self, wx.ID_ANY, " Current Config ")
+		boxCfg = wx.StaticBox(self, wx.ID_ANY, " Node Config ")
 		topBorder, botBorder = boxCfg.GetBordersForSizer()
+		if os.name != 'nt':
+			botBorder += 30
 		bsizer = wx.BoxSizer(wx.VERTICAL)
 		bsizer.AddSpacer(topBorder)
 		
@@ -192,8 +201,8 @@ class NodeTester(wx.Frame):
 		
 		self.timer.Start(1000)
 		self.Bind(wx.EVT_TIMER, self.onTimer)
-		self.Bind(EVT_INPUTS, self.onInputsEvent)
-		self.Bind(EVT_MESSAGE, self.onMessageEvent)
+		self.Bind(EVT_DELIVERY, self.onDeliveryEvent)
+		self.Bind(EVT_DISCONNECT, self.onDisconnectEvent)
 		
 	def onBInputs(self, _):
 		addr = self.scAddress.GetValue()
@@ -203,7 +212,7 @@ class NodeTester(wx.Frame):
 			self.openInputsDlg()
 		
 	def openInputsDlg(self):
-		if len(self.inputMaps) == 0:
+		if len(self.inputsMap) == 0:
 			self.setStatusText("No inputs information available")
 			return
 
@@ -215,7 +224,7 @@ class NodeTester(wx.Frame):
 			except:
 				pos = None
 			
-		self.dlgInputs =  InputsDlg(self, self.inputMaps, self.inputs, self.scAddress.GetValue())
+		self.dlgInputs =  InputsDlg(self, self.inputsMap, self.inputs, self.scAddress.GetValue())
 		if pos is not None:
 			self.dlgInputs.SetPosition(pos)
 		self.dlgInputs.Show()
@@ -231,7 +240,7 @@ class NodeTester(wx.Frame):
 			self.openOutputsDlg()
 		
 	def openOutputsDlg(self):
-		if len(self.outputMaps) == 0:
+		if len(self.outputsMap) == 0:
 			self.setStatusText("No outputs information available")
 			return
 
@@ -243,7 +252,7 @@ class NodeTester(wx.Frame):
 			except:
 				pos = None
 			
-		self.dlgOutputs =  OutputsDlg(self, self.outputMaps, self.outputs, self.scAddress.GetValue())
+		self.dlgOutputs =  OutputsDlg(self, self.outputsMap, self.outputs, self.scAddress.GetValue())
 		if pos is not None:
 			self.dlgOutputs.SetPosition(pos)
 		self.dlgOutputs.Show()
@@ -259,7 +268,7 @@ class NodeTester(wx.Frame):
 			self.openServosDlg()
 		
 	def openServosDlg(self):
-		if len(self.servoMaps) == 0:
+		if len(self.servosMap) == 0:
 			self.setStatusText("No outputs information available")
 			return
 
@@ -271,7 +280,7 @@ class NodeTester(wx.Frame):
 			except:
 				pos = None
 			
-		self.dlgServos =  ServosDlg(self, self.servoMaps, self.servos, self.scAddress.GetValue())
+		self.dlgServos =  ServosDlg(self, self.servosMap, self.servos, self.scAddress.GetValue())
 		if pos is not None:
 			self.dlgServos.SetPosition(pos)
 		self.dlgServos.Show()
@@ -301,9 +310,57 @@ class NodeTester(wx.Frame):
 		if sc < 400:
 			try:
 				if normal:
-					self.servoMaps[tx][3] = self.servoMaps[tx][0]
+					self.servosMap[tx][3] = self.servosMap[tx][0]
 				else:
-					self.servoMaps[tx][3] = self.servoMaps[tx][1]
+					self.servosMap[tx][3] = self.servosMap[tx][1]
+				self.setStatusText("Success")
+				return True
+			except:
+				self.setStatusText("Unable to process return data: '%s'" % data)
+				return False
+		else:
+			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			return False
+		
+	def setServoAngle(self, sx, ang):
+		ip = self.teIpAddr.GetValue()
+		pt = self.teHPort.GetValue()
+		addr = self.scAddress.GetValue()
+		self.server.setServerAddress(ip, pt)
+		try:
+			sc, data = self.server.setServoAngle(addr, sx, ang)
+		except:
+			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+			return False
+
+		if sc < 400:
+			try:
+				self.servosMap[sx][3] = ang
+				self.setStatusText("Success")
+				return True
+			except:
+				self.setStatusText("Unable to process return data: '%s'" % data)
+				return False
+		else:
+			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			return False
+		
+	def setTurnoutLimits(self, tx, norm, rev, ini):
+		ip = self.teIpAddr.GetValue()
+		pt = self.teHPort.GetValue()
+		addr = self.scAddress.GetValue()
+		self.server.setServerAddress(ip, pt)
+		try:
+			sc, data = self.server.setlimits(addr, tx, norm, rev, ini)
+		except:
+			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+			return False
+
+		if sc < 400:
+			try:
+				self.servosMap[tx][0] = norm
+				self.servosMap[tx][1] = rev
+				self.servosMap[tx][2] = ini
 				self.setStatusText("Success")
 				return True
 			except:
@@ -318,7 +375,7 @@ class NodeTester(wx.Frame):
 		pt = self.teHPort.GetValue()
 		addr = self.scAddress.GetValue()
 		self.server.setServerAddress(ip, pt)
-		sv = self.servoMaps[tx]
+		sv = self.servosMap[tx]
 		norm = sv[0]
 		rev = sv[1]
 
@@ -330,8 +387,8 @@ class NodeTester(wx.Frame):
 			
 		if sc < 400:
 			try:
-				self.servoMaps[tx][0] = rev
-				self.servoMaps[tx][1] = norm
+				self.servosMap[tx][0] = rev
+				self.servosMap[tx][1] = norm
 				self.setStatusText("Success")
 				return True
 			except:
@@ -341,8 +398,8 @@ class NodeTester(wx.Frame):
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
 			return False
 		
-	def getServoMaps(self):
-		return self.servoMaps
+	def getServosMap(self):
+		return self.servosMap
 			
 	def setOutput(self, bn, newState):
 		ip = self.teIpAddr.GetValue()
@@ -365,7 +422,7 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.outputMaps[bn] = newState
+				self.outputsMap[bn] = newState
 				self.setStatusText("Success")
 				return True
 			except:
@@ -377,11 +434,12 @@ class NodeTester(wx.Frame):
 		
 	def setConfigValues(self, i, o, s):
 		self.inputs = i
-		self.stInputs.SetLabel("%d" % i)
+		
+		self.stInputs.SetLabel("%d (%d total)" % (i, i*iperckt))
 		self.outputs = o
-		self.stOutputs.SetLabel("%d" % o)
+		self.stOutputs.SetLabel("%d (%d total)" % (o, o*operckt))
 		self.servos = s
-		self.stServos.SetLabel("%d" % s)
+		self.stServos.SetLabel("%d (%d total)" % (s, s*tperckt))
 		
 	def onSubscribe(self, _):
 		if self.subscribed:
@@ -398,14 +456,20 @@ class NodeTester(wx.Frame):
 			self.subscribed = True
 			self.bSubscribe.SetLabel("Unsubscribe")
 			
-	def raiseInputsEvent(self, data):
+	def raiseDeliveryEvent(self, data):
 		jdata = json.loads(data)
-		evt = InputsEvent(data=jdata)
+		evt = DeliveryEvent(data=jdata)
+		wx.PostEvent(self, evt)
+		
+	def raiseDisconnectEvent(self):
+		evt = DisconnectEvent()
 		wx.PostEvent(self, evt)
 	
-	def raiseMessageEvent(self, msg):
-		evt = MessageEvent(message=msg)
-		wx.PostEvent(self, evt)
+	def onDisconnectEvent(self, _):
+		self.listener = None
+		self.subscribed = False
+		self.bSubscribe.SetLabel("Subscribe")
+		self.setStatusText("Server socket closed")
 		
 	def setStatusText(self, text):
 		self.clearTimer = 10
@@ -465,11 +529,11 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.inputMaps = eval(data)
+				self.inputsMap = eval(data)
 				self.openInputsDlg()
 				self.setStatusText("Retrieve Inputs Success")
 			except:
-				self.inputMaps = []
+				self.inputsMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
@@ -482,11 +546,11 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.outputMaps = eval(data)
+				self.outputsMap = eval(data)
 				self.openOutputsDlg()
 				self.setStatusText("Retrieve Outputs Success")
 			except:
-				self.outputMaps = []
+				self.outputsMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
@@ -499,37 +563,72 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.servoMaps = eval(data)
+				self.servosMap = eval(data)
 				self.openServosDlg()
 				self.setStatusText("Retrieve Turnouts Success")
 			except:
-				self.servoMaps = []
+				self.servosMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
 			
-	def onInputsEvent(self, evt):
-		iaddr = evt.data["addr"]
-		
-		if iaddr != self.currentDisplayedAddr:
-			return 
-		
-		if evt.data["delta"]:
-			vals = evt.data["values"]
-			if len(vals) > 0:
-				for inp, val in vals:
-					self.inputMaps[inp] = val == 1
-				if self.dlgInputs is not None:
-					self.dlgInputs.update(self.inputMaps)
-
-		else:
-			vals = evt.data["values"]
-			if len(vals) == len(self.inputMaps):
-				self.inputMaps = [x == 1 for x in vals]
-				if self.dlgInputs is not None:
-					self.dlgInputs.update(self.inputMaps)
+	def onDeliveryEvent(self, evt):
+		msgType = evt.data["type"]
+		if msgType == "input":
+			iaddr = evt.data["addr"]
+			
+			if iaddr != self.currentDisplayedAddr:
+				return 
+			
+			if evt.data["delta"]:
+				vals = evt.data["values"]
+				if len(vals) > 0:
+					for inp, val in vals:
+						self.inputsMap[inp] = val == 1
+					if self.dlgInputs is not None:
+						self.dlgInputs.update(self.inputsMap)
+	
 			else:
-				self.setStatusText("Mismatch number of inputs")
+				vals = evt.data["values"]
+				if len(vals) == len(self.inputsMap):
+					self.inputsMap = [x == 1 for x in vals]
+					if self.dlgInputs is not None:
+						self.dlgInputs.update(self.inputsMap)
+				else:
+					self.setStatusText("Mismatch number of inputs")
+					
+		elif msgType == "output":
+			print("output report rcvd")
+			iaddr = evt.data["addr"]
+			
+			if iaddr != self.currentDisplayedAddr:
+				return 
+			
+			vals = evt.data["values"]
+			if len(vals) == len(self.outputsMap):
+				self.outputsMap = [x for x in vals]
+				if self.dlgOutputs is not None:
+					self.dlgOutputs.update(self.outputsMap)
+			else:
+				self.setStatusText("Mismatch number of outputs")
+			
+		elif msgType == "turnout":
+			print("turnout report rcvd")
+			iaddr = evt.data["addr"]
+			
+			if iaddr != self.currentDisplayedAddr:
+				return 
+			
+			vals = evt.data["values"]
+			if len(vals) == len(self.servosMap):
+				self.servosMap = [x for x in vals]
+				if self.dlgServos is not None:
+					self.dlgServos.update(self.servosMap)
+			else:
+				self.setStatusText("Mismatch number of turnouts/servos")
+						
+		else:
+			print("Unknown report type (%s)" % msgType)
 			
 	def onMessageEvent(self, evt):
 		self.setStatusText(evt.message)

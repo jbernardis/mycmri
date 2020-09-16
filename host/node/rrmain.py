@@ -131,7 +131,7 @@ class JMRIMain:
 		imap = self.inputMaps[addr]
 		
 		if len(vals) > 0 and self.createSocketServer:
-			s = json.dumps({"addr": addr, "values": vals, "delta": delta})
+			s = json.dumps({"addr": addr, "type": "input", "values": vals, "delta": delta})
 			self.socketServer.sendToAll(s.encode())
 		
 		for inp, val in vals:
@@ -204,32 +204,50 @@ class JMRIMain:
 		print("  Normal turnout %d:%d" % (addr, tx))
 		self.bus.setTurnoutNormal(addr, tx)
 		self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][0]
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "turnout", "values": self.turnoutMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 
 	def setTurnoutReverse(self, addr, tx):
 		print("  Reverse turnout %d:%d" % (addr, tx))
 		self.bus.setTurnoutReverse(addr, tx)
 		self.turnoutMaps[addr][tx][3] = self.turnoutMaps[addr][tx][1]
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "turnout", "values": self.turnoutMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 		
 	def setOutputOn(self, addr, ox):
 		print("  Output %d:%d ON" % (addr, ox))
 		self.bus.setOutputOn(addr, ox)
 		self.outputMaps[addr][ox] = True
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "output", "values": self.outputMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 		
 	def setOutputOff(self, addr, ox):
 		print("  Output %d:%d OFF" % (addr, ox))
 		self.bus.setOutputOff(addr, ox)
 		self.outputMaps[addr][ox] = False
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "output", "values": self.outputMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 
 	def setAngle(self, addr, sx, ang):
 		print("  Servo %d:%d to angle %d" % (addr, sx, ang))
 		self.bus.setAngle(addr, sx, ang)
 		self.turnoutMaps[addr][sx][3] = ang
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "turnout", "values": self.turnoutMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 
 	def setTurnoutLimits(self, addr, tx, norm, rev, ini):		
 		self.bus.setTurnoutLimits(addr, tx, norm, rev, ini)
 		self.turnoutMaps[addr][tx][0] = norm
 		self.turnoutMaps[addr][tx][1] = rev
 		self.turnoutMaps[addr][tx][2] = ini
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "turnout", "values": self.turnoutMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 		
 	def setConfig(self, addr, naddr, inputs, outputs, servos):
 		self.bus.setConfig(addr, naddr, inputs, outputs, servos)
@@ -244,6 +262,9 @@ class JMRIMain:
 			if (i+1) % 4 == 0:
 				print("")
 		print("")
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "output", "values": self.outputMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 			
 	def turnoutRcvd(self, addr, vals):
 		print("Turnout report for address %d: (norm, rev, ini, cur)" % addr)
@@ -255,6 +276,9 @@ class JMRIMain:
 			if (i+1) % 4 == 0:
 				print("")
 		print("")
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "turnout", "values": self.turnoutMaps[addr]})
+			self.socketServer.sendToAll(s.encode())
 
 	def msgRcvd(self, addr, cmd, msg):
 		if cmd == ERRORRESPONSE:

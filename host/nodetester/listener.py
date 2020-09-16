@@ -7,7 +7,7 @@ class Listener(threading.Thread):
 		threading.Thread.__init__(self)
 		self.parent = parent
 		self.skt = socket.create_connection((ip, port))
-		self.skt.setblocking(True)
+		self.skt.settimeout(0.5)
 		self.isRunning = False
 		self.endOfLife = False
 		
@@ -23,13 +23,14 @@ class Listener(threading.Thread):
 			try:
 				b = self.skt.recv(1024)
 				if len(b) == 0:
-					self.parent.raiseMessageEvent("socket closed")
-					break
-
-				self.parent.raiseInputsEvent(b)
+					self.skt.close()
+					self.parent.raiseDisconnectEvent()
+					self.isRunning = False
+				else:
+					self.parent.raiseDeliveryEvent(b)
 
 			except socket.timeout:
-				self.parent.raiseMessageEvent("timeout exception")
+				pass
 		
 		self.endOfLife = True
 

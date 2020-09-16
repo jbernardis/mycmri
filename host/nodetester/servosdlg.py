@@ -1,21 +1,41 @@
 import wx
+import os
+
+from angledlg import AngleDlg
+from toconfigdlg import ToConfigDlg
+
+colInfo = [
+	("", wx.LIST_FORMAT_RIGHT, 20 if os.name == 'nt' else 30),
+	("Index", wx.LIST_FORMAT_RIGHT, 40),
+	("Normal", wx.LIST_FORMAT_RIGHT, 60),
+	("Reverse", wx.LIST_FORMAT_RIGHT, 60),
+	("Initial", wx.LIST_FORMAT_RIGHT, 60),
+	("Current", wx.LIST_FORMAT_RIGHT, 60)
+]
+
 
 class ServoListCtrl(wx.ListCtrl):
 	def __init__(self, parent, data, maxsv):
-		wx.ListCtrl.__init__(self, parent, wx.ID_ANY, style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_VRULES)
+		colWidth = 0
+		nLines = 16
+		for c in colInfo:
+			colWidth += c[2]
+			
+		if os.name == 'nt':
+			lcSize = (colWidth+18, nLines*19+30)
+		else:
+			lcSize = (colWidth+18, nLines*19+30)
+			
+		wx.ListCtrl.__init__(self, parent, wx.ID_ANY, style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_VRULES|wx.LC_HRULES, size=lcSize)
 		self.parent = parent
 		self.maxsv = maxsv
 		self.data = data[:]
 		self.ctSel = 0
 		
 		self.EnableCheckBoxes(enable=True)
-		self.AppendColumn("", wx.LIST_FORMAT_RIGHT, 20)
-		self.AppendColumn("", wx.LIST_FORMAT_RIGHT, 30)
-		self.AppendColumn("Normal", wx.LIST_FORMAT_RIGHT, 60)
-		self.AppendColumn("Reverse", wx.LIST_FORMAT_RIGHT, 60)
-		self.AppendColumn("Initial", wx.LIST_FORMAT_RIGHT, 60)
-		self.AppendColumn("Current", wx.LIST_FORMAT_RIGHT, 60)
-		self.AppendColumn("", wx.LIST_FORMAT_RIGHT, 16)
+		for c in colInfo:
+			self.AppendColumn(c[0], c[1], c[2])
+
 		self.SetItemCount(maxsv)
 		self.isChecked = [False] * maxsv
 		
@@ -30,20 +50,21 @@ class ServoListCtrl(wx.ListCtrl):
 		self.attrOth = wx.ItemAttr()
 		self.attrOth.SetBackgroundColour(wx.Colour(243,240,118))
 
-		self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
+		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 		
 	def onColumnResize(self, evt):
 		evt.Veto()
 		
-	def adjust(self):
-		# hack to get rid of horizontal scroll bar 
-		self.SetColumnWidth(6, 1)
-		
-	def update(self, data):
+	def update(self, data, preserve):
 		self.data = data[:]
-		self.isChecked = [False] * self.maxsv
+		if not preserve:
+			self.isChecked = [False] * self.maxsv
+			
 		self.RefreshItems(0, self.maxsv-1)
 		self.enableButtons()
+		
+	def getDataForTurnout(self, tx):
+		return self.data[tx]
 		
 	def getSelectionCount(self):
 		return self.ctSel
@@ -60,11 +81,13 @@ class ServoListCtrl(wx.ListCtrl):
 		self.isChecked = [False] * self.maxsv
 		self.RefreshItems(0, self.maxsv-1)
 		self.parent.enableButtons(0)
-
-	def OnItemSelected(self, event):
+		
+	def OnItemActivated(self, event):
 		item = event.Index
 		self.isChecked[item] = not self.isChecked[item]
 		self.enableButtons()
+		self.Select(item, 0)
+		self.RefreshItem(item)
 		
 	def enableButtons(self):
 		self.ctSel = 0
@@ -77,10 +100,10 @@ class ServoListCtrl(wx.ListCtrl):
 		return self.isChecked[item]
 		
 	def OnGetItemText(self, item, col):
-		if col == 1:
-			return "%2d" % item
-		elif col in [0, 6]:
+		if col == 0:
 			return ""
+		elif col == 1:
+			return "%2d" % item
 		else:
 			return "%3d" % self.data[item][col-2]
 
@@ -136,6 +159,11 @@ class ServosDlg(wx.Dialog):
 		hsizer.Add(self.bSelectNone)
 		self.Bind(wx.EVT_BUTTON, self.onBSelectNone, self.bSelectNone)
 		
+		hsizer.AddSpacer(20)
+		self.cbPreserve = wx.CheckBox(self, wx.ID_ANY, "Preserve Selections")
+		self.cbPreserve.SetValue(False)
+		hsizer.Add(self.cbPreserve)
+		
 		vsizer.Add(hsizer)		
 		vsizer.AddSpacer(10)
 		
@@ -186,7 +214,6 @@ class ServosDlg(wx.Dialog):
 		self.SetSizer(hsizer)
 		self.Layout()
 		self.Fit()
-		self.lcServos.adjust()
 		
 	def onBSelectAll(self, _):
 		self.lcServos.selectAll()
@@ -197,23 +224,51 @@ class ServosDlg(wx.Dialog):
 	def onBThrowN(self, _):
 		for tx in self.lcServos.getSelection():
 			self.parent.throwTurnout(tx, True)
-		self.update(self.parent.getServoMaps())
+		self.update(self.parent.getServosMap())
 		
 	def onBThrowR(self, _):
 		for tx in self.lcServos.getSelection():
 			self.parent.throwTurnout(tx, False)
-		self.update(self.parent.getServoMaps())
+		self.update(self.parent.getServosMap())
 		
 	def onBAngle(self, _):
-		print("angle")
+		dlg = AngleDlg(self)
+		rc = dlg.ShowModal()
+		
+		if rc == wx.ID_OK:
+			a = dlg.getValues()
+			
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return 
+		
+		for sx in self.lcServos.getSelection():
+			self.parent.setServoAngle(sx, a)
+		self.update(self.parent.getServosMap())
 		
 	def onBSwap(self, _):
 		for tx in self.lcServos.getSelection():
 			self.parent.swapTurnout(tx)
-		self.update(self.parent.getServoMaps())
+		self.update(self.parent.getServosMap())
 		
 	def onBConfig(self, _):
-		print("config")
+		selection = self.lcServos.getSelection()
+		tx = selection[0]
+		toData = self.lcServos.getDataForTurnout(tx)
+		
+		dlg = ToConfigDlg(self, toData[0], toData[1], toData[2])
+		rc = dlg.ShowModal()
+		
+		if rc == wx.ID_OK:
+			n,r,i = dlg.getValues()
+			
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return 
+		
+		for tx in selection:
+			self.parent.setTurnoutLimits(tx, n, r, i)
+		self.update(self.parent.getServosMap())
 		
 	def enableButtons(self, ct):
 		self.bThrowN.Enable(ct > 0)
@@ -223,7 +278,7 @@ class ServosDlg(wx.Dialog):
 		self.bConfig.Enable(ct > 0)
 		
 	def update(self, data):
-		self.lcServos.update(data)
+		self.lcServos.update(data, self.cbPreserve.GetValue())
 				
 	def onClose(self, _):
 		self.parent.dlgServosExit()
