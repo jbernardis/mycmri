@@ -189,6 +189,10 @@ class ServosDlg(wx.Dialog):
 		self.bAngle.Enable(False)
 		self.bAngle.SetToolTip("Set servo to specific angle")
 		
+		vsizer.Add(hsizer)
+		vsizer.AddSpacer(10)		
+		hsizer = wx.BoxSizer(wx.HORIZONTAL)
+		
 		hsizer.AddSpacer(10)
 		self.bSwap = wx.Button(self, wx.ID_ANY, "Swap")
 		hsizer.Add(self.bSwap)
@@ -202,6 +206,12 @@ class ServosDlg(wx.Dialog):
 		self.Bind(wx.EVT_BUTTON, self.onBConfig, self.bConfig)
 		self.bConfig.Enable(False)
 		self.bConfig.SetToolTip("Reconfigure turnout/servo")
+		
+		hsizer.AddSpacer(30)
+		self.bStore = wx.Button(self, wx.ID_ANY, "Store")
+		hsizer.Add(self.bStore)
+		self.Bind(wx.EVT_BUTTON, self.onBStore, self.bStore)
+		self.bStore.SetToolTip("Store configuration")
 		
 		vsizer.Add(hsizer)		
 		vsizer.AddSpacer(10)		
@@ -269,6 +279,9 @@ class ServosDlg(wx.Dialog):
 		for tx in selection:
 			self.parent.setTurnoutLimits(tx, n, r, i)
 		self.update(self.parent.getServosMap())
+		
+	def onBStore(self, _):
+		self.parent.nodeStore()
 		
 	def enableButtons(self, ct):
 		self.bThrowN.Enable(ct > 0)

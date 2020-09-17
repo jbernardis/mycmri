@@ -3,7 +3,7 @@ import queue
 import time
 
 from nodeexceptions import BusNotConnected, BusReadException, BusTimeoutException
-from nodetypes import ACKNOWLEDGE, ERRORRESPONSE
+from nodetypes import commandName, ACKNOWLEDGE, ERRORRESPONSE
 
 STX  = b'\x02'  # start byte
 ETX  = b'\x03'  # end byte
@@ -141,11 +141,11 @@ class NodeSendThread (threading.Thread):
 					try:
 						naddr, ncmd, buffer = self.recv()
 					except BusTimeoutException:
-						print("Node at address %d has timed out responding to command %s" % (addr, str(scmd)))
+						print("Node at address %d has timed out responding to command %s" % (addr, commandName(scmd)))
 						self.resultQ.put((addr, ERRORRESPONSE, "Timeout"))
 					
 					except BusReadException:
-						print("Invalid response from address %d for command %s" % (addr, str(scmd)))
+						print("Invalid response from address %d for command %s" % (addr, commandName(scmd)))
 						self.resultQ.put((addr, ERRORRESPONSE, "Invalid response syntax"))
 					
 					else:
@@ -154,7 +154,7 @@ class NodeSendThread (threading.Thread):
 							self.resultQ.put((addr, ERRORRESPONSE, "Bad address"))
 		
 						elif ncmd != scmd and ncmd != ACKNOWLEDGE:
-							print("Unexpected command type from address %d - expecting %s, got %s" % (naddr, str(scmd), str(ncmd)))
+							print("Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd)))
 							self.resultQ.put((naddr, ERRORRESPONSE, "Command type"))
 
 						elif ncmd != ACKNOWLEDGE:

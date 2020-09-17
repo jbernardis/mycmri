@@ -9,6 +9,7 @@ from listener import Listener
 from inputsdlg import InputsDlg
 from outputsdlg import OutputsDlg
 from servosdlg import ServosDlg
+from nodeconfigdlg import NodeConfigDlg
 
 import os
 
@@ -94,6 +95,16 @@ class NodeTester(wx.Frame):
 		hsizer.AddSpacer(10)
 		bsizer.Add(hsizer)
 		
+		bsizer.AddSpacer(5)
+		
+		hsizer = wx.BoxSizer(wx.HORIZONTAL)
+		hsizer.AddSpacer(10)
+		self.bTowers = wx.Button(boxSvr, wx.ID_ANY, "Towers")
+		self.Bind(wx.EVT_BUTTON, self.onBTowers, self.bTowers)
+		hsizer.Add(self.bTowers)
+		
+		bsizer.Add(hsizer)
+				
 		bsizer.AddSpacer(botBorder)
 
 		boxSvr.SetSizer(bsizer)	
@@ -118,7 +129,15 @@ class NodeTester(wx.Frame):
 		hsizer.Add(self.bRefresh)
 
 		sz.Add(hsizer)
-		
+		sz.AddSpacer(10)
+				
+		hsizer = wx.BoxSizer(wx.HORIZONTAL)
+		hsizer.AddSpacer(10)
+		self.bConfig = wx.Button(self, wx.ID_ANY, "Config")
+		self.Bind(wx.EVT_BUTTON, self.onBConfig, self.bConfig)
+		hsizer.Add(self.bConfig)
+
+		sz.Add(hsizer)
 		sz.AddSpacer(10)
 				
 		boxCfg = wx.StaticBox(self, wx.ID_ANY, " Node Config ")
@@ -397,6 +416,23 @@ class NodeTester(wx.Frame):
 		else:
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
 			return False
+
+	def nodeStore(self):
+		ip = self.teIpAddr.GetValue()
+		pt = self.teHPort.GetValue()
+		addr = self.scAddress.GetValue()
+		try:
+			sc = self.server.nodeStore(addr)[0]
+		except:
+			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+			return False
+			
+		if sc < 400:
+			self.setStatusText("Success")
+			return True
+		else:
+			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			return False
 		
 	def getServosMap(self):
 		return self.servosMap
@@ -632,6 +668,70 @@ class NodeTester(wx.Frame):
 			
 	def onMessageEvent(self, evt):
 		self.setStatusText(evt.message)
+		
+	def onBTowers(self, _):
+		ip = self.teIpAddr.GetValue()
+		pt = self.teHPort.GetValue()
+		self.server.setServerAddress(ip, pt)
+		try:
+			sc, data = self.server.getTowers()
+		except:
+			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+			return False
+
+		if sc < 400:
+			try:
+				self.setStatusText("Success")
+				d = eval(data)
+			except:
+				self.setStatusText("Unable to process return data: '%s'" % data)
+				return False
+		else:
+			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			return False
+		
+		rpt = ""
+		for twr in sorted(d.keys()):
+			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d\n" % (
+				twr, d[twr]["addr"], d[twr]["input"], d[twr]["output"], d[twr]["servo"])
+			
+		dlg = wx.MessageDialog(self, rpt, "Towers Report", wx.OK | wx.ICON_INFORMATION)
+		dlg.ShowModal()
+		dlg.Destroy()
+		return True
+	
+	def onBConfig(self, _):
+		addr = self.scAddress.GetValue()
+		dlg = wx.MessageDialog(self,
+					"Proceeding with this will result in the node restarting\nand will require a reconfiguration and restart of the server process",
+					"Reconfiguration of Node %d" % addr, wx.OK | wx.CANCEL | wx.ICON_WARNING)
+		rc = dlg.ShowModal()
+		dlg.Destroy()
+		if rc == wx.ID_OK:
+			dlg = NodeConfigDlg(self, addr, self.inputs, self.outputs, self.servos)
+			rc = dlg.ShowModal()
+			if rc == wx.ID_OK:
+				a, i, o, s = dlg.getValues()
+				
+			dlg.Destroy()
+			if rc != wx.ID_OK:
+				return 
+			
+			ip = self.teIpAddr.GetValue()
+			pt = self.teHPort.GetValue()
+			self.server.setServerAddress(ip, pt)
+			try:
+				sc, _ = self.server.setConfig(addr, a, i, o, s)
+			except:
+				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+				return False
+	
+			if sc < 400:
+				self.setStatusText("Success")
+				return True
+			else:
+				self.setStatusText("Unexpected HTTP return code: %d" % sc)
+				return False
 			
 	def onTimer(self, _):
 		if self.clearTimer is None:
@@ -640,7 +740,6 @@ class NodeTester(wx.Frame):
 		self.clearTimer -= 1
 		if self.clearTimer <= 0:
 			self.statusBar.SetStatusText("")
-
 		
 	def onClose(self, _):
 		if self.listener is not None:
