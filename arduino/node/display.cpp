@@ -8,6 +8,17 @@ Display::Display(void) {
 	clearTimer = 0;
 }
 
+unsigned int reverseBits(unsigned int num) {
+	unsigned int  NO_OF_BITS = 8; 
+    unsigned int reverse_num = 0; 
+    int i; 
+    for (i = 0; i < NO_OF_BITS; i++) { 
+        if((num & (1 << i))) 
+           reverse_num |= 1 << ((NO_OF_BITS - 1) - i);   
+	} 
+    return reverse_num; 
+}
+
 void Display::nodeConfig(int a, int nin, int nout, int nsrv) {
 	addr = a;
 	nInputBytes = nin;
@@ -84,7 +95,7 @@ void Display::message(const char * msg) {
 }
 
 void Display::showInputChip(int cx, int cv) {
-	sprintf(buffer, "ICHIP %d: %02x", cx, cv);
+	sprintf(buffer, "ICHIP %d: %02x", cx, reverseBits(cv));
 	displayOnLine(buffer, 0, 10);
 	displayOnLine("", 1, 10);
 }
