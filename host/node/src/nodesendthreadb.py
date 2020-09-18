@@ -162,8 +162,11 @@ class NodeSendThread (threading.Thread):
 								# message from different command?? - throw it away and keep waiting
 								print("Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd)))
 	
-							elif ncmd != ACKNOWLEDGE:
-								self.resultQ.put((naddr, ncmd, buffer))
+							else:
+								# this is the expected result - but we eat acknowledgements
+								if ncmd != ACKNOWLEDGE:
+									# only report a good response if it's not an ack
+									self.resultQ.put((naddr, ncmd, buffer))
 								noResult = False
 		
 				

@@ -30,7 +30,7 @@ def commandName(cmd):
 	elif cmd == TURNOUT_NORMAL:
 		return("TURNOUT_NORMAL")
 	elif cmd == TURNOUT_REVERSE:
-		return("TURNOUTT_REVERSE")
+		return("TURNOUT_REVERSE")
 	elif cmd == SERVO_ANGLE:
 		return("SERVO_ANGLE")
 	elif cmd == SET_TURNOUT:
