@@ -161,6 +161,7 @@ class ServosDlg(wx.Dialog):
 		
 		hsizer.AddSpacer(20)
 		self.cbPreserve = wx.CheckBox(self, wx.ID_ANY, "Preserve Selections")
+		self.cbPreserve.SetToolTip("If set, selections in the above list will NOT be cleared between operations")
 		self.cbPreserve.SetValue(False)
 		hsizer.Add(self.cbPreserve)
 		

@@ -90,6 +90,7 @@ class NodeTester(wx.Frame):
 		hsizer.Add(self.teSPort)
 		hsizer.AddSpacer(10)
 		self.bSubscribe = wx.Button(boxSvr, wx.ID_ANY, "Subscribe")
+		self.bSubscribe.SetToolTip("Subscribe to receive asynchronous reports from the server")
 		self.Bind(wx.EVT_BUTTON, self.onSubscribe, self.bSubscribe)
 		hsizer.Add(self.bSubscribe)
 		hsizer.AddSpacer(10)
@@ -100,8 +101,15 @@ class NodeTester(wx.Frame):
 		hsizer = wx.BoxSizer(wx.HORIZONTAL)
 		hsizer.AddSpacer(10)
 		self.bTowers = wx.Button(boxSvr, wx.ID_ANY, "Towers")
+		self.bTowers.SetToolTip("Retrieve a \"tower\" report from the server")
 		self.Bind(wx.EVT_BUTTON, self.onBTowers, self.bTowers)
 		hsizer.Add(self.bTowers)
+		
+		hsizer.AddSpacer(140)
+		self.bShutdown = wx.Button(boxSvr, wx.ID_ANY, "Shutdown")
+		self.bShutdown.SetToolTip("Shutdown the server process")
+		self.Bind(wx.EVT_BUTTON, self.onBShutdown, self.bShutdown)
+		hsizer.Add(self.bShutdown)
 		
 		bsizer.Add(hsizer)
 				
@@ -121,10 +129,12 @@ class NodeTester(wx.Frame):
 		hsizer.Add(self.scAddress)
 		hsizer.AddSpacer(10)
 		self.bGetConfig = wx.Button(self, wx.ID_ANY, "Get Config")
+		self.bGetConfig.SetToolTip("Retrieve configuration information for this node address")
 		self.Bind(wx.EVT_BUTTON, self.onGetConfig, self.bGetConfig)
 		hsizer.Add(self.bGetConfig)
 		hsizer.AddSpacer(10)
 		self.bRefresh = wx.Button(self, wx.ID_ANY, "Refresh")
+		self.bRefresh.SetToolTip("Refresh node information by querying the actual node")
 		self.Bind(wx.EVT_BUTTON, self.onRefresh, self.bRefresh)
 		hsizer.Add(self.bRefresh)
 
@@ -134,6 +144,7 @@ class NodeTester(wx.Frame):
 		hsizer = wx.BoxSizer(wx.HORIZONTAL)
 		hsizer.AddSpacer(10)
 		self.bConfig = wx.Button(self, wx.ID_ANY, "Config")
+		self.bConfig.SetToolTip("Reconfigure the node")
 		self.Bind(wx.EVT_BUTTON, self.onBConfig, self.bConfig)
 		hsizer.Add(self.bConfig)
 
@@ -182,18 +193,21 @@ class NodeTester(wx.Frame):
 		bsz = wx.BoxSizer(wx.HORIZONTAL)
 		
 		self.bInputs = wx.Button(self, wx.ID_ANY, "Inputs")
+		self.bInputs.SetToolTip("Show Inputs for the current node")
 		bsz.Add(self.bInputs)
 		self.Bind(wx.EVT_BUTTON, self.onBInputs, self.bInputs)
 		
 		bsz.AddSpacer(5)
 		
 		self.bOutputs = wx.Button(self, wx.ID_ANY, "Outputs")
+		self.bOutputs.SetToolTip("Show Outputs for the current node")
 		bsz.Add(self.bOutputs)
 		self.Bind(wx.EVT_BUTTON, self.onBOutputs, self.bOutputs)
 		
 		bsz.AddSpacer(5)
 		
 		self.bServos = wx.Button(self, wx.ID_ANY, "Servos")
+		self.bServos.SetToolTip("Show Servos/Turnouts for the current node")
 		bsz.Add(self.bServos)
 		self.Bind(wx.EVT_BUTTON, self.onBServos, self.bServos)
 		
@@ -722,6 +736,29 @@ class NodeTester(wx.Frame):
 			self.server.setServerAddress(ip, pt)
 			try:
 				sc, _ = self.server.setConfig(addr, a, i, o, s)
+			except:
+				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+				return False
+	
+			if sc < 400:
+				self.setStatusText("Success")
+				return True
+			else:
+				self.setStatusText("Unexpected HTTP return code: %d" % sc)
+				return False
+			
+	def onBShutdown(self, _):
+		dlg = wx.MessageDialog(self,
+					"This will shutdown the server process.\nAre you sure you want to proceed?",
+					"Continue with server shutdown", wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+		rc = dlg.ShowModal()
+		dlg.Destroy()
+		if rc == wx.ID_YES:
+			ip = self.teIpAddr.GetValue()
+			pt = self.teHPort.GetValue()
+			self.server.setServerAddress(ip, pt)
+			try:
+				sc, _ = self.server.quit()
 			except:
 				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 				return False
