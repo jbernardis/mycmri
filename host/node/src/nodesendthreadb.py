@@ -137,29 +137,34 @@ class NodeSendThread (threading.Thread):
 					# every command needs a response.  Since this is a half-duplex master/slave bus, we must wait
 					# for the response before we can proceed with the next command
 					scmd = bytes([cmd[0]])
-					self.send(addr, cmd)					
-					try:
-						naddr, ncmd, buffer = self.recv()
-					except BusTimeoutException:
-						print("Node at address %d has timed out responding to command %s" % (addr, commandName(scmd)))
-						self.resultQ.put((addr, ERRORRESPONSE, "Timeout"))
-					
-					except BusReadException:
-						print("Invalid response from address %d for command %s" % (addr, commandName(scmd)))
-						self.resultQ.put((addr, ERRORRESPONSE, "Invalid response syntax"))
-					
-					else:
-						if naddr != addr:
-							print("Mis-addressed message: expected address %d, received %d" % (addr, naddr))
-							self.resultQ.put((addr, ERRORRESPONSE, "Bad address"))
+					self.send(addr, cmd)
+					noResult = True
+					while noResult:					
+						buffer = ""
+						try:
+							naddr, ncmd, buffer = self.recv()
+						except BusTimeoutException:
+							print("Node at address %d has timed out responding to command %s" % (addr, commandName(scmd)))
+							self.resultQ.put((addr, ERRORRESPONSE, "Timeout"))
+							noResult = False
+						
+						except BusReadException:
+							print("Invalid response from address %d for command %s" % (addr, commandName(scmd)))
+							self.resultQ.put((addr, ERRORRESPONSE, "Invalid response syntax"))
+							noResult = False
+						
+						else:
+							if naddr != addr:
+								# message from a different node?? - throw it away and keep waiting
+								print("Mis-addressed message: expected address %d, received %d" % (addr, naddr))
+			
+							elif ncmd != scmd and ncmd != ACKNOWLEDGE:
+								# message from different command?? - throw it away and keep waiting
+								print("Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd)))
+	
+							elif ncmd != ACKNOWLEDGE:
+								self.resultQ.put((naddr, ncmd, buffer))
+								noResult = False
 		
-						elif ncmd != scmd and ncmd != ACKNOWLEDGE:
-							print("Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd)))
-							self.resultQ.put((naddr, ERRORRESPONSE, "Command type"))
-
-						elif ncmd != ACKNOWLEDGE:
-							self.resultQ.put((naddr, ncmd, buffer))
-		
-					buffer = ""
 				
 		self.endOfLife = True

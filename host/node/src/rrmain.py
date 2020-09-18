@@ -3,8 +3,7 @@
 from bus import Bus
 from httpserver import JMRIHTTPServer
 from sktserver import SktServer
-from triggertable import TriggerTable
-from nodetypes import ERRORRESPONSE
+from nodetypes import ERRORRESPONSE 
 
 import json
 import queue
@@ -95,8 +94,6 @@ class JMRIMain:
 		self.bus.start([a[0] for a in towers])
 		for ad in self.nodeCfg:
 			self.bus.getIdentity(ad)
-				
-		self.triggerTable = TriggerTable(towers)
 			
 		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
 		if self.createSocketServer:
@@ -128,14 +125,15 @@ class JMRIMain:
 			self.bus.getTurnouts(addr)
 
 	def inputRcvd(self, addr, vals, delta):
-		imap = self.inputsMap[addr]
-		
-		if len(vals) > 0 and self.createSocketServer:
-			s = json.dumps({"addr": addr, "type": "input", "values": vals, "delta": delta})
-			self.socketServer.sendToAll(s.encode())
+		if len(vals) == 0:
+			return 
 		
 		for inp, val in vals:
-			imap[inp] = val == 1
+			self.inputsMap[addr][inp] = val == 1
+			
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "input", "values": vals, "delta": delta})
+			self.socketServer.sendToAll(s.encode())
 
 		if not delta:
 			print("Current input report for addr %d" % addr)
@@ -148,58 +146,17 @@ class JMRIMain:
 					print("")
 			print("")
 			
-			self.triggerTable.updateInputs(addr, imap)
-			
 		else: # delta is true
-			if len(vals) == 0:
-				return
-			
 			print("Delta input report for addr %d" % addr)
 			
 			i = 0
 			for inp, val in vals:
-				self.triggerTable.updateInput(addr, inp, val == 1)
 				print("    %2d: %s" % (inp, str(val==1)), end="")
 				i += 1
 				if i % 4 == 0:
 					print("")
 			print("")
 				
-			for inp, val in vals:
-				print("check for trigger %d:%d" % (addr, inp))
-				actions = self.triggerTable.checkInputTrigger(addr, inp)
-				
-				if len(actions) == 0:
-					print("No actions triggered")
-				else:
-					print("Triggered actions (%d):" % len(actions))
-					for a in actions:
-						self.performAction(a[0], a[1], a[2:])
-					print("")
-
-	def performAction(self, verb, addr, parm):
-		if addr not in self.nodeCfg:
-			print("  %s action references unknown node address: %d" % (verb, addr))
-			return
-
-		if verb == "reverse":
-			self.setTurnoutReverse(addr, parm[0])
-
-		elif verb == "normal":
-			self.setTurnoutNormal(addr, parm[0])
-			
-		elif verb == "outon":
-			self.setOutputOn(addr, parm[0])
-			
-		elif verb == "outoff":
-			self.setOutputOff(addr, parm[0])
-			
-		elif verb == "angle":
-			self.bus.setAngle(addr, parm[0], parm[1])
-			
-		else:
-			print("Unknown action verb: \"%s\".  Skipping action..." % verb)
-			
 	def setTurnoutNormal(self, addr, tx):
 		print("  Normal turnout %d:%d" % (addr, tx))
 		self.bus.setTurnoutNormal(addr, tx)
