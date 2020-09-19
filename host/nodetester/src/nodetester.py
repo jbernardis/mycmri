@@ -6,6 +6,7 @@ import json
 from images import Images 
 from server import Server
 from listener import Listener
+from nodedlg import NodeDlg
 from inputsdlg import InputsDlg
 from outputsdlg import OutputsDlg
 from servosdlg import ServosDlg
@@ -20,6 +21,13 @@ iperckt = 8
 operckt = 8
 tperckt = 16
 
+MENU_SERVER_TOWERS = 101
+MENU_SERVER_SHUTDOWN = 109
+MENU_NODE_CONFIG = 201
+MENU_WINDOW_INPUTS = 301
+MENU_WINDOW_OUTPUTS = 302
+MENU_WINDOW_SERVOS = 303
+
 (DeliveryEvent, EVT_DELIVERY) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
 (DisconnectEvent, EVT_DISCONNECT) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
 	
@@ -28,6 +36,32 @@ class NodeTester(wx.Frame):
 		wx.Frame.__init__(self, None, wx.ID_ANY, "Node Tester", size=(500, 500))
 		self.SetBackgroundColour(wx.Colour(255, 255, 255))
 		self.Bind(wx.EVT_CLOSE, self.onClose)
+		
+		self.CreateStatusBar()
+
+		menuBar = wx.MenuBar()
+		self.menuServer = wx.Menu()
+		self.menuServer.Append(MENU_SERVER_TOWERS, "Towers Report", "Get Towers Report")
+		self.menuServer.Append(MENU_SERVER_SHUTDOWN, "Shut down", "Shut down server")
+		self.menuNode = wx.Menu()
+		self.menuNode.Append(MENU_NODE_CONFIG, "Re-Config", "Modify current node configuration")
+		self.menuWindow = wx.Menu()
+		self.menuWindow.Append(MENU_WINDOW_INPUTS, "Inputs")
+		self.menuWindow.Append(MENU_WINDOW_OUTPUTS, "Outputs")
+		self.menuWindow.Append(MENU_WINDOW_SERVOS, "Servos/Turnouts")
+		
+		menuBar.Append(self.menuServer, "Server")
+		menuBar.Append(self.menuNode, "Node")
+		menuBar.Append(self.menuWindow, "Window")
+		
+		self.Bind(wx.EVT_MENU, self.onMenuTowers, id=MENU_SERVER_TOWERS)		
+		self.Bind(wx.EVT_MENU, self.onMenuShutdown, id=MENU_SERVER_SHUTDOWN)		
+		self.Bind(wx.EVT_MENU, self.onMenuConfig, id=MENU_NODE_CONFIG)		
+		self.Bind(wx.EVT_MENU, self.onMenuInputs, id=MENU_WINDOW_INPUTS)		
+		self.Bind(wx.EVT_MENU, self.onMenuOutputs, id=MENU_WINDOW_OUTPUTS)		
+		self.Bind(wx.EVT_MENU, self.onMenuServos, id=MENU_WINDOW_SERVOS)	
+		
+		self.SetMenuBar(menuBar)
 		
 		self.images = Images("images")
 		self.ipAddress = "192.168.1.210"
@@ -43,7 +77,7 @@ class NodeTester(wx.Frame):
 		self.outputsMap = []
 		self.servosMap = []
 		self.subscribed = False
-		self.currentDisplayedAddr = None
+		self.currentNodeAddr = None
 
 		
 		self.timer = wx.Timer(self)
@@ -95,23 +129,6 @@ class NodeTester(wx.Frame):
 		hsizer.Add(self.bSubscribe)
 		hsizer.AddSpacer(10)
 		bsizer.Add(hsizer)
-		
-		bsizer.AddSpacer(5)
-		
-		hsizer = wx.BoxSizer(wx.HORIZONTAL)
-		hsizer.AddSpacer(10)
-		self.bTowers = wx.Button(boxSvr, wx.ID_ANY, "Towers")
-		self.bTowers.SetToolTip("Retrieve a \"tower\" report from the server")
-		self.Bind(wx.EVT_BUTTON, self.onBTowers, self.bTowers)
-		hsizer.Add(self.bTowers)
-		
-		hsizer.AddSpacer(140)
-		self.bShutdown = wx.Button(boxSvr, wx.ID_ANY, "Shutdown")
-		self.bShutdown.SetToolTip("Shutdown the server process")
-		self.Bind(wx.EVT_BUTTON, self.onBShutdown, self.bShutdown)
-		hsizer.Add(self.bShutdown)
-		
-		bsizer.Add(hsizer)
 				
 		bsizer.AddSpacer(botBorder)
 
@@ -123,30 +140,21 @@ class NodeTester(wx.Frame):
 		hsizer.AddSpacer(10)
 		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "Node Address:"))
 		hsizer.AddSpacer(10)
-		self.scAddress = wx.SpinCtrl(self, wx.ID_ANY, "", (30, 50))
-		self.scAddress.SetRange(1,100)
-		self.scAddress.SetValue(1)
-		hsizer.Add(self.scAddress)
+		
+		self.stAddr = wx.StaticText(self, wx.ID_ANY, "   ")
+		hsizer.Add(self.stAddr)
+		hsizer.AddSpacer(20)
+		
+		self.bGetAddr = wx.Button(self, wx.ID_ANY, "...", size=(30, -1))
+		self.bGetAddr.SetToolTip("Select node address")
+		self.Bind(wx.EVT_BUTTON, self.onGetNodeAddr, self.bGetAddr)
+		hsizer.Add(self.bGetAddr)
 		hsizer.AddSpacer(10)
-		self.bGetConfig = wx.Button(self, wx.ID_ANY, "Get Config")
-		self.bGetConfig.SetToolTip("Retrieve configuration information for this node address")
-		self.Bind(wx.EVT_BUTTON, self.onGetConfig, self.bGetConfig)
-		hsizer.Add(self.bGetConfig)
-		hsizer.AddSpacer(10)
+	
 		self.bRefresh = wx.Button(self, wx.ID_ANY, "Refresh")
 		self.bRefresh.SetToolTip("Refresh node information by querying the actual node")
-		self.Bind(wx.EVT_BUTTON, self.onRefresh, self.bRefresh)
+		self.Bind(wx.EVT_BUTTON, self.onBRefresh, self.bRefresh)
 		hsizer.Add(self.bRefresh)
-
-		sz.Add(hsizer)
-		sz.AddSpacer(10)
-				
-		hsizer = wx.BoxSizer(wx.HORIZONTAL)
-		hsizer.AddSpacer(10)
-		self.bConfig = wx.Button(self, wx.ID_ANY, "Config")
-		self.bConfig.SetToolTip("Reconfigure the node")
-		self.Bind(wx.EVT_BUTTON, self.onBConfig, self.bConfig)
-		hsizer.Add(self.bConfig)
 
 		sz.Add(hsizer)
 		sz.AddSpacer(10)
@@ -168,7 +176,7 @@ class NodeTester(wx.Frame):
 		
 		hsizer = wx.BoxSizer(wx.HORIZONTAL)
 		hsizer.AddSpacer(10)
-		hsizer.Add(wx.StaticText(boxCfg, wx.ID_ANY, "Ouputs:", size=(CFGLABELW, -1)))
+		hsizer.Add(wx.StaticText(boxCfg, wx.ID_ANY, "Outputs:", size=(CFGLABELW, -1)))
 		self.stOutputs = wx.StaticText(boxCfg, wx.ID_ANY, "")
 		hsizer.Add(self.stOutputs)
 		hsizer.AddSpacer(10)
@@ -188,31 +196,6 @@ class NodeTester(wx.Frame):
 		boxCfg.SetSizer(bsizer)	
 		sz.Add(boxCfg, 0, wx.EXPAND|wx.ALL, 5)	
 		
-		sz.AddSpacer(10)
-		
-		bsz = wx.BoxSizer(wx.HORIZONTAL)
-		
-		self.bInputs = wx.Button(self, wx.ID_ANY, "Inputs")
-		self.bInputs.SetToolTip("Show Inputs for the current node")
-		bsz.Add(self.bInputs)
-		self.Bind(wx.EVT_BUTTON, self.onBInputs, self.bInputs)
-		
-		bsz.AddSpacer(5)
-		
-		self.bOutputs = wx.Button(self, wx.ID_ANY, "Outputs")
-		self.bOutputs.SetToolTip("Show Outputs for the current node")
-		bsz.Add(self.bOutputs)
-		self.Bind(wx.EVT_BUTTON, self.onBOutputs, self.bOutputs)
-		
-		bsz.AddSpacer(5)
-		
-		self.bServos = wx.Button(self, wx.ID_ANY, "Servos")
-		self.bServos.SetToolTip("Show Servos/Turnouts for the current node")
-		bsz.Add(self.bServos)
-		self.Bind(wx.EVT_BUTTON, self.onBServos, self.bServos)
-		
-		sz.Add(bsz)
-
 		sz.AddSpacer(20)
 		
 		mainsz = wx.BoxSizer(wx.HORIZONTAL)
@@ -222,9 +205,6 @@ class NodeTester(wx.Frame):
 		
 		wsz = wx.BoxSizer(wx.VERTICAL)
 		wsz.Add(mainsz)
-		self.statusBar = wx.StatusBar(self, wx.ID_ANY, style=wx.STB_ELLIPSIZE_END)
-		self.statusBar.SetStatusStyles([wx.SB_FLAT])
-		wsz.Add(self.statusBar, 0, wx.EXPAND|wx.RIGHT)
 		
 		self.SetSizer(wsz)
 		
@@ -232,14 +212,15 @@ class NodeTester(wx.Frame):
 		self.Fit()
 		self.Show()
 		
+		self.enableMenuItems(False)
+		
 		self.timer.Start(1000)
 		self.Bind(wx.EVT_TIMER, self.onTimer)
 		self.Bind(EVT_DELIVERY, self.onDeliveryEvent)
 		self.Bind(EVT_DISCONNECT, self.onDisconnectEvent)
 		
-	def onBInputs(self, _):
-		addr = self.scAddress.GetValue()
-		if addr != self.currentDisplayedAddr:
+	def onMenuInputs(self, _):
+		if self.currentNodeAddr is None:
 			self.setStatusText("Retrieve configuration first")
 		else:
 			self.openInputsDlg()
@@ -257,7 +238,7 @@ class NodeTester(wx.Frame):
 			except:
 				pos = None
 			
-		self.dlgInputs =  InputsDlg(self, self.inputsMap, self.inputs, self.scAddress.GetValue())
+		self.dlgInputs =  InputsDlg(self, self.inputsMap, self.inputs, self.currentNodeAddr)
 		if pos is not None:
 			self.dlgInputs.SetPosition(pos)
 		self.dlgInputs.Show()
@@ -265,9 +246,8 @@ class NodeTester(wx.Frame):
 	def dlgInputsExit(self):
 		self.dlgInputs = None
 		
-	def onBOutputs(self, _):
-		addr = self.scAddress.GetValue()
-		if addr != self.currentDisplayedAddr:
+	def onMenuOutputs(self, _):
+		if self.currentNodeAddr is None:
 			self.setStatusText("Retrieve configuration first")
 		else:
 			self.openOutputsDlg()
@@ -285,7 +265,7 @@ class NodeTester(wx.Frame):
 			except:
 				pos = None
 			
-		self.dlgOutputs =  OutputsDlg(self, self.outputsMap, self.outputs, self.scAddress.GetValue())
+		self.dlgOutputs =  OutputsDlg(self, self.outputsMap, self.outputs, self.currentNodeAddr)
 		if pos is not None:
 			self.dlgOutputs.SetPosition(pos)
 		self.dlgOutputs.Show()
@@ -293,9 +273,8 @@ class NodeTester(wx.Frame):
 	def dlgOutputsExit(self):
 		self.dlgOutputs = None
 		
-	def onBServos(self, _):
-		addr = self.scAddress.GetValue()
-		if addr != self.currentDisplayedAddr:
+	def onMenuServos(self, _):
+		if self.currentNodeAddr is None:
 			self.setStatusText("Retrieve configuration first")
 		else:
 			self.openServosDlg()
@@ -313,7 +292,7 @@ class NodeTester(wx.Frame):
 			except:
 				pos = None
 			
-		self.dlgServos =  ServosDlg(self, self.servosMap, self.servos, self.scAddress.GetValue())
+		self.dlgServos =  ServosDlg(self, self.servosMap, self.servos, self.currentNodeAddr)
 		if pos is not None:
 			self.dlgServos.SetPosition(pos)
 		self.dlgServos.Show()
@@ -324,7 +303,7 @@ class NodeTester(wx.Frame):
 	def throwTurnout(self, tx, normal):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.scCurrentNodeAddr
 		self.server.setServerAddress(ip, pt)
 
 		if normal:
@@ -358,7 +337,7 @@ class NodeTester(wx.Frame):
 	def setServoAngle(self, sx, ang):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.currentNodeAddr
 		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.setServoAngle(addr, sx, ang)
@@ -381,7 +360,7 @@ class NodeTester(wx.Frame):
 	def setTurnoutLimits(self, tx, norm, rev, ini):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.currentNodeAddr
 		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.setlimits(addr, tx, norm, rev, ini)
@@ -406,7 +385,7 @@ class NodeTester(wx.Frame):
 	def swapTurnout(self, tx):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.currentNodeAddr
 		self.server.setServerAddress(ip, pt)
 		sv = self.servosMap[tx]
 		norm = sv[0]
@@ -434,7 +413,7 @@ class NodeTester(wx.Frame):
 	def nodeStore(self):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.currentNodeAddr
 		try:
 			sc = self.server.nodeStore(addr)[0]
 		except:
@@ -454,7 +433,7 @@ class NodeTester(wx.Frame):
 	def setOutput(self, bn, newState):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.currentNodeAddr
 		self.server.setServerAddress(ip, pt)
 		
 		if newState:
@@ -523,16 +502,26 @@ class NodeTester(wx.Frame):
 		
 	def setStatusText(self, text):
 		self.clearTimer = 10
-		self.statusBar.SetStatusText(text)
+		self.SetStatusText(text)
 		print(text)
+		
+	def onGetNodeAddr(self, _):
+		dlg = NodeDlg(self, self.currentNodeAddr, self.getTowersReport())
+		rc = dlg.ShowModal()
+		if rc == wx.ID_OK:
+			self.currentNodeAddr = dlg.getValues()
+			
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return 
 
-	def onGetConfig(self, _):
+		self.stAddr.SetLabel("%d" % self.currentNodeAddr)		
 		self.loadConfig()
 		
-	def onRefresh(self, _):
+	def onBRefresh(self, _):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
+		addr = self.currentNodeAddr
 		self.server.setServerAddress(ip, pt)
 		
 		try:
@@ -552,14 +541,17 @@ class NodeTester(wx.Frame):
 	def loadConfig(self):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scAddress.GetValue()
-		self.currentDisplayedAddr = addr
+		addr = self.currentNodeAddr
+		if addr is None:
+			self.setStatusText("Select node address first")
+			self.enableMenuItems(False)
+		
+		self.enableMenuItems(True)
 		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.getConfig(addr)
 		except:
 			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-			return 
 		
 		if sc < 400:
 			try:
@@ -622,12 +614,19 @@ class NodeTester(wx.Frame):
 		else:
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
 			
+	def enableMenuItems(self, flag):
+		self.menuNode.Enable(MENU_NODE_CONFIG, flag)
+		self.menuWindow.Enable(MENU_WINDOW_INPUTS, flag)	
+		self.menuWindow.Enable(MENU_WINDOW_OUTPUTS, flag)	
+		self.menuWindow.Enable(MENU_WINDOW_SERVOS, flag)
+		self.bRefresh.Enable(flag)	
+			
 	def onDeliveryEvent(self, evt):
 		msgType = evt.data["type"]
 		if msgType == "input":
 			iaddr = evt.data["addr"]
 			
-			if iaddr != self.currentDisplayedAddr:
+			if iaddr != self.currentNodeAddr:
 				return 
 			
 			if evt.data["delta"]:
@@ -651,7 +650,7 @@ class NodeTester(wx.Frame):
 			print("output report rcvd")
 			iaddr = evt.data["addr"]
 			
-			if iaddr != self.currentDisplayedAddr:
+			if iaddr != self.currentNodeAddr:
 				return 
 			
 			vals = evt.data["values"]
@@ -666,7 +665,7 @@ class NodeTester(wx.Frame):
 			print("turnout report rcvd")
 			iaddr = evt.data["addr"]
 			
-			if iaddr != self.currentDisplayedAddr:
+			if iaddr != self.currentNodeAddr:
 				return 
 			
 			vals = evt.data["values"]
@@ -683,7 +682,7 @@ class NodeTester(wx.Frame):
 	def onMessageEvent(self, evt):
 		self.setStatusText(evt.message)
 		
-	def onBTowers(self, _):
+	def getTowersReport(self):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		self.server.setServerAddress(ip, pt)
@@ -691,19 +690,24 @@ class NodeTester(wx.Frame):
 			sc, data = self.server.getTowers()
 		except:
 			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-			return False
+			return None
 
 		if sc < 400:
 			try:
 				self.setStatusText("Success")
 				d = eval(data)
+				return d
 			except:
 				self.setStatusText("Unable to process return data: '%s'" % data)
-				return False
+				return None
 		else:
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
-			return False
+			return None
 		
+	def onMenuTowers(self, _):
+		d = self.getTowersReport()
+		if d is None:
+			return False
 		rpt = ""
 		for twr in sorted(d.keys()):
 			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d\n" % (
@@ -714,8 +718,8 @@ class NodeTester(wx.Frame):
 		dlg.Destroy()
 		return True
 	
-	def onBConfig(self, _):
-		addr = self.scAddress.GetValue()
+	def onMenuConfig(self, _):
+		addr = self.currentNodeAddr
 		dlg = wx.MessageDialog(self,
 					"Proceeding with this will result in the node restarting\nand will require a reconfiguration and restart of the server process",
 					"Reconfiguration of Node %d" % addr, wx.OK | wx.CANCEL | wx.ICON_WARNING)
@@ -747,7 +751,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unexpected HTTP return code: %d" % sc)
 				return False
 			
-	def onBShutdown(self, _):
+	def onMenuShutdown(self, _):
 		dlg = wx.MessageDialog(self,
 					"This will shutdown the server process.\nAre you sure you want to proceed?",
 					"Continue with server shutdown", wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
@@ -774,9 +778,11 @@ class NodeTester(wx.Frame):
 		if self.clearTimer is None:
 			return 
 		
-		self.clearTimer -= 1
-		if self.clearTimer <= 0:
-			self.statusBar.SetStatusText("")
+		if self.clearTimer == 0:
+			self.SetStatusText("")
+			self.clearTimer = None
+		elif self.clearTimer >0:
+			self.clearTimer -= 1
 		
 	def onClose(self, _):
 		if self.listener is not None:
