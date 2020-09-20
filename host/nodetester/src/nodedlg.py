@@ -21,7 +21,6 @@ class NodeDlg(wx.Dialog):
 			if not startVal:
 				sval = 0
 
-#TODO: limit selection to what is in the towers report		
 		vsizer = wx.BoxSizer(wx.VERTICAL)
 		vsizer.AddSpacer(30)
 		

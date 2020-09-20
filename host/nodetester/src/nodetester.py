@@ -486,7 +486,11 @@ class NodeTester(wx.Frame):
 			self.bSubscribe.SetLabel("Unsubscribe")
 			
 	def raiseDeliveryEvent(self, data):
-		jdata = json.loads(data)
+		try:
+			jdata = json.loads(data)
+		except json.decoder.JSONDecodeError:
+			print("Unable to parse (%s)" % data)
+			return
 		evt = DeliveryEvent(data=jdata)
 		wx.PostEvent(self, evt)
 		

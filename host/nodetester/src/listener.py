@@ -21,13 +21,20 @@ class Listener(threading.Thread):
 		self.isRunning = True
 		while self.isRunning:
 			try:
-				b = self.skt.recv(1024)
+				b = self.skt.recv(4)
 				if len(b) == 0:
 					self.skt.close()
 					self.parent.raiseDisconnectEvent()
 					self.isRunning = False
+				elif len(b) == 4:
+					ct = int(b)
+					b = self.skt.recv(ct)
+					if len(b) != ct:
+						print("did not receive expected number of bytes: expected %d received %d" % (ct, len(b)))
+					else:
+						self.parent.raiseDeliveryEvent(b)
 				else:
-					self.parent.raiseDeliveryEvent(b)
+					print("did not receive expected number of bytes: expected %d received %d" % (4, len(b)))
 
 			except socket.timeout:
 				pass

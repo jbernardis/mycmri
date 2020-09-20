@@ -24,10 +24,13 @@ class SktServer (threading.Thread):
 		return self.endOfLife
 
 	def sendToAll(self, msg):
+		nbytes = "%04d" % len(msg)
+		print(nbytes)
 		with self.socketLock:
 			tl = [x for x in self.sockets]
 		for skt, addr in tl:
 			try:
+				skt.send(nbytes.encode())
 				skt.send(msg)
 			except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
 				self.deleteSocket(addr)
