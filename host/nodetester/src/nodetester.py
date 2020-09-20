@@ -303,7 +303,7 @@ class NodeTester(wx.Frame):
 	def throwTurnout(self, tx, normal):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		addr = self.scCurrentNodeAddr
+		addr = self.currentNodeAddr
 		self.server.setServerAddress(ip, pt)
 
 		if normal:
