@@ -25,7 +25,6 @@ class SktServer (threading.Thread):
 
 	def sendToAll(self, msg):
 		nbytes = "%04d" % len(msg)
-		print(nbytes)
 		with self.socketLock:
 			tl = [x for x in self.sockets]
 		for skt, addr in tl:
