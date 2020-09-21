@@ -1,6 +1,7 @@
 import threading
 import socket
 import select
+import logging
 
 class SktServer (threading.Thread):
 	def __init__(self, ip, port):
@@ -11,7 +12,7 @@ class SktServer (threading.Thread):
 		self.endOfLife = False
 		self.socketLock = threading.Lock()
 		self.sockets = []
-		print("Starting socket server at address: %s:%d" % (ip, port))
+		logging.info("Starting socket server at address: %s:%d" % (ip, port))
 
 	def getSockets(self):
 		return [x for x in self.sockets]

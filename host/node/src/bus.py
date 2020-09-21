@@ -2,6 +2,7 @@
 import queue
 import serial
 import time
+import logging
 
 from nodesendthreadb import NodeSendThread
 from nodeexceptions import NodeException

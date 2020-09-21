@@ -4,18 +4,24 @@ from bus import Bus
 from httpserver import JMRIHTTPServer
 from sktserver import SktServer
 from nodetypes import ERRORRESPONSE 
+from nodeexceptions import NodeException
 
 import json
 import queue
 import threading
+import logging
 
 class JMRIMain:
 	def __init__(self, cfgfn):
+		logging.basicConfig(filename='jmri.log',
+						filemode='w',
+						format='%(asctime)s - %(levelname)s - %(message)s',
+						level=logging.INFO)		
 		self.cfgfn = cfgfn
 		with open(cfgfn, "r") as fp:
 			self.cfg = json.load(fp)
-
-		print(json.dumps(self.cfg, sort_keys=True, indent=4))
+			
+		logging.info("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
 		
 		self.inputsMap = {}
 		self.outputsMap = {}
@@ -24,27 +30,27 @@ class JMRIMain:
 		self.createSocketServer = True
 		towers = []
 		if "nodes" not in self.cfg:
-			print("Configuration file does not have any nodes defined")
+			logging.error("Configuration file does not have any nodes defined - exiting")
 			exit(1)
 
 		if "ip" not in self.cfg:
-			print("Configuration file does not specify an ip address for http server")
+			logging.error("Configuration file does not specify an ip address for http server - exiting")
 			exit(1)
 
 		if "httpport" not in self.cfg:
-			print("Configuration file does not specify an port for http server")
+			logging.error("Configuration file does not specify an port for http server - exiting")
 			exit(1)
 
 		if "socketport" not in self.cfg:
-			print("Configuration file does not define socket port. No server will be created.")
+			logging.warning("Configuration file does not define socket port. No server will be created.")
 			self.createSocketServer = False
 
 		if "tty" not in self.cfg:
-			print("Configuration file does not specify a tty device for rs485 connection")
+			logging.error("Configuration file does not specify a tty device for rs485 connection - exiting")
 			exit(1)
 
 		if "baud" not in self.cfg:
-			print("Configuration file does not specify baud rate for rs485 bus")
+			logging.error("Configuration file does not specify baud rate for rs485 bus - exiting")
 			exit(1)
 
 		self.bus = Bus()
@@ -56,23 +62,27 @@ class JMRIMain:
 		self.bus.registerDefaultCallback(self.msgRcvd)
 		tty = self.cfg["tty"]
 		baud = self.cfg["baud"]
-		self.bus.connect(tty, baud)
+		try:
+			self.bus.connect(tty, baud)
+		except NodeException:
+			logging.error("Unable to open port %s - exiting" % tty)
+			exit(1)
 		
 		for n in self.cfg["nodes"]:
 			try:
-				print("Configuring bus: %s" % n["name"])
+				logging.info("Configuring node: %s" % n["name"])
 			except KeyError:
-				print("Node name not specified")
+				logging.error("Node name not specified - exiting")
 				exit(1)
 
 			try:
 				ad = n["address"]
 			except KeyError:
-				print("Node %d does not specify an address" % n["name"])
+				logging.error("Node %d does not specify an address - exiting" % n["name"])
 				exit(1)
 				
 			if ad <= 0:
-				print("Invalid node address - must be > 0")
+				logging.error("Invalid node address - must be > 0 - exiting")
 				exit(1)
 				
 
@@ -82,11 +92,11 @@ class JMRIMain:
 				servo = n["servos"]
 				nm = n["name"]
 			except KeyError:
-				print("Node %s missing parameters - inputs, outputs, servos, name all required")
+				logging.error("Node %s missing parameters - inputs, outputs, servos, name all required - exiting")
 				exit(1)
 
 			if ad in self.nodeCfg:
-				print("Node %d is already defined - skipping" % ad)
+				logging.error("Node %d is already defined - skipping" % ad)
 			else:
 				self.nodeCfg[ad] = (nm, inp, outp, servo)
 				towers.append([ad, inp])
@@ -109,7 +119,7 @@ class JMRIMain:
 		msg += "  Inputs: %d - %d channels\n" % (inp, inp*8)
 		msg += "  Outputs: %d - %d channels\n" % (outp, outp*8)
 		msg += "  Servos: %d - %d channels\n" % (servo, servo*16)	
-		print(msg)
+		logging.info(msg)
 
 		# things to do the first time through		
 		if not addr in self.inputsMap:
@@ -136,29 +146,29 @@ class JMRIMain:
 			self.socketServer.sendToAll(s.encode())
 
 		if not delta:
-			print("Current input report for addr %d" % addr)
+			rpt = "Current input report for addr %d\n" % addr
 			
 			i = 0
 			for inp, val in vals:
-				print("    %2d: %s" % (inp, str(val==1)), end="")
+				rpt +="    %2d: %s" % (inp, str(val==1))
 				i += 1
 				if i % 4 == 0:
-					print("")
-			print("")
+					rpt += "\n"
+			logging.info(rpt)
 			
 		else: # delta is true
-			print("Delta input report for addr %d" % addr)
+			rpt = "Delta input report for addr %d" % addr
 			
 			i = 0
 			for inp, val in vals:
-				print("    %2d: %s" % (inp, str(val==1)), end="")
+				rpt += "    %2d: %s" % (inp, str(val==1))
 				i += 1
 				if i % 4 == 0:
-					print("")
-			print("")
+					rpt += "\n"
+			logging.info(rpt)
 				
 	def setTurnoutNormal(self, addr, tx):
-		print("  Normal turnout %d:%d" % (addr, tx))
+		logging.info("  Normal turnout %d:%d" % (addr, tx))
 		self.bus.setTurnoutNormal(addr, tx)
 		self.servosMap[addr][tx][3] = self.servosMap[addr][tx][0]
 		if self.createSocketServer:
@@ -166,7 +176,7 @@ class JMRIMain:
 			self.socketServer.sendToAll(s.encode())
 
 	def setTurnoutReverse(self, addr, tx):
-		print("  Reverse turnout %d:%d" % (addr, tx))
+		logging.info("  Reverse turnout %d:%d" % (addr, tx))
 		self.bus.setTurnoutReverse(addr, tx)
 		self.servosMap[addr][tx][3] = self.servosMap[addr][tx][1]
 		if self.createSocketServer:
@@ -174,7 +184,7 @@ class JMRIMain:
 			self.socketServer.sendToAll(s.encode())
 		
 	def setOutputOn(self, addr, ox):
-		print("  Output %d:%d ON" % (addr, ox))
+		logging.info("  Output %d:%d ON" % (addr, ox))
 		self.bus.setOutputOn(addr, ox)
 		self.outputsMap[addr][ox] = True
 		if self.createSocketServer:
@@ -182,7 +192,7 @@ class JMRIMain:
 			self.socketServer.sendToAll(s.encode())
 		
 	def setOutputOff(self, addr, ox):
-		print("  Output %d:%d OFF" % (addr, ox))
+		logging.info("  Output %d:%d OFF" % (addr, ox))
 		self.bus.setOutputOff(addr, ox)
 		self.outputsMap[addr][ox] = False
 		if self.createSocketServer:
@@ -190,7 +200,7 @@ class JMRIMain:
 			self.socketServer.sendToAll(s.encode())
 
 	def setAngle(self, addr, sx, ang):
-		print("  Servo %d:%d to angle %d" % (addr, sx, ang))
+		logging.info("  Servo %d:%d to angle %d" % (addr, sx, ang))
 		self.bus.setAngle(addr, sx, ang)
 		self.servosMap[addr][sx][3] = ang
 		if self.createSocketServer:
@@ -211,40 +221,40 @@ class JMRIMain:
 
 
 	def outputRcvd(self, addr, vals):
-		print("Output report for addr %d" % addr)
+		rpt = "Output report for addr %d" % addr
 		omap = self.outputsMap[addr]
 		for i in range(len(vals)):
 			omap[i] = vals[i]==1
-			print("    %2d: %s" % (i, vals[i]==1), end="")
+			rpt += "    %2d: %s" % (i, vals[i]==1)
 			if (i+1) % 4 == 0:
-				print("")
-		print("")
+				rpt += "\n"
+		logging.info(rpt)
 		if self.createSocketServer:
 			s = json.dumps({"addr": addr, "type": "output", "values": self.outputsMap[addr]})
 			self.socketServer.sendToAll(s.encode())
 			
 	def turnoutRcvd(self, addr, vals):
-		print("Turnout report for address %d: (norm, rev, ini, cur)" % addr)
+		rpt = "Turnout report for address %d: (norm, rev, ini, cur)" % addr
 		tmap= self.servosMap[addr]
 		for i in range(len(vals)):
 			v = vals[i]
 			tmap[i] = v
-			print("    %2d: %3d/%3d/%3d/%3d" % (i, v[0], v[1], v[2], v[3]), end="")
+			rpt += "    %2d: %3d/%3d/%3d/%3d" % (i, v[0], v[1], v[2], v[3])
 			if (i+1) % 4 == 0:
-				print("")
-		print("")
+				rpt += "\n"
+		logging.info(rpt)
 		if self.createSocketServer:
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.servosMap[addr]})
 			self.socketServer.sendToAll(s.encode())
 
 	def msgRcvd(self, addr, cmd, msg):
 		if cmd == ERRORRESPONSE:
-			print("Error from node at address %d: %s" % (addr, msg))
+			logging.error("Error from node at address %d: %s" % (addr, msg))
 		else:
 			s = "Unknown message received from address %d %02x: " % (addr, ord(cmd))   
 			for c in msg:
 				s += "%02x " % ord(c)
-			print(s)	
+			logging.error(s)	
 			
 	def HTTPProcess(self):
 		while not self.HttpCmdQ.empty():
@@ -548,7 +558,7 @@ class JMRIMain:
 				self.HttpRespQ.put((400, b'bad request'))
 
 	def startHttpServer(self, ip, port):
-		print("Starting HTTP server at address: %s:%d" % (ip, port))
+		logging.info("Starting HTTP server at address: %s:%d" % (ip, port))
 		self.HttpCmdQ = queue.Queue(0)
 		self.HttpRespQ = queue.Queue(0)
 		self.serving = True
@@ -572,17 +582,17 @@ class JMRIMain:
 			if self.serving:
 				self.process()
 		ticker = None
-		print("Stopping HTTP Server...")
+		logging.info("Stopping HTTP Server...")
 		self.stopHttpServer()
 		
 		if self.createSocketServer:	
-			print("Stopping socket server...")
+			logging.info("Stopping socket server...")
 			self.socketServer.kill()
 
-		print("disconnecting nodes...")
+		logging.info("disconnecting nodes...")
 		self.disconnectNodes()
 
-		print("exiting...")
+		logging.info("exiting...")
 
 jmri = JMRIMain("jmri.json")
 jmri.serve_forever(0.25)

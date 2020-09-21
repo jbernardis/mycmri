@@ -144,23 +144,25 @@ class NodeSendThread (threading.Thread):
 						try:
 							naddr, ncmd, buffer = self.recv()
 						except BusTimeoutException:
-							print("Node at address %d has timed out responding to command %s" % (addr, commandName(scmd)))
-							self.resultQ.put((addr, ERRORRESPONSE, "Timeout"))
+							msg = "Node at address %d has timed out responding to command %s" % (addr, commandName(scmd))
+							self.resultQ.put((addr, ERRORRESPONSE, msg))
 							noResult = False
 						
 						except BusReadException:
-							print("Invalid response from address %d for command %s" % (addr, commandName(scmd)))
-							self.resultQ.put((addr, ERRORRESPONSE, "Invalid response syntax"))
+							msg = "Invalid response from address %d for command %s" % (addr, commandName(scmd))
+							self.resultQ.put((addr, ERRORRESPONSE, msg))
 							noResult = False
 						
 						else:
 							if naddr != addr:
 								# message from a different node?? - throw it away and keep waiting
-								print("Mis-addressed message: expected address %d, received %d" % (addr, naddr))
+								msg = "Mis-addressed message: expected address %d, received %d" % (addr, naddr)
+								self.resultQ.put((addr, ERRORRESPONSE, msg))
 			
 							elif ncmd != scmd and ncmd != ACKNOWLEDGE:
 								# message from different command?? - throw it away and keep waiting
-								print("Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd)))
+								msg = "Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd))
+								self.resultQ.put((addr, ERRORRESPONSE, msg))
 	
 							else:
 								# this is the expected result - but we eat acknowledgements
