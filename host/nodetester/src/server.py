@@ -70,8 +70,8 @@ class Server(object):
 		r = requests.get(self.ipAddr, params={"cmd": "init", "addr": addr})
 		return r.status_code, r.text
 	
-	def getTowers(self):
-		r = requests.get(self.ipAddr, params={"cmd": "towers"})
+	def getNodeRpt(self):
+		r = requests.get(self.ipAddr, params={"cmd": "noderpt"})
 		return r.status_code, r.text
 	
 	def quit(self):

@@ -29,7 +29,7 @@ class JMRIMain:
 		self.nodeCfg = {}
 		self.awaitingInitialIdentity = {}
 		self.createSocketServer = True
-		towers = []
+		nodes = []
 		if "nodes" not in self.cfg:
 			logging.error("Configuration file does not have any nodes defined - exiting")
 			exit(1)
@@ -103,9 +103,9 @@ class JMRIMain:
 				self.inputsMap[ad] = [True] * (inp*8)		
 				self.outputsMap[ad] = [False] * (outp*8)
 				self.servosMap[ad] = [[0, 0, 0, 0]] * (servo*16)
-				towers.append([ad, inp])
+				nodes.append([ad, inp])
 			
-		self.bus.start([a[0] for a in towers])
+		self.bus.start([a[0] for a in nodes])
 		for ad in self.nodeCfg:
 			self.startNode(ad)
 			
@@ -289,7 +289,7 @@ class JMRIMain:
 				self.HttpRespQ.put((400, b'unexpected error retrieving command'))
 				continue
 
-			if not verb in ["quit", "towers"]:
+			if not verb in ["quit", "noderpt"]:
 				try:
 					addr = int(cmd["addr"][0])
 				except KeyError:
@@ -555,7 +555,7 @@ class JMRIMain:
 				self.setConfig(addr, naddr, inputs, outputs, servos)
 				self.HttpRespQ.put((200, b'command performed'))
 
-			elif verb == "towers":
+			elif verb == "noderpt":
 				result = "{"
 				first = True
 				for n in self.nodeCfg:
@@ -564,7 +564,7 @@ class JMRIMain:
 					first = False
 					cfg = self.nodeCfg[n]
 					try:
-						active = self.awaitingInitialIdentity[n]
+						active = not self.awaitingInitialIdentity[n]
 					except:
 						active = False
 					result += "'%s': {'addr': %d, 'input': %d, 'output': %d, 'servo': %d, 'active': %s} " % (cfg[0], n, cfg[1], cfg[2], cfg[3], active)

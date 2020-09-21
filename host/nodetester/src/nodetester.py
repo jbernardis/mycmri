@@ -21,7 +21,7 @@ iperckt = 8
 operckt = 8
 tperckt = 16
 
-MENU_SERVER_TOWERS = 101
+MENU_SERVER_NODES = 101
 MENU_SERVER_SHUTDOWN = 109
 MENU_NODE_CONFIG = 201
 MENU_NODE_INIT = 202
@@ -42,7 +42,7 @@ class NodeTester(wx.Frame):
 
 		menuBar = wx.MenuBar()
 		self.menuServer = wx.Menu()
-		self.menuServer.Append(MENU_SERVER_TOWERS, "Towers Report", "Get Towers Report")
+		self.menuServer.Append(MENU_SERVER_NODES, "Nodes Report", "Get Nodes Report")
 		self.menuServer.Append(MENU_SERVER_SHUTDOWN, "Shut down", "Shut down server")
 		self.menuNode = wx.Menu()
 		self.menuNode.Append(MENU_NODE_CONFIG, "Re-Config", "Modify current node configuration")
@@ -56,7 +56,7 @@ class NodeTester(wx.Frame):
 		menuBar.Append(self.menuNode, "Node")
 		menuBar.Append(self.menuWindow, "Window")
 		
-		self.Bind(wx.EVT_MENU, self.onMenuTowers, id=MENU_SERVER_TOWERS)		
+		self.Bind(wx.EVT_MENU, self.onMenuNodes, id=MENU_SERVER_NODES)		
 		self.Bind(wx.EVT_MENU, self.onMenuShutdown, id=MENU_SERVER_SHUTDOWN)		
 		self.Bind(wx.EVT_MENU, self.onMenuConfig, id=MENU_NODE_CONFIG)		
 		self.Bind(wx.EVT_MENU, self.onMenuInit, id=MENU_NODE_INIT)		
@@ -513,7 +513,7 @@ class NodeTester(wx.Frame):
 		print(text)
 		
 	def onGetNodeAddr(self, _):
-		dlg = NodeDlg(self, self.currentNodeAddr, self.getTowersReport())
+		dlg = NodeDlg(self, self.currentNodeAddr, self.getNodeRpt())
 		rc = dlg.ShowModal()
 		if rc == wx.ID_OK:
 			self.currentNodeAddr = dlg.getValues()
@@ -689,12 +689,12 @@ class NodeTester(wx.Frame):
 	def onMessageEvent(self, evt):
 		self.setStatusText(evt.message)
 		
-	def getTowersReport(self):
+	def getNodeRpt(self):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		self.server.setServerAddress(ip, pt)
 		try:
-			sc, data = self.server.getTowers()
+			sc, data = self.server.getNodeRpt()
 		except:
 			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 			return None
@@ -711,17 +711,17 @@ class NodeTester(wx.Frame):
 			self.setStatusText("Unexpected HTTP return code: %d" % sc)
 			return None
 		
-	def onMenuTowers(self, _):
-		d = self.getTowersReport()
+	def onMenuNodes(self, _):
+		d = self.getNodeRpt()
 		if d is None:
 			return False
 		rpt = ""
-		for twr in sorted(d.keys()):
-			active = "Active" if d[twr]["active"] else "Inactive" 
+		for nd in sorted(d.keys()):
+			active = "Active" if d[nd]["active"] else "Inactive" 
 			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d   %s\n" % (
-				twr, d[twr]["addr"], d[twr]["input"], d[twr]["output"], d[twr]["servo"], active)
+				nd, d[nd]["addr"], d[nd]["input"], d[nd]["output"], d[nd]["servo"], active)
 			
-		dlg = wx.MessageDialog(self, rpt, "Towers Report", wx.OK | wx.ICON_INFORMATION)
+		dlg = wx.MessageDialog(self, rpt, "Nodes Report", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
 		return True
