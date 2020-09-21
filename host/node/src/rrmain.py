@@ -107,7 +107,7 @@ class JMRIMain:
 			
 		self.bus.start([a[0] for a in towers])
 		for ad in self.nodeCfg:
-			self.bus.startNode(ad)
+			self.startNode(ad)
 			
 		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
 		if self.createSocketServer:
