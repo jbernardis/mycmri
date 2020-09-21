@@ -334,7 +334,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unable to process return data: '%s'" % data)
 				return False
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 		
 	def setServoAngle(self, sx, ang):
@@ -357,7 +357,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unable to process return data: '%s'" % data)
 				return False
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 		
 	def setTurnoutLimits(self, tx, norm, rev, ini):
@@ -382,7 +382,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unable to process return data: '%s'" % data)
 				return False
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 		
 	def swapTurnout(self, tx):
@@ -410,7 +410,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unable to process return data: '%s'" % data)
 				return False
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 
 	def nodeStore(self):
@@ -418,7 +418,7 @@ class NodeTester(wx.Frame):
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
 		try:
-			sc = self.server.nodeStore(addr)[0]
+			sc, data = self.server.nodeStore(addr)
 		except:
 			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 			return False
@@ -427,7 +427,7 @@ class NodeTester(wx.Frame):
 			self.setStatusText("Success")
 			return True
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 		
 	def getServosMap(self):
@@ -461,7 +461,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unable to process return data: '%s'" % data)
 				return False
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 		
 	def setConfigValues(self, i, o, s):
@@ -532,14 +532,14 @@ class NodeTester(wx.Frame):
 		self.server.setServerAddress(ip, pt)
 		
 		try:
-			sc, _ = self.server.nodeRefresh(addr)
+			sc, data = self.server.nodeRefresh(addr)
 				
 		except:
 			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 			return
 		
 		if sc >= 400:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 			
 		self.setStatusText("Refresh Success")
@@ -568,7 +568,7 @@ class NodeTester(wx.Frame):
 			except:
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			
 		try:
 			sc, data = self.server.getInputs(addr)
@@ -585,7 +585,7 @@ class NodeTester(wx.Frame):
 				self.inputsMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			
 		try:
 			sc, data = self.server.getOutputs(addr)
@@ -602,7 +602,7 @@ class NodeTester(wx.Frame):
 				self.outputsMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			
 		try:
 			sc, data = self.server.getTurnouts(addr)
@@ -619,7 +619,7 @@ class NodeTester(wx.Frame):
 				self.servosMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			
 	def enableMenuItems(self, flag):
 		self.menuNode.Enable(MENU_NODE_CONFIG, flag)
@@ -708,7 +708,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Unable to process return data: '%s'" % data)
 				return None
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return None
 		
 	def onMenuNodes(self, _):
@@ -747,7 +747,7 @@ class NodeTester(wx.Frame):
 			pt = self.teHPort.GetValue()
 			self.server.setServerAddress(ip, pt)
 			try:
-				sc, _ = self.server.setConfig(addr, a, i, o, s)
+				sc, data = self.server.setConfig(addr, a, i, o, s)
 			except:
 				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 				return False
@@ -756,7 +756,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Success")
 				return True
 			else:
-				self.setStatusText("Unexpected HTTP return code: %d" % sc)
+				self.setStatusText("RC <%d> %s" % (sc, data))
 				return False
 			
 	def onMenuInit(self, _):
@@ -766,7 +766,7 @@ class NodeTester(wx.Frame):
 		pt = self.teHPort.GetValue()
 		self.server.setServerAddress(ip, pt)
 		try:
-			sc, _ = self.server.nodeInit(addr)
+			sc, data = self.server.nodeInit(addr)
 		except:
 			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 			return False
@@ -775,7 +775,7 @@ class NodeTester(wx.Frame):
 			self.setStatusText("Success")
 			return True
 		else:
-			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 			
 	def onMenuShutdown(self, _):
@@ -789,7 +789,7 @@ class NodeTester(wx.Frame):
 			pt = self.teHPort.GetValue()
 			self.server.setServerAddress(ip, pt)
 			try:
-				sc, _ = self.server.quit()
+				sc, data = self.server.quit()
 			except:
 				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 				return False
@@ -798,7 +798,7 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Success")
 				return True
 			else:
-				self.setStatusText("Unexpected HTTP return code: %d" % sc)
+				self.setStatusText("RC <%d> %s" % (sc, data))
 				return False
 			
 	def onTimer(self, _):

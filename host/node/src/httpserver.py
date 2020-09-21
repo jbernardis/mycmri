@@ -4,22 +4,31 @@ from threading import Thread
 from socketserver import ThreadingMixIn 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+import logging
 
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		app = self.server.getApp()
+		req = "%s:%s - \"%s\"" % (self.client_address[0], self.client_address[1], self.requestline)
 
 		parsed_path = urlparse(self.path)
 		cmdDict = parse_qs(parsed_path.query)
 		
 		if "cmd" not in cmdDict or len(cmdDict["cmd"]) == 0:
-			self.send_response(400)
+			rc = 400
+			req += (" - %d" % rc)
+			logging.info(req)
+			msg = b'missing cmd parameter'
+			logging.error(msg)
+			self.send_response(rc)
 			self.send_header("Content-type", "text/plain")
 			self.end_headers()
-			self.wfile.write(b'missing cmd parameter')
+			self.wfile.write(msg)
 			return
 
 		rc, b = app.dispatch(cmdDict)
+		req += (" - %d" % rc)
+		logging.info(req)
 		try:
 			body = b.encode()
 		except:
@@ -31,6 +40,7 @@ class Handler(BaseHTTPRequestHandler):
 			self.end_headers()
 			self.wfile.write(body)
 		else:
+			logging.error(body)
 			self.send_response(400)
 			self.send_header("Content-type", "text/plain")
 			self.end_headers()
