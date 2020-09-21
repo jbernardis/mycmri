@@ -14,6 +14,8 @@ class NodeDlg(wx.Dialog):
 			cx = 0
 			for t in sorted(towers.keys()):
 				c = "%s (%d)" % (t, towers[t]["addr"])
+				if not towers[t]['active']:
+					c += "*"
 				choices.append([c, towers[t]["addr"]])
 				if startVal and startVal == towers[t]["addr"]:
 					sval = cx

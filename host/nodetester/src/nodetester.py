@@ -717,8 +717,9 @@ class NodeTester(wx.Frame):
 			return False
 		rpt = ""
 		for twr in sorted(d.keys()):
-			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d\n" % (
-				twr, d[twr]["addr"], d[twr]["input"], d[twr]["output"], d[twr]["servo"])
+			active = "Active" if d[twr]["active"] else "Inactive" 
+			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d   %s\n" % (
+				twr, d[twr]["addr"], d[twr]["input"], d[twr]["output"], d[twr]["servo"], active)
 			
 		dlg = wx.MessageDialog(self, rpt, "Towers Report", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()

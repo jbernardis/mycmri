@@ -563,7 +563,11 @@ class JMRIMain:
 						result += ", "
 					first = False
 					cfg = self.nodeCfg[n]
-					result += "'%s': {'addr': %d, 'input': %d, 'output': %d, 'servo': %d} " % (cfg[0], n, cfg[1], cfg[2], cfg[3])
+					try:
+						active = self.awaitingInitialIdentity[n]
+					except:
+						active = False
+					result += "'%s': {'addr': %d, 'input': %d, 'output': %d, 'servo': %d, 'active': %s} " % (cfg[0], n, cfg[1], cfg[2], cfg[3], active)
 				result += "}"
 				
 				self.HttpRespQ.put((200, result.encode()))
