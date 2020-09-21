@@ -3,7 +3,7 @@ import queue
 import time
 
 from nodeexceptions import BusNotConnected, BusReadException, BusTimeoutException
-from nodetypes import commandName, ACKNOWLEDGE, ERRORRESPONSE
+from nodetypes import commandName, ACKNOWLEDGE, ERRORRESPONSE, WARNINGRESPONSE
 
 STX  = b'\x02'  # start byte
 ETX  = b'\x03'  # end byte
@@ -157,12 +157,12 @@ class NodeSendThread (threading.Thread):
 							if naddr != addr:
 								# message from a different node?? - throw it away and keep waiting
 								msg = "Mis-addressed message: expected address %d, received %d" % (addr, naddr)
-								self.resultQ.put((addr, ERRORRESPONSE, msg))
+								self.resultQ.put((addr, WARNINGRESPONSE, msg))
 			
 							elif ncmd != scmd and ncmd != ACKNOWLEDGE:
 								# message from different command?? - throw it away and keep waiting
 								msg = "Unexpected command type from address %d - expecting %s, got %s" % (naddr, commandName(scmd), commandName(ncmd))
-								self.resultQ.put((addr, ERRORRESPONSE, msg))
+								self.resultQ.put((addr, WARNINGRESPONSE, msg))
 	
 							else:
 								# this is the expected result - but we eat acknowledgements

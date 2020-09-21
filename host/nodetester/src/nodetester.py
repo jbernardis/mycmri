@@ -24,6 +24,7 @@ tperckt = 16
 MENU_SERVER_TOWERS = 101
 MENU_SERVER_SHUTDOWN = 109
 MENU_NODE_CONFIG = 201
+MENU_NODE_INIT = 202
 MENU_WINDOW_INPUTS = 301
 MENU_WINDOW_OUTPUTS = 302
 MENU_WINDOW_SERVOS = 303
@@ -45,6 +46,7 @@ class NodeTester(wx.Frame):
 		self.menuServer.Append(MENU_SERVER_SHUTDOWN, "Shut down", "Shut down server")
 		self.menuNode = wx.Menu()
 		self.menuNode.Append(MENU_NODE_CONFIG, "Re-Config", "Modify current node configuration")
+		self.menuNode.Append(MENU_NODE_INIT, "Init", "Reinit the node communicatione with the server")
 		self.menuWindow = wx.Menu()
 		self.menuWindow.Append(MENU_WINDOW_INPUTS, "Inputs")
 		self.menuWindow.Append(MENU_WINDOW_OUTPUTS, "Outputs")
@@ -57,6 +59,7 @@ class NodeTester(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.onMenuTowers, id=MENU_SERVER_TOWERS)		
 		self.Bind(wx.EVT_MENU, self.onMenuShutdown, id=MENU_SERVER_SHUTDOWN)		
 		self.Bind(wx.EVT_MENU, self.onMenuConfig, id=MENU_NODE_CONFIG)		
+		self.Bind(wx.EVT_MENU, self.onMenuInit, id=MENU_NODE_INIT)		
 		self.Bind(wx.EVT_MENU, self.onMenuInputs, id=MENU_WINDOW_INPUTS)		
 		self.Bind(wx.EVT_MENU, self.onMenuOutputs, id=MENU_WINDOW_OUTPUTS)		
 		self.Bind(wx.EVT_MENU, self.onMenuServos, id=MENU_WINDOW_SERVOS)	
@@ -754,6 +757,25 @@ class NodeTester(wx.Frame):
 			else:
 				self.setStatusText("Unexpected HTTP return code: %d" % sc)
 				return False
+			
+	def onMenuInit(self, _):
+		addr = self.currentNodeAddr
+		
+		ip = self.teIpAddr.GetValue()
+		pt = self.teHPort.GetValue()
+		self.server.setServerAddress(ip, pt)
+		try:
+			sc, _ = self.server.nodeInit(addr)
+		except:
+			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+			return False
+
+		if sc < 400:
+			self.setStatusText("Success")
+			return True
+		else:
+			self.setStatusText("Unexpected HTTP return code: %d" % sc)
+			return False
 			
 	def onMenuShutdown(self, _):
 		dlg = wx.MessageDialog(self,

@@ -13,6 +13,7 @@ CONFIG = b'F'
 ACKNOWLEDGE = b'!'
 STORE = b'W'
 ERRORRESPONSE = b'E'
+WARNINGRESPONSE = b'e'
 
 def commandName(cmd):
 	if cmd == OUTPUT_ON:
@@ -48,6 +49,8 @@ def commandName(cmd):
 		return("STORE")
 	elif cmd == ERRORRESPONSE:
 		return("ERRORRESPONSE")
+	elif cmd == WARNINGRESPONSE:
+		return("WARNINGRESPONSE")
 	
 	else:
 		return("UNKNOWN COMMAND: %s" % str(cmd))

@@ -65,6 +65,10 @@ class Server(object):
 	def nodeStore(self, addr):
 		r = requests.get(self.ipAddr, params={"cmd": "store", "addr": addr})
 		return r.status_code, r.text
+		
+	def nodeInit(self, addr):
+		r = requests.get(self.ipAddr, params={"cmd": "init", "addr": addr})
+		return r.status_code, r.text
 	
 	def getTowers(self):
 		r = requests.get(self.ipAddr, params={"cmd": "towers"})

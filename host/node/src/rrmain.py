@@ -3,7 +3,7 @@
 from bus import Bus
 from httpserver import JMRIHTTPServer
 from sktserver import SktServer
-from nodetypes import ERRORRESPONSE 
+from nodetypes import ERRORRESPONSE, WARNINGRESPONSE
 from nodeexceptions import NodeException
 
 import json
@@ -27,6 +27,7 @@ class JMRIMain:
 		self.outputsMap = {}
 		self.servosMap = {}
 		self.nodeCfg = {}
+		self.awaitingInitialIdentity = {}
 		self.createSocketServer = True
 		towers = []
 		if "nodes" not in self.cfg:
@@ -99,16 +100,23 @@ class JMRIMain:
 				logging.error("Node %d is already defined - skipping" % ad)
 			else:
 				self.nodeCfg[ad] = (nm, inp, outp, servo)
+				self.inputsMap[ad] = [True] * (inp*8)		
+				self.outputsMap[ad] = [False] * (outp*8)
+				self.servosMap[ad] = [[0, 0, 0, 0]] * (servo*16)
 				towers.append([ad, inp])
 			
 		self.bus.start([a[0] for a in towers])
 		for ad in self.nodeCfg:
-			self.bus.getIdentity(ad)
+			self.bus.startNode(ad)
 			
 		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
 		if self.createSocketServer:
 			self.socketServer = SktServer(self.cfg["ip"], self.cfg["socketport"])
 			self.socketServer.start()
+			
+	def startNode(self, addr):
+		self.awaitingInitialIdentity[addr] = True
+		self.bus.getIdentity(addr)		
 		
 	def process(self):
 		self.HTTPProcess()
@@ -122,7 +130,8 @@ class JMRIMain:
 		logging.info(msg)
 
 		# things to do the first time through		
-		if not addr in self.inputsMap:
+		if self.awaitingInitialIdentity[addr]:
+			self.awaitingInitialIdentity[addr] = False
 			self.inputsMap[addr] = [True] * (inp*8)		
 			self.outputsMap[addr] = [False] * (outp*8)
 			self.servosMap[addr] = [[0, 0, 0, 0]] * (servo*16)
@@ -219,7 +228,6 @@ class JMRIMain:
 	def setConfig(self, addr, naddr, inputs, outputs, servos):
 		self.bus.setConfig(addr, naddr, inputs, outputs, servos)
 
-
 	def outputRcvd(self, addr, vals):
 		rpt = "Output report for addr %d" % addr
 		omap = self.outputsMap[addr]
@@ -250,6 +258,12 @@ class JMRIMain:
 	def msgRcvd(self, addr, cmd, msg):
 		if cmd == ERRORRESPONSE:
 			logging.error("Error from node at address %d: %s" % (addr, msg))
+			if self.awaitingInitialIdentity[addr]:
+				logging.error("This node has not responded with initial identity")
+		elif cmd == WARNINGRESPONSE:
+			logging.error("Warning from node at address %d: %s" % (addr, msg))
+			if self.awaitingInitialIdentity[addr]:
+				logging.error("This node has not responded with initial identity")
 		else:
 			s = "Unknown message received from address %d %02x: " % (addr, ord(cmd))   
 			for c in msg:
@@ -290,6 +304,15 @@ class JMRIMain:
 				
 				if addr not in self.nodeCfg:
 					self.HttpRespQ.put((400, b'unknown node address'))
+					continue
+				
+				if addr not in self.awaitingInitialIdentity or self.awaitingInitialIdentity[addr]:
+					if verb == "init":
+						self.startNode(addr)
+						self.HttpRespQ.put((200, b'command accepted'))
+					else:
+						msg = "communications with node %d has not been established" % addr
+						self.HttpRespQ.put((400, msg.encode()))
 					continue
 				
 				_, _, outp, servo = self.nodeCfg[addr]
