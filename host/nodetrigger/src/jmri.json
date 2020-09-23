@@ -1,0 +1,16 @@
+{
+	"ip": "192.168.1.210",
+	"httpport": 8000,
+	"socketport": 8001,
+	"tty": "/dev/ttyUSB0",
+	"baud": 115200,
+	"nodes": [
+		{
+			"address": 1,
+			"inputs": 2,
+			"outputs": 2,
+			"servos": 2,
+			"name": "tower1"
+		}
+	]
+}

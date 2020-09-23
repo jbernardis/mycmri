@@ -40,6 +40,7 @@ class SktServer (threading.Thread):
 			for i in range(len(self.sockets)):
 				if self.sockets[i][1] == addr:
 					del(self.sockets[i])
+					logging.info("Disconnecting socket client at %d" % str(addr))
 					return
 
 	def run(self):
@@ -53,6 +54,7 @@ class SktServer (threading.Thread):
 			readable, _, _ = select.select(slist, [], [], 1)
 			if s in readable:
 				skt, addr = s.accept()
+				logging.info("Subscription from address %s" % str(addr))
 				with self.socketLock:
 					self.sockets.append((skt, addr))
 
