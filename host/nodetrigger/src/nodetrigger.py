@@ -83,7 +83,6 @@ class JMRITrigger:
 				msg = None
 			
 			if msg:
-				print("recvd: (%s)" % msg)
 				jdata = json.loads(msg)
 				if jdata["type"] == "disconnect":
 					logging.info("server has disconnected - exiting")
@@ -102,15 +101,15 @@ class JMRITrigger:
 			imap[inp] = val == 1
 
 		if not delta:
-			print("Current input report for addr %d" % addr)
+			rpt = "Current input report for addr %d\n" % addr
 			
 			i = 0
 			for inp, val in vals:
-				print("    %2d: %s" % (inp, str(val==1)), end="")
+				rpt +="    %2d: %s" % (inp, str(val==1))
 				i += 1
 				if i % 4 == 0:
-					print("")
-			print("")
+					rpt += "\n"
+			logging.info(rpt)
 			
 			self.triggerTable.updateInputs(addr, imap)
 			
@@ -118,32 +117,29 @@ class JMRITrigger:
 			if len(vals) == 0:
 				return
 			
-			print("Delta input report for addr %d" % addr)
+			rpt = "Delta input report for addr %d\n" % addr
 			
 			i = 0
 			for inp, val in vals:
 				self.triggerTable.updateInput(addr, inp, val == 1)
-				print("    %2d: %s" % (inp, str(val==1)), end="")
+				rpt += "    %2d: %s" % (inp, str(val==1))
 				i += 1
 				if i % 4 == 0:
-					print("")
-			print("")
+					rpt += "\n"
+			logging.info(rpt)
 				
-			print("check for triggers")
+			logging.info("check for triggers")
 			actions = self.triggerTable.checkInputTriggers(addr)
 			
 			if len(actions) == 0:
-				print("No actions triggered")
+				logging.info("No actions triggered")
 			else:
-				print("Triggered actions (%d):" % len(actions))
-				for a in actions:
-					print("Action: ", a[0], a[1], a[2:])
-				print("")
+				logging.info("%d Triggered actions" % len(actions))
 				for a in actions:
 					self.performAction(a[0], a[1], a[2:])
 					
 	def performAction(self, verb, addr, params):
-		print("Performing action: %s %s %s" % (verb, addr, str(params)))
+		logging.info("Performing action: %s %s %s" % (verb, addr, str(params)))
 		if verb == "normal":
 			self.server.setTurnoutNormal(addr, params[0])
 
@@ -161,10 +157,6 @@ class JMRITrigger:
 			
 		else:
 			logging.error("Unknown action verb: %s" % verb)
-
-
-
-
 
 jmri = JMRITrigger("jmri.json")
 jmri.serve_forever()

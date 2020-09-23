@@ -46,11 +46,9 @@ class TriggerTable:
 			return []
 		
 		triggered = [False] * len(self.rules)
-		print(str(triggered))
 		
 		for ix in self.ruleIndex[addr].keys():
 			for r in self.ruleIndex[addr][ix]:
-				print("loop index: ", r)
 				checkFailed = False			
 				# True rules
 				tr = self.rules[r][0]
