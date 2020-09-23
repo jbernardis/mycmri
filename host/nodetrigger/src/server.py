@@ -4,14 +4,12 @@ Created on Aug 11, 2020
 @author: jeff
 '''
 import requests
-import logging
 
 class Server(object):
 	def __init__(self):
 		self.ipAddr = None
 	
 	def setServerAddress(self, ip, port):
-		logging.info("setting server address to %s:%s" % (ip, port))
 		self.ipAddr = "http://%s:%s" % (ip, port)
 	
 	def setTurnoutNormal(self, addr, tx):

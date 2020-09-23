@@ -2,6 +2,7 @@
 
 from triggertable import TriggerTable
 from listener import Listener
+from server import Server
 
 import json
 import logging
@@ -25,7 +26,11 @@ class JMRITrigger:
 			exit(1)
 
 		if "ip" not in self.cfg:
-			logging.error("Configuration file does not specify an ip address for http server - exiting")
+			logging.error("Configuration file does not specify an ip address for node server - exiting")
+			exit(1)
+
+		if "httpport" not in self.cfg:
+			logging.error("Configuration file does not specify an port for node server - exiting")
 			exit(1)
 
 		if "socketport" not in self.cfg:
@@ -60,10 +65,14 @@ class JMRITrigger:
 		
 		self.triggerTable = TriggerTable(nodes)
 		
-		self.msgQ = queue.Queue(0)
+		self.server = Server()
+		self.server.setServerAddress(self.cfg["ip"], self.cfg["httpport"])
+		logging.info("Node server address set to %s:%s" % (self.cfg["ip"], self.cfg["httpport"]))
 		
+		self.msgQ = queue.Queue(0)
 		self.listener = Listener(self, self.cfg["ip"], self.cfg["socketport"], self.msgQ)
 		self.listener.start()
+		logging.info("Listener started at address %s:%s" % (self.cfg["ip"], self.cfg["socketport"]))
 		
 	def serve_forever(self):
 		self.forever = True
@@ -130,6 +139,29 @@ class JMRITrigger:
 				for a in actions:
 					print("Action: ", a[0], a[1], a[2:])
 				print("")
+				for a in actions:
+					self.performAction(a[0], a[1], a[2:])
+					
+	def performAction(self, verb, addr, params):
+		print("Performing action: %s %s %s" % (verb, addr, str(params)))
+		if verb == "normal":
+			self.server.setTurnoutNormal(addr, params[0])
+
+		elif verb == "reverse":
+			self.server.setTurnoutReverse(addr, params[0])
+
+		elif verb == "angle":
+			self.server.setServoAngle(addr, params[0], params[1])
+
+		elif verb == "outon":
+			self.server.setOutputOn(addr, params[0])
+			
+		elif verb == "outoff":
+			self.server.setOutputOff(addr, params[0])
+			
+		else:
+			logging.error("Unknown action verb: %s" % verb)
+
 
 
 

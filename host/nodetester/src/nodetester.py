@@ -104,6 +104,9 @@ class NodeTester(wx.Frame):
 		hsizer.AddSpacer(10)
 		hsizer.Add(wx.StaticText(boxSvr, wx.ID_ANY, "IP Address:", size=(SVRLABELW, -1)))
 		self.teIpAddr = wx.TextCtrl(boxSvr, wx.ID_ANY, self.ipAddress, size=(125, -1))
+		self.Bind(wx.EVT_TEXT, self.onTeIpAddrChange, self.teIpAddr)
+		self.teIpAddr.Bind(wx.EVT_KILL_FOCUS, self.onTeIpAddrLoseFocus)
+		self.teIpAddr.Bind(wx.EVT_SET_FOCUS, self.onTeIpAddrSetFocus)
 		hsizer.Add(self.teIpAddr)
 		hsizer.AddSpacer(10)
 		bsizer.Add(hsizer)
@@ -114,6 +117,9 @@ class NodeTester(wx.Frame):
 		hsizer.AddSpacer(10)
 		hsizer.Add(wx.StaticText(boxSvr, wx.ID_ANY, "HTTP Port:", size=(SVRLABELW, -1)))
 		self.teHPort = wx.TextCtrl(boxSvr, wx.ID_ANY, self.httpPort, size=(125, -1))
+		self.Bind(wx.EVT_TEXT, self.onTeHPortChange, self.teHPort)
+		self.teHPort.Bind(wx.EVT_KILL_FOCUS, self.onTeHPortLoseFocus)
+		self.teHPort.Bind(wx.EVT_SET_FOCUS, self.onTeHPortSetFocus)
 		hsizer.Add(self.teHPort)
 		hsizer.AddSpacer(10)
 		bsizer.Add(hsizer)
@@ -217,6 +223,10 @@ class NodeTester(wx.Frame):
 		
 		self.enableMenuItems(False)
 		
+		self.server.setServerAddress(self.teIpAddr.GetValue(), self.teHPort.GetValue())
+		self.serverValueChanged = False
+		self.hPortValueChanged = False
+		
 		self.timer.Start(1000)
 		self.Bind(wx.EVT_TIMER, self.onTimer)
 		self.Bind(EVT_DELIVERY, self.onDeliveryEvent)
@@ -303,11 +313,38 @@ class NodeTester(wx.Frame):
 	def dlgServosExit(self):
 		self.dlgServos = None
 		
+	def onTeIpAddrSetFocus(self, evt):
+		self.serverValueChanged = False
+		evt.Skip()
+		
+	def onTeIpAddrChange(self, _):
+		self.serverValueChanged = True
+		
+	def onTeIpAddrLoseFocus(self, evt):
+		if self.serverValueChanged:
+			self.serverValueChanged = False
+			self.server.setServerAddress(self.teIpAddr.GetValue(), self.teHPort.GetValue())
+
+		evt.Skip()
+		
+	def onTeHPortSetFocus(self, evt):
+		self.hPortValueChanged = False
+		evt.Skip()
+		
+	def onTeHPortChange(self, _):
+		self.hPortValueChanged = True
+		
+	def onTeHPortLoseFocus(self, evt):
+		if self.hPortValueChanged:
+			self.hPortValueChanged = False
+			self.server.setServerAddress(self.teIpAddr.GetValue(), self.teHPort.GetValue())
+
+		evt.Skip()
+		
 	def throwTurnout(self, tx, normal):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
-		self.server.setServerAddress(ip, pt)
 
 		if normal:
 			try:
@@ -341,7 +378,6 @@ class NodeTester(wx.Frame):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
-		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.setServoAngle(addr, sx, ang)
 		except:
@@ -364,7 +400,6 @@ class NodeTester(wx.Frame):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
-		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.setlimits(addr, tx, norm, rev, ini)
 		except:
@@ -389,7 +424,6 @@ class NodeTester(wx.Frame):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
-		self.server.setServerAddress(ip, pt)
 		sv = self.servosMap[tx]
 		norm = sv[0]
 		rev = sv[1]
@@ -437,7 +471,6 @@ class NodeTester(wx.Frame):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
-		self.server.setServerAddress(ip, pt)
 		
 		if newState:
 			try:
@@ -529,7 +562,6 @@ class NodeTester(wx.Frame):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
-		self.server.setServerAddress(ip, pt)
 		
 		try:
 			sc, data = self.server.nodeRefresh(addr)
@@ -554,7 +586,6 @@ class NodeTester(wx.Frame):
 			self.enableMenuItems(False)
 		
 		self.enableMenuItems(True)
-		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.getConfig(addr)
 		except:
@@ -692,7 +723,6 @@ class NodeTester(wx.Frame):
 	def getNodeRpt(self):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.getNodeRpt()
 		except:
@@ -745,7 +775,6 @@ class NodeTester(wx.Frame):
 			
 			ip = self.teIpAddr.GetValue()
 			pt = self.teHPort.GetValue()
-			self.server.setServerAddress(ip, pt)
 			try:
 				sc, data = self.server.setConfig(addr, a, i, o, s)
 			except:
@@ -764,7 +793,6 @@ class NodeTester(wx.Frame):
 		
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
-		self.server.setServerAddress(ip, pt)
 		try:
 			sc, data = self.server.nodeInit(addr)
 		except:
@@ -787,7 +815,6 @@ class NodeTester(wx.Frame):
 		if rc == wx.ID_YES:
 			ip = self.teIpAddr.GetValue()
 			pt = self.teHPort.GetValue()
-			self.server.setServerAddress(ip, pt)
 			try:
 				sc, data = self.server.quit()
 			except:
