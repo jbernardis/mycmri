@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from bus import Bus
-from httpserver import JMRIHTTPServer
+from httpserver import NodeHTTPServer
 from sktserver import SktServer
 from nodetypes import ERRORRESPONSE, WARNINGRESPONSE
 from nodeexceptions import NodeException
@@ -11,9 +11,9 @@ import queue
 import threading
 import logging
 
-class JMRIMain:
+class NodeServerMain:
 	def __init__(self, cfgfn):
-		logging.basicConfig(filename='jmri.log',
+		logging.basicConfig(filename='nodeserver.log',
 						filemode='w',
 						format='%(asctime)s - %(levelname)s - %(message)s',
 						level=logging.INFO)		
@@ -589,7 +589,7 @@ class JMRIMain:
 		self.HttpCmdQ = queue.Queue(0)
 		self.HttpRespQ = queue.Queue(0)
 		self.serving = True
-		self.jmriserver = JMRIHTTPServer(ip, port, self.HttpCmdQ, self.HttpRespQ)
+		self.nodeserver = NodeHTTPServer(ip, port, self.HttpCmdQ, self.HttpRespQ)
 
 	def disconnectNodes(self):
 			try:
@@ -600,8 +600,8 @@ class JMRIMain:
 				pass
 
 	def stopHttpServer(self):
-		self.jmriserver.close()
-		self.jmriserver.getThread().join()
+		self.nodeserver.close()
+		self.nodeserver.getThread().join()
 		
 	def serve_forever(self, interval):
 		ticker = threading.Event()
@@ -621,6 +621,6 @@ class JMRIMain:
 
 		logging.info("exiting...")
 
-jmri = JMRIMain("jmri.json")
-jmri.serve_forever(0.25)
+node = NodeServerMain("nodecfg.json")
+node.serve_forever(0.25)
 

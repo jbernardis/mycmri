@@ -8,13 +8,13 @@ import json
 import logging
 import queue
 
-class JMRITrigger:
+class NodeTrigger:
 	def __init__(self, cfgfn):
 		self.cfgfn = cfgfn
 		with open(cfgfn, "r") as fp:
 			self.cfg = json.load(fp)
 
-		logging.basicConfig(filename='jmritrigger.log',
+		logging.basicConfig(filename='nodetrigger.log',
 						filemode='w',
 						format='%(asctime)s - %(levelname)s - %(message)s',
 						level=logging.INFO)	
@@ -158,7 +158,7 @@ class JMRITrigger:
 		else:
 			logging.error("Unknown action verb: %s" % verb)
 
-jmri = JMRITrigger("jmri.json")
-jmri.serve_forever()
+node = NodeTrigger("nodecfg.json")
+node.serve_forever()
 logging.info("exiting")
 

@@ -63,7 +63,7 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
 	def shut_down(self):
 		self.haltServer = True
 
-class JMRIHTTPServer:
+class NodeHTTPServer:
 	def __init__(self, ip, port, httpcmdq, httprespq):
 		self.server = ThreadingHTTPServer((ip, port), Handler)
 		self.server.setApp(self)
