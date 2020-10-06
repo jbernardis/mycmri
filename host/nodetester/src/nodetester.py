@@ -67,7 +67,7 @@ class NodeTester(wx.Frame):
 		self.SetMenuBar(menuBar)
 		
 		self.images = Images("images")
-		self.ipAddress = "192.168.1.210"
+		self.ipAddress = "192.168.1.142"
 		self.httpPort = "8000"
 		self.socketPort = "8001"
 		self.server = Server()

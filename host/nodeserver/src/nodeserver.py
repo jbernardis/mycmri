@@ -306,13 +306,14 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unknown node address'))
 					continue
 				
+				if verb == "init":
+					self.startNode(addr)
+					self.HttpRespQ.put((200, b'command accepted'))
+					continue
+				
 				if addr not in self.awaitingInitialIdentity or self.awaitingInitialIdentity[addr]:
-					if verb == "init":
-						self.startNode(addr)
-						self.HttpRespQ.put((200, b'command accepted'))
-					else:
-						msg = "communications with node %d has not been established" % addr
-						self.HttpRespQ.put((400, msg.encode()))
+					msg = "communications with node %d has not been established" % addr
+					self.HttpRespQ.put((400, msg.encode()))
 					continue
 				
 				_, _, outp, servo = self.nodeCfg[addr]

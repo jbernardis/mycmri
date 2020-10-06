@@ -1,0 +1,470 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 7
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L 74xx:74LS14 U101
+U 1 1 5F751957
+P 4100 1450
+F 0 "U101" H 4100 1767 50  0000 C CNN
+F 1 "74LS14" H 4100 1676 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4100 1450 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4100 1450 50  0001 C CNN
+	1    4100 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L 74xx:74LS14 U101
+U 2 1 5F753E10
+P 4100 2000
+F 0 "U101" H 4100 2317 50  0000 C CNN
+F 1 "74LS14" H 4100 2226 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4100 2000 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4100 2000 50  0001 C CNN
+	2    4100 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L 74xx:74LS14 U101
+U 3 1 5F7547E1
+P 4100 2550
+F 0 "U101" H 4100 2867 50  0000 C CNN
+F 1 "74LS14" H 4100 2776 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4100 2550 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4100 2550 50  0001 C CNN
+	3    4100 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L 74xx:74LS14 U101
+U 4 1 5F75573C
+P 4100 4200
+F 0 "U101" H 4100 4517 50  0000 C CNN
+F 1 "74LS14" H 4100 4426 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4100 4200 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4100 4200 50  0001 C CNN
+	4    4100 4200
+	1    0    0    -1  
+$EndComp
+$Comp
+L 74xx:74LS14 U101
+U 5 1 5F7560BA
+P 4100 3650
+F 0 "U101" H 4100 3967 50  0000 C CNN
+F 1 "74LS14" H 4100 3876 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4100 3650 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4100 3650 50  0001 C CNN
+	5    4100 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L 74xx:74LS14 U101
+U 6 1 5F7568C4
+P 4100 3100
+F 0 "U101" H 4100 3417 50  0000 C CNN
+F 1 "74LS14" H 4100 3326 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4100 3100 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4100 3100 50  0001 C CNN
+	6    4100 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L 74xx:74LS14 U101
+U 7 1 5F75702D
+P 4000 5350
+F 0 "U101" H 4230 5396 50  0000 L CNN
+F 1 "74LS14" H 4230 5305 50  0000 L CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 4000 5350 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 4000 5350 50  0001 C CNN
+	7    4000 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J101
+U 1 1 5F75894A
+P 1900 4900
+F 0 "J101" H 1980 4892 50  0000 L CNN
+F 1 "Conn_01x02" H 1980 4801 50  0000 L CNN
+F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal" H 1900 4900 50  0001 C CNN
+F 3 "~" H 1900 4900 50  0001 C CNN
+	1    1900 4900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J102
+U 1 1 5F758DAB
+P 1900 5300
+F 0 "J102" H 1980 5292 50  0000 L CNN
+F 1 "Conn_01x02" H 1980 5201 50  0000 L CNN
+F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal" H 1900 5300 50  0001 C CNN
+F 3 "~" H 1900 5300 50  0001 C CNN
+	1    1900 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x12 J103
+U 1 1 5F795F24
+P 5900 2850
+F 0 "J103" H 5980 2842 50  0000 L CNN
+F 1 "Conn_01x12" H 5980 2751 50  0000 L CNN
+F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-12-5.08_1x12_P5.08mm_Horizontal" H 5900 2850 50  0001 C CNN
+F 3 "~" H 5900 2850 50  0001 C CNN
+	1    5900 2850
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	3800 1450 3600 1450
+Wire Wire Line
+	5300 2000 4400 2000
+Wire Wire Line
+	3600 2000 3800 2000
+Wire Wire Line
+	4400 2550 5200 2550
+Wire Wire Line
+	3600 2550 3800 2550
+Wire Wire Line
+	4400 3100 5200 3100
+Wire Wire Line
+	3600 3100 3800 3100
+Wire Wire Line
+	5300 3050 5700 3050
+Wire Wire Line
+	5350 3150 5700 3150
+Wire Wire Line
+	3600 3650 3800 3650
+Wire Wire Line
+	5400 3250 5700 3250
+Wire Wire Line
+	3800 4200 3600 4200
+Wire Wire Line
+	5450 3350 5700 3350
+$Comp
+L power:+5V #PWR0101
+U 1 1 5F7AA673
+P 1550 4800
+F 0 "#PWR0101" H 1550 4650 50  0001 C CNN
+F 1 "+5V" H 1565 4973 50  0000 C CNN
+F 2 "" H 1550 4800 50  0001 C CNN
+F 3 "" H 1550 4800 50  0001 C CNN
+	1    1550 4800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0103
+U 1 1 5F7AA8E6
+P 4000 4700
+F 0 "#PWR0103" H 4000 4550 50  0001 C CNN
+F 1 "+5V" H 4015 4873 50  0000 C CNN
+F 2 "" H 4000 4700 50  0001 C CNN
+F 3 "" H 4000 4700 50  0001 C CNN
+	1    4000 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0102
+U 1 1 5F7AB13F
+P 1650 5500
+F 0 "#PWR0102" H 1650 5250 50  0001 C CNN
+F 1 "GND" H 1655 5327 50  0000 C CNN
+F 2 "" H 1650 5500 50  0001 C CNN
+F 3 "" H 1650 5500 50  0001 C CNN
+	1    1650 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0104
+U 1 1 5F7AB818
+P 4000 6000
+F 0 "#PWR0104" H 4000 5750 50  0001 C CNN
+F 1 "GND" H 4005 5827 50  0000 C CNN
+F 2 "" H 4000 6000 50  0001 C CNN
+F 3 "" H 4000 6000 50  0001 C CNN
+	1    4000 6000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 6000 4000 5850
+Wire Wire Line
+	4000 4850 4000 4700
+Wire Wire Line
+	1550 4800 1550 4900
+Wire Wire Line
+	1700 4900 1550 4900
+Connection ~ 1550 4900
+Wire Wire Line
+	1700 5000 1650 5000
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 5F7B5489
+P 1550 4900
+F 0 "#FLG0101" H 1550 4975 50  0001 C CNN
+F 1 "PWR_FLAG" V 1550 5027 50  0000 L CNN
+F 2 "" H 1550 4900 50  0001 C CNN
+F 3 "~" H 1550 4900 50  0001 C CNN
+	1    1550 4900
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG0102
+U 1 1 5F7B5A2F
+P 1650 5500
+F 0 "#FLG0102" H 1650 5575 50  0001 C CNN
+F 1 "PWR_FLAG" V 1650 5627 50  0000 L CNN
+F 2 "" H 1650 5500 50  0001 C CNN
+F 3 "~" H 1650 5500 50  0001 C CNN
+	1    1650 5500
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	5500 2250 5700 2250
+Wire Wire Line
+	5500 1250 3600 1250
+Wire Wire Line
+	3600 1250 3600 1400
+Wire Wire Line
+	5500 1250 5500 2250
+Wire Wire Line
+	5450 1450 5450 2350
+Wire Wire Line
+	4400 1450 5450 1450
+Wire Wire Line
+	5450 2350 5700 2350
+Wire Wire Line
+	5300 2550 5700 2550
+Wire Wire Line
+	5300 2000 5300 2550
+Wire Wire Line
+	3600 2000 3600 1950
+Wire Wire Line
+	3600 1800 5400 1800
+Wire Wire Line
+	5400 1800 5400 2450
+Wire Wire Line
+	5400 2450 5700 2450
+Wire Wire Line
+	5200 2750 5700 2750
+Wire Wire Line
+	5200 2550 5200 2750
+Wire Wire Line
+	3600 2550 3600 2450
+Wire Wire Line
+	3600 2350 5250 2350
+Wire Wire Line
+	5250 2350 5250 2650
+Wire Wire Line
+	5250 2650 5700 2650
+Wire Wire Line
+	5200 3100 5200 2950
+Wire Wire Line
+	5200 2950 5700 2950
+Wire Wire Line
+	3600 2850 3600 3050
+Wire Wire Line
+	3600 2850 5700 2850
+Wire Wire Line
+	5350 3650 5350 3150
+Wire Wire Line
+	4400 3650 5350 3650
+Wire Wire Line
+	5300 3050 5300 3450
+Wire Wire Line
+	5300 3450 3600 3450
+Wire Wire Line
+	3600 3450 3600 3600
+Wire Wire Line
+	5450 3350 5450 4200
+Wire Wire Line
+	4400 4200 5450 4200
+Wire Wire Line
+	5400 3250 5400 4000
+Wire Wire Line
+	5400 4000 3600 4000
+Wire Wire Line
+	3600 4000 3600 4150
+$Sheet
+S 2000 1300 1000 200 
+U 5F76D032
+F0 "detection a" 50
+F1 "detection circuit.sch" 50
+F2 "OUT" O R 3000 1400 50 
+F3 "DCCINA" I L 2000 1350 50 
+F4 "DCCINB" I L 2000 1450 50 
+$EndSheet
+$Sheet
+S 2000 1850 1000 200 
+U 5F76E450
+F0 "detection b" 50
+F1 "detection circuit.sch" 50
+F2 "OUT" O R 3000 1950 50 
+F3 "DCCINA" I L 2000 1900 50 
+F4 "DCCINB" I L 2000 2000 50 
+$EndSheet
+$Sheet
+S 2000 2350 1000 200 
+U 5F76E756
+F0 "detection c" 50
+F1 "detection circuit.sch" 50
+F2 "OUT" O R 3000 2450 50 
+F3 "DCCINA" I L 2000 2400 50 
+F4 "DCCINB" I L 2000 2500 50 
+$EndSheet
+$Sheet
+S 2000 2950 1000 200 
+U 5F76EA73
+F0 "detection d" 50
+F1 "detection circuit.sch" 50
+F2 "OUT" O R 3000 3050 50 
+F3 "DCCINA" I L 2000 3000 50 
+F4 "DCCINB" I L 2000 3100 50 
+$EndSheet
+$Sheet
+S 2000 3500 1000 200 
+U 5F76EDBB
+F0 "detection e" 50
+F1 "detection circuit.sch" 50
+F2 "OUT" O R 3000 3600 50 
+F3 "DCCINA" I L 2000 3550 50 
+F4 "DCCINB" I L 2000 3650 50 
+$EndSheet
+$Sheet
+S 2000 4050 1000 200 
+U 5F76F0E6
+F0 "detection f" 50
+F1 "detection circuit.sch" 50
+F2 "OUT" O R 3000 4150 50 
+F3 "DCCINA" I L 2000 4100 50 
+F4 "DCCINB" I L 2000 4200 50 
+$EndSheet
+Wire Wire Line
+	3000 1400 3600 1400
+Connection ~ 3600 1400
+Wire Wire Line
+	3600 1400 3600 1450
+Wire Wire Line
+	3000 1950 3600 1950
+Connection ~ 3600 1950
+Wire Wire Line
+	3600 1950 3600 1800
+Wire Wire Line
+	3000 2450 3600 2450
+Connection ~ 3600 2450
+Wire Wire Line
+	3600 2450 3600 2350
+Wire Wire Line
+	3000 3050 3600 3050
+Connection ~ 3600 3050
+Wire Wire Line
+	3600 3050 3600 3100
+Wire Wire Line
+	3000 3600 3600 3600
+Connection ~ 3600 3600
+Wire Wire Line
+	3600 3600 3600 3650
+Wire Wire Line
+	3000 4150 3600 4150
+Connection ~ 3600 4150
+Wire Wire Line
+	3600 4150 3600 4200
+$Comp
+L Connector_Generic:Conn_01x12 J104
+U 1 1 5F77D183
+P 1300 2750
+F 0 "J104" H 1380 2742 50  0000 L CNN
+F 1 "Conn_01x12" H 1380 2651 50  0000 L CNN
+F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-12-5.08_1x12_P5.08mm_Horizontal" H 1300 2750 50  0001 C CNN
+F 3 "~" H 1300 2750 50  0001 C CNN
+	1    1300 2750
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	1500 2250 1500 1350
+Wire Wire Line
+	1500 1350 2000 1350
+Wire Wire Line
+	1500 2350 1550 2350
+Wire Wire Line
+	1550 2350 1550 1450
+Wire Wire Line
+	1550 1450 2000 1450
+Wire Wire Line
+	1500 2450 1600 2450
+Wire Wire Line
+	1600 2450 1600 1900
+Wire Wire Line
+	1600 1900 2000 1900
+Wire Wire Line
+	1500 2550 1650 2550
+Wire Wire Line
+	1650 2550 1650 2000
+Wire Wire Line
+	1650 2000 2000 2000
+Wire Wire Line
+	1500 2650 1700 2650
+Wire Wire Line
+	1700 2650 1700 2400
+Wire Wire Line
+	1700 2400 2000 2400
+Wire Wire Line
+	1500 2750 1750 2750
+Wire Wire Line
+	1750 2750 1750 2500
+Wire Wire Line
+	1750 2500 2000 2500
+Wire Wire Line
+	1500 2850 1750 2850
+Wire Wire Line
+	1750 2850 1750 3000
+Wire Wire Line
+	1750 3000 2000 3000
+Wire Wire Line
+	1500 2950 1700 2950
+Wire Wire Line
+	1700 2950 1700 3100
+Wire Wire Line
+	1700 3100 2000 3100
+Wire Wire Line
+	1500 3050 1650 3050
+Wire Wire Line
+	1650 3050 1650 3550
+Wire Wire Line
+	1650 3550 2000 3550
+Wire Wire Line
+	1500 3150 1600 3150
+Wire Wire Line
+	1600 3150 1600 3650
+Wire Wire Line
+	1600 3650 2000 3650
+Wire Wire Line
+	1500 3250 1550 3250
+Wire Wire Line
+	1550 3250 1550 4100
+Wire Wire Line
+	1550 4100 2000 4100
+Wire Wire Line
+	1500 3350 1500 4200
+Wire Wire Line
+	1500 4200 2000 4200
+Wire Wire Line
+	1650 5000 1650 5300
+Wire Wire Line
+	1550 5400 1700 5400
+Wire Wire Line
+	1550 4900 1550 5400
+Wire Wire Line
+	1700 5300 1650 5300
+Connection ~ 1650 5300
+Wire Wire Line
+	1650 5300 1650 5500
+Connection ~ 1650 5500
+$EndSCHEMATC

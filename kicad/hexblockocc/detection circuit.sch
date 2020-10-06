@@ -1,0 +1,268 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 7 7
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Diode_Bridge:GBU4M D201
+U 1 1 5F76C0B0
+P 2600 2300
+AR Path="/5F76D032/5F76C0B0" Ref="D201"  Part="1" 
+AR Path="/5F76E450/5F76C0B0" Ref="D301"  Part="1" 
+AR Path="/5F76E756/5F76C0B0" Ref="D401"  Part="1" 
+AR Path="/5F76EA73/5F76C0B0" Ref="D501"  Part="1" 
+AR Path="/5F76EDBB/5F76C0B0" Ref="D601"  Part="1" 
+AR Path="/5F76F0E6/5F76C0B0" Ref="D701"  Part="1" 
+F 0 "D701" H 2944 2346 50  0000 L CNN
+F 1 "GBU4M" H 2944 2255 50  0000 L CNN
+F 2 "Diode_THT:Diode_Bridge_Vishay_GBU" H 2750 2425 50  0001 L CNN
+F 3 "http://www.vishay.com/docs/88656/gbu4a.pdf" H 2600 2300 50  0001 C CNN
+	1    2600 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R201
+U 1 1 5F76C0BC
+P 3200 2000
+AR Path="/5F76D032/5F76C0BC" Ref="R201"  Part="1" 
+AR Path="/5F76E450/5F76C0BC" Ref="R301"  Part="1" 
+AR Path="/5F76E756/5F76C0BC" Ref="R401"  Part="1" 
+AR Path="/5F76EA73/5F76C0BC" Ref="R501"  Part="1" 
+AR Path="/5F76EDBB/5F76C0BC" Ref="R601"  Part="1" 
+AR Path="/5F76F0E6/5F76C0BC" Ref="R701"  Part="1" 
+F 0 "R701" V 2993 2000 50  0000 C CNN
+F 1 "33R" V 3084 2000 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical" V 3130 2000 50  0001 C CNN
+F 3 "~" H 3200 2000 50  0001 C CNN
+	1    3200 2000
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R202
+U 1 1 5F76C0C2
+P 4200 1950
+AR Path="/5F76D032/5F76C0C2" Ref="R202"  Part="1" 
+AR Path="/5F76E450/5F76C0C2" Ref="R302"  Part="1" 
+AR Path="/5F76E756/5F76C0C2" Ref="R402"  Part="1" 
+AR Path="/5F76EA73/5F76C0C2" Ref="R502"  Part="1" 
+AR Path="/5F76EDBB/5F76C0C2" Ref="R602"  Part="1" 
+AR Path="/5F76F0E6/5F76C0C2" Ref="R702"  Part="1" 
+F 0 "R702" H 4270 1996 50  0000 L CNN
+F 1 "120K" H 4270 1905 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical" V 4130 1950 50  0001 C CNN
+F 3 "~" H 4200 1950 50  0001 C CNN
+	1    4200 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C202
+U 1 1 5F76C0C8
+P 4800 2600
+AR Path="/5F76D032/5F76C0C8" Ref="C202"  Part="1" 
+AR Path="/5F76E450/5F76C0C8" Ref="C302"  Part="1" 
+AR Path="/5F76E756/5F76C0C8" Ref="C402"  Part="1" 
+AR Path="/5F76EA73/5F76C0C8" Ref="C502"  Part="1" 
+AR Path="/5F76EDBB/5F76C0C8" Ref="C602"  Part="1" 
+AR Path="/5F76F0E6/5F76C0C8" Ref="C702"  Part="1" 
+F 0 "C702" H 4915 2646 50  0000 L CNN
+F 1 "0.01uf" H 4915 2555 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm" H 4838 2450 50  0001 C CNN
+F 3 "~" H 4800 2600 50  0001 C CNN
+	1    4800 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP1 C201
+U 1 1 5F76C0CE
+P 4350 2550
+AR Path="/5F76D032/5F76C0CE" Ref="C201"  Part="1" 
+AR Path="/5F76E450/5F76C0CE" Ref="C301"  Part="1" 
+AR Path="/5F76E756/5F76C0CE" Ref="C401"  Part="1" 
+AR Path="/5F76EA73/5F76C0CE" Ref="C501"  Part="1" 
+AR Path="/5F76EDBB/5F76C0CE" Ref="C601"  Part="1" 
+AR Path="/5F76F0E6/5F76C0CE" Ref="C701"  Part="1" 
+F 0 "C701" H 4465 2596 50  0000 L CNN
+F 1 "10uf 50v" H 4465 2505 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm" H 4350 2550 50  0001 C CNN
+F 3 "~" H 4350 2550 50  0001 C CNN
+	1    4350 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Isolator:LTV-814 U201
+U 1 1 5F76C0D4
+P 3750 2350
+AR Path="/5F76D032/5F76C0D4" Ref="U201"  Part="1" 
+AR Path="/5F76E450/5F76C0D4" Ref="U301"  Part="1" 
+AR Path="/5F76E756/5F76C0D4" Ref="U401"  Part="1" 
+AR Path="/5F76EA73/5F76C0D4" Ref="U501"  Part="1" 
+AR Path="/5F76EDBB/5F76C0D4" Ref="U601"  Part="1" 
+AR Path="/5F76F0E6/5F76C0D4" Ref="U701"  Part="1" 
+F 0 "U701" H 3750 2675 50  0000 C CNN
+F 1 "LTV8141" H 3750 2584 50  0000 C CNN
+F 2 "Package_DIP:DIP-4_W7.62mm" H 3550 2150 50  0001 L CIN
+F 3 "" H 3775 2350 50  0001 L CNN
+	1    3750 2350
+	1    0    0    -1  
+$EndComp
+$Comp
+L dk_Clock-Timing-Programmable-Timers-and-Oscillators:NE555P U202
+U 1 1 5F76C0E3
+P 5300 2150
+AR Path="/5F76D032/5F76C0E3" Ref="U202"  Part="1" 
+AR Path="/5F76E450/5F76C0E3" Ref="U302"  Part="1" 
+AR Path="/5F76E756/5F76C0E3" Ref="U402"  Part="1" 
+AR Path="/5F76EA73/5F76C0E3" Ref="U502"  Part="1" 
+AR Path="/5F76EDBB/5F76C0E3" Ref="U602"  Part="1" 
+AR Path="/5F76F0E6/5F76C0E3" Ref="U702"  Part="1" 
+F 0 "U702" H 5300 2653 60  0000 C CNN
+F 1 "NE555" H 5300 2547 60  0000 C CNN
+F 2 "Package_DIP:DIP-8_W7.62mm" H 5500 2350 60  0001 L CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS14" H 5500 2450 60  0001 L CNN
+F 4 "296-1411-5-ND" H 5500 2550 60  0001 L CNN "Digi-Key_PN"
+F 5 "NE555P" H 5500 2650 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 5500 2750 60  0001 L CNN "Category"
+F 7 "Clock/Timing - Programmable Timers and Oscillators" H 5500 2850 60  0001 L CNN "Family"
+F 8 "http://www.ti.com/general/docs/suppproductinfo.tsp?distId=10&gotoUrl=http%3A%2F%2Fwww.ti.com%2Flit%2Fgpn%2Fne555" H 5500 2950 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/texas-instruments/NE555P/296-1411-5-ND/277057" H 5500 3050 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC OSC SINGLE TIMER 100KHZ 8-DIP" H 5500 3150 60  0001 L CNN "Description"
+F 11 "Texas Instruments" H 5500 3250 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 5500 3350 60  0001 L CNN "Status"
+	1    5300 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1950 2000 2600 2000
+Wire Wire Line
+	1950 2600 2600 2600
+Wire Wire Line
+	2300 2300 2300 2700
+Wire Wire Line
+	2300 2700 2900 2700
+Wire Wire Line
+	2900 2700 2900 2300
+Wire Wire Line
+	2600 2000 3050 2000
+Connection ~ 2600 2000
+Wire Wire Line
+	3350 2000 3400 2000
+Wire Wire Line
+	3400 2000 3400 2250
+Wire Wire Line
+	3400 2250 3450 2250
+Wire Wire Line
+	3400 2450 3450 2450
+Wire Wire Line
+	4050 2250 4200 2250
+Wire Wire Line
+	4200 2250 4200 2100
+Connection ~ 4200 2250
+Wire Wire Line
+	4200 2250 4350 2250
+$Comp
+L power:+5V #PWR0201
+U 1 1 5F76C0FD
+P 4200 1650
+AR Path="/5F76D032/5F76C0FD" Ref="#PWR0201"  Part="1" 
+AR Path="/5F76E450/5F76C0FD" Ref="#PWR0301"  Part="1" 
+AR Path="/5F76E756/5F76C0FD" Ref="#PWR0401"  Part="1" 
+AR Path="/5F76EA73/5F76C0FD" Ref="#PWR0501"  Part="1" 
+AR Path="/5F76EDBB/5F76C0FD" Ref="#PWR0601"  Part="1" 
+AR Path="/5F76F0E6/5F76C0FD" Ref="#PWR0701"  Part="1" 
+F 0 "#PWR0701" H 4200 1500 50  0001 C CNN
+F 1 "+5V" H 4215 1823 50  0000 C CNN
+F 2 "" H 4200 1650 50  0001 C CNN
+F 3 "" H 4200 1650 50  0001 C CNN
+	1    4200 1650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4200 1800 4200 1750
+Wire Wire Line
+	4350 2150 4350 2250
+Connection ~ 4350 2250
+Wire Wire Line
+	4350 2250 4350 2400
+Wire Wire Line
+	4050 2450 4150 2450
+NoConn ~ 5800 2150
+Connection ~ 4200 1750
+Wire Wire Line
+	4200 1750 4200 1650
+Wire Wire Line
+	4350 2050 4350 1750
+Connection ~ 4350 1750
+Wire Wire Line
+	4350 1750 4200 1750
+Wire Wire Line
+	4350 2250 4800 2250
+Wire Wire Line
+	4350 2150 4800 2150
+Wire Wire Line
+	4350 2050 4800 2050
+Wire Wire Line
+	5300 1750 5300 1850
+Wire Wire Line
+	4350 1750 5300 1750
+Wire Wire Line
+	4150 2900 4350 2900
+Wire Wire Line
+	4150 2450 4150 2900
+Wire Wire Line
+	5300 2550 5300 2900
+Wire Wire Line
+	4350 2700 4350 2900
+Connection ~ 4350 2900
+Wire Wire Line
+	4350 2900 4800 2900
+Wire Wire Line
+	4800 2350 4800 2450
+Wire Wire Line
+	4800 2750 4800 2900
+Connection ~ 4800 2900
+Wire Wire Line
+	4800 2900 5300 2900
+$Comp
+L power:GND #PWR0202
+U 1 1 5F76C11D
+P 5300 3050
+AR Path="/5F76D032/5F76C11D" Ref="#PWR0202"  Part="1" 
+AR Path="/5F76E450/5F76C11D" Ref="#PWR0302"  Part="1" 
+AR Path="/5F76E756/5F76C11D" Ref="#PWR0402"  Part="1" 
+AR Path="/5F76EA73/5F76C11D" Ref="#PWR0502"  Part="1" 
+AR Path="/5F76EDBB/5F76C11D" Ref="#PWR0602"  Part="1" 
+AR Path="/5F76F0E6/5F76C11D" Ref="#PWR0702"  Part="1" 
+F 0 "#PWR0702" H 5300 2800 50  0001 C CNN
+F 1 "GND" H 5305 2877 50  0000 C CNN
+F 2 "" H 5300 3050 50  0001 C CNN
+F 3 "" H 5300 3050 50  0001 C CNN
+	1    5300 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 2900 5300 3050
+Connection ~ 5300 2900
+Wire Wire Line
+	5800 2250 5950 2250
+Wire Wire Line
+	3400 2450 3400 2600
+Wire Wire Line
+	3400 2600 2600 2600
+Connection ~ 2600 2600
+Text HLabel 5950 2250 2    50   Output ~ 0
+OUT
+Text HLabel 1950 2000 0    50   Input ~ 0
+DCCINA
+Text HLabel 1950 2600 0    50   Input ~ 0
+DCCINB
+$EndSCHEMATC
