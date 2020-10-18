@@ -13,12 +13,14 @@ class NodeDlg(wx.Dialog):
 			choices = []
 			cx = 0
 			for t in sorted(nodes.keys()):
-				if nodes[t]['active']:
-					c = "%s (%d)" % (t, nodes[t]["addr"])
-					choices.append([c, nodes[t]["addr"]])
-					if startVal and startVal == nodes[t]["addr"]:
+				c = "%s (%d)" % (t, nodes[t]["addr"])
+				if not nodes[t]['active']:
+					c += " *"
+
+				choices.append([c, nodes[t]["addr"]])
+				if startVal and startVal == nodes[t]["addr"]:
 						sval = cx
-					cx += 1
+				cx += 1
 					
 			if not startVal:
 				if len(choices) > 0:
@@ -39,7 +41,7 @@ class NodeDlg(wx.Dialog):
 		for c in choices:
 			self.cbAddr.Append(c[0], c[1])
 			
-		if sval:
+		if not sval is None:
 			self.cbAddr.SetSelection(sval)
 		hsizer.Add(self.cbAddr)
 						
