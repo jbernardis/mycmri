@@ -7,21 +7,24 @@ class NodeDlg(wx.Dialog):
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
 		if nodes is None:
-			choices = [["%d" % i, i] for i in range(1,20)]
-			sval = 0
+			choices = []
+			sval = None
 		else:
 			choices = []
 			cx = 0
 			for t in sorted(nodes.keys()):
-				c = "%s (%d)" % (t, nodes[t]["addr"])
-				if not nodes[t]['active']:
-					c += "*"
-				choices.append([c, nodes[t]["addr"]])
-				if startVal and startVal == nodes[t]["addr"]:
-					sval = cx
-				cx += 1
+				if nodes[t]['active']:
+					c = "%s (%d)" % (t, nodes[t]["addr"])
+					choices.append([c, nodes[t]["addr"]])
+					if startVal and startVal == nodes[t]["addr"]:
+						sval = cx
+					cx += 1
+					
 			if not startVal:
-				sval = 0
+				if len(choices) > 0:
+					sval = 0
+				else:
+					sval = None
 
 		vsizer = wx.BoxSizer(wx.VERTICAL)
 		vsizer.AddSpacer(30)
@@ -35,7 +38,9 @@ class NodeDlg(wx.Dialog):
 		self.cbAddr = wx.ComboBox(self, 500, "", choices=[], style=wx.CB_READONLY)
 		for c in choices:
 			self.cbAddr.Append(c[0], c[1])
-		self.cbAddr.SetSelection(sval)
+			
+		if sval:
+			self.cbAddr.SetSelection(sval)
 		hsizer.Add(self.cbAddr)
 						
 		vsizer.Add(hsizer)
@@ -47,6 +52,8 @@ class NodeDlg(wx.Dialog):
 		self.bOK = wx.Button(self, wx.ID_ANY, "OK")
 		hsizer.Add(self.bOK)
 		self.Bind(wx.EVT_BUTTON, self.onBOK, self.bOK)
+		if len(choices) == 0:
+			self.bOK.Enable(False)
 		
 		hsizer.AddSpacer(20)
 		
@@ -68,7 +75,11 @@ class NodeDlg(wx.Dialog):
 		self.Fit()
 		
 	def getValues(self):
-		return self.cbAddr.GetClientData(self.cbAddr.GetSelection())
+		sv = self.cbAddr.GetSelection()
+		if sv == wx.NOT_FOUND:
+			return None
+		
+		return self.cbAddr.GetClientData(sv)
 		
 	def onBOK(self, _):
 		self.EndModal(wx.ID_OK)

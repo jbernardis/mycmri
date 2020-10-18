@@ -549,12 +549,16 @@ class NodeTester(wx.Frame):
 		dlg = NodeDlg(self, self.currentNodeAddr, self.getNodeRpt())
 		rc = dlg.ShowModal()
 		if rc == wx.ID_OK:
-			self.currentNodeAddr = dlg.getValues()
+			n = dlg.getValues()
 			
 		dlg.Destroy()
 		if rc != wx.ID_OK:
 			return 
 
+		if n is None:
+			return 
+		
+		self.currentNodeAddr = n
 		self.stAddr.SetLabel("%d" % self.currentNodeAddr)		
 		self.loadConfig()
 		
