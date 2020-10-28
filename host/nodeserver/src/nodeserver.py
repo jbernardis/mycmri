@@ -191,6 +191,22 @@ class NodeServerMain:
 		if self.createSocketServer:
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.servosMap[addr]})
 			self.socketServer.sendToAll(s.encode())
+
+	def setTurnoutToggle(self, addr, tx):
+		logging.info("  Toggle turnout %d:%d" % (addr, tx))
+		if self.servosMap[addr][tx][3] == self.servosMap[addr][tx][0]: # if it's normal
+			self.bus.setTurnoutReverse(addr, tx)
+			self.servosMap[addr][tx][3] = self.servosMap[addr][tx][1]
+		elif self.servosMap[addr][tx][3] == self.servosMap[addr][tx][1]: # if it's reverse
+			self.bus.setTurnoutNormal(addr, tx)
+			self.servosMap[addr][tx][3] = self.servosMap[addr][tx][0]
+		else:
+			logging.error("Turnout cannot be toggled, not in normal or reversed state")
+			return
+			
+		if self.createSocketServer:
+			s = json.dumps({"addr": addr, "type": "turnout", "values": self.servosMap[addr]})
+			self.socketServer.sendToAll(s.encode())
 		
 	def setOutputOn(self, addr, ox):
 		logging.info("  Output %d:%d ON" % (addr, ox))
@@ -320,7 +336,7 @@ class NodeServerMain:
 			else:
 				addr = None
 
-			if verb in ["reverse", "normal"]:
+			if verb in ["reverse", "normal", "toggle"]:
 				try:
 					tx = int(cmd["index"][0])
 				except KeyError:
@@ -339,8 +355,11 @@ class NodeServerMain:
 
 				if verb == "reverse":
 					self.setTurnoutReverse(addr, tx)
-				else:
+				elif verb == "reverse":
 					self.setTurnoutNormal(addr, tx)
+				else: # verb == toggle
+					self.setTurnoutToggle(addr, tx)
+					
 				self.HttpRespQ.put((200, b'command performed'))
 
 

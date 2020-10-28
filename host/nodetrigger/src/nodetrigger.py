@@ -146,6 +146,9 @@ class NodeTrigger:
 		elif verb == "reverse":
 			self.server.setTurnoutReverse(addr, params[0])
 
+		elif verb == "toggle":
+			self.server.setTurnoutToggle(addr, params[0])
+
 		elif verb == "angle":
 			self.server.setServoAngle(addr, params[0], params[1])
 

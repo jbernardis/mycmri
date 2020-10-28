@@ -75,12 +75,12 @@ class ServoListCtrl(wx.ListCtrl):
 	def selectAll(self):
 		self.isChecked = [True] * self.maxsv
 		self.RefreshItems(0, self.maxsv-1)
-		self.parent.enableButtons(self.maxsv)
+		self.parent.enableButtons(self.maxsv, self.areAllSelectionsToggleable())
 		
 	def selectNone(self):
 		self.isChecked = [False] * self.maxsv
 		self.RefreshItems(0, self.maxsv-1)
-		self.parent.enableButtons(0)
+		self.parent.enableButtons(0, True)
 		
 	def OnItemActivated(self, event):
 		item = event.Index
@@ -89,12 +89,20 @@ class ServoListCtrl(wx.ListCtrl):
 		self.Select(item, 0)
 		self.RefreshItem(item)
 		
+	def areAllSelectionsToggleable(self):
+		for tx in range(len(self.isChecked)):
+			if self.isChecked[tx]:
+				if not self.data[tx][3] in [ self.data[tx][0], self.data[tx][1] ]:
+					return False
+		return True
+		
 	def enableButtons(self):
 		self.ctSel = 0
 		for sel in self.isChecked:
 			if sel:
 				self.ctSel += 1
-		self.parent.enableButtons(self.ctSel)
+				
+		self.parent.enableButtons(self.ctSel, self.areAllSelectionsToggleable())
 
 	def OnGetItemIsChecked(self, item):
 		return self.isChecked[item]
@@ -184,6 +192,13 @@ class ServosDlg(wx.Dialog):
 		self.bThrowR.SetToolTip("Throw turnout to REVERSED position")
 		
 		hsizer.AddSpacer(10)
+		self.bToggle = wx.Button(self, wx.ID_ANY, "Toggle")
+		hsizer.Add(self.bToggle)
+		self.Bind(wx.EVT_BUTTON, self.onBToggle, self.bToggle)
+		self.bToggle.Enable(False)
+		self.bToggle.SetToolTip("Throw turnout to OPPOSITE position")
+		
+		hsizer.AddSpacer(10)
 		self.bAngle = wx.Button(self, wx.ID_ANY, "Angle")
 		hsizer.Add(self.bAngle)
 		self.Bind(wx.EVT_BUTTON, self.onBAngle, self.bAngle)
@@ -234,12 +249,17 @@ class ServosDlg(wx.Dialog):
 		
 	def onBThrowN(self, _):
 		for tx in self.lcServos.getSelection():
-			self.parent.throwTurnout(tx, True)
+			self.parent.throwTurnout(tx, "N")
 		self.update(self.parent.getServosMap())
 		
 	def onBThrowR(self, _):
 		for tx in self.lcServos.getSelection():
-			self.parent.throwTurnout(tx, False)
+			self.parent.throwTurnout(tx, "R")
+		self.update(self.parent.getServosMap())
+		
+	def onBToggle(self, _):
+		for tx in self.lcServos.getSelection():
+			self.parent.throwTurnout(tx, "T")
 		self.update(self.parent.getServosMap())
 		
 	def onBAngle(self, _):
@@ -287,6 +307,7 @@ class ServosDlg(wx.Dialog):
 	def enableButtons(self, ct):
 		self.bThrowN.Enable(ct > 0)
 		self.bThrowR.Enable(ct > 0)
+		self.bToggle.Enable(ct > 0)
 		self.bAngle.Enable(ct > 0)
 		self.bSwap.Enable(ct > 0)
 		self.bConfig.Enable(ct > 0)

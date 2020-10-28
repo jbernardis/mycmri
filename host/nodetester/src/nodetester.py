@@ -341,30 +341,45 @@ class NodeTester(wx.Frame):
 
 		evt.Skip()
 		
-	def throwTurnout(self, tx, normal):
+	def throwTurnout(self, tx, throw):
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		addr = self.currentNodeAddr
 
-		if normal:
+		if throw == "N":
 			try:
 				sc, data = self.server.setTurnoutNormal(addr, tx)
 			except:
 				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 				return False
-		else:
+		elif throw == "R":
 			try:
 				sc, data = self.server.setTurnoutReverse(addr, tx)
+			except:
+				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+				return False
+		else: # throw == "T"
+			try:
+				sc, data = self.server.setTurnoutToggle(addr, tx)
 			except:
 				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
 				return False
 			
 		if sc < 400:
 			try:
-				if normal:
+				if throw == "N":
 					self.servosMap[tx][3] = self.servosMap[tx][0]
-				else:
+				elif throw == "R":
 					self.servosMap[tx][3] = self.servosMap[tx][1]
+				else:
+					if self.servosMap[tx][3] == self.servosMap[tx][0]:
+						self.servosMap[tx][3] = self.servosMap[tx][1]
+					if self.servosMap[tx][3] == self.servosMap[tx][1]:
+						self.servosMap[tx][3] = self.servosMap[tx][0]
+					else:
+						# toggle would have done nothing here
+						pass
+						
 				self.setStatusText("Success")
 				return True
 			except:

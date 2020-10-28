@@ -20,6 +20,10 @@ class Server(object):
 		r = requests.get(self.ipAddr, params={"cmd": "reverse", "addr": addr, "index": tx})
 		return r.status_code, r.text
 	
+	def setTurnoutToggle(self, addr, tx):
+		r = requests.get(self.ipAddr, params={"cmd": "toggle", "addr": addr, "index": tx})
+		return r.status_code, r.text
+	
 	def setServoAngle(self, addr, sx, ang):
 		r = requests.get(self.ipAddr, params={"cmd": "angle", "addr": addr, "index": sx, "angle": ang})
 		return r.status_code, r.text
