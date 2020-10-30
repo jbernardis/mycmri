@@ -304,10 +304,10 @@ class ServosDlg(wx.Dialog):
 	def onBStore(self, _):
 		self.parent.nodeStore()
 		
-	def enableButtons(self, ct):
+	def enableButtons(self, ct, allToggle):
 		self.bThrowN.Enable(ct > 0)
 		self.bThrowR.Enable(ct > 0)
-		self.bToggle.Enable(ct > 0)
+		self.bToggle.Enable(ct > 0 and allToggle)
 		self.bAngle.Enable(ct > 0)
 		self.bSwap.Enable(ct > 0)
 		self.bConfig.Enable(ct > 0)

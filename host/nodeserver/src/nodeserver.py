@@ -355,7 +355,7 @@ class NodeServerMain:
 
 				if verb == "reverse":
 					self.setTurnoutReverse(addr, tx)
-				elif verb == "reverse":
+				elif verb == "normal":
 					self.setTurnoutNormal(addr, tx)
 				else: # verb == toggle
 					self.setTurnoutToggle(addr, tx)
