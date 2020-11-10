@@ -1,8 +1,6 @@
 import json
 import logging
 
-import pprint
-
 class TriggerTable:
 	def __init__(self, nodes):
 		self.nodes = nodes
@@ -22,8 +20,6 @@ class TriggerTable:
 		
 		rct = 0
 		for r in rules["rules"]:
-			pprint.pprint(r)
-			print("==============================")
 			if len(r) != 2:
 				logging.warning("Invalid rule in position %d.  Ignoring" % rct)
 			else:

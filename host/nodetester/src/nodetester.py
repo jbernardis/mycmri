@@ -558,7 +558,6 @@ class NodeTester(wx.Frame):
 	def setStatusText(self, text):
 		self.clearTimer = 10
 		self.SetStatusText(text)
-		print(text)
 		
 	def onGetNodeAddr(self, _):
 		dlg = NodeDlg(self, self.currentNodeAddr, self.getNodeRpt())
@@ -704,7 +703,6 @@ class NodeTester(wx.Frame):
 					self.setStatusText("Mismatch number of inputs")
 					
 		elif msgType == "output":
-			print("output report rcvd")
 			iaddr = evt.data["addr"]
 			
 			if iaddr != self.currentNodeAddr:
@@ -719,7 +717,6 @@ class NodeTester(wx.Frame):
 				self.setStatusText("Mismatch number of outputs")
 			
 		elif msgType == "turnout":
-			print("turnout report rcvd")
 			iaddr = evt.data["addr"]
 			
 			if iaddr != self.currentNodeAddr:
