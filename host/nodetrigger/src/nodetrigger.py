@@ -3,6 +3,7 @@
 from triggertable import TriggerTable
 from listener import Listener
 from server import Server
+from config import NodeConfig
 
 import json
 import logging
@@ -10,14 +11,15 @@ import queue
 
 class NodeTrigger:
 	def __init__(self, cfgfn):
-		self.cfgfn = cfgfn
-		with open(cfgfn, "r") as fp:
-			self.cfg = json.load(fp)
-
 		logging.basicConfig(filename='nodetrigger.log',
 						filemode='w',
 						format='%(asctime)s - %(levelname)s - %(message)s',
 						level=logging.INFO)	
+		
+		self.cfg = NodeConfig(cfgfn).load()
+		if self.cfg is None:
+			logging.error("unable to load configuration file: %s" % cfgfn)
+			exit(1)
 			
 		logging.info("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
 		

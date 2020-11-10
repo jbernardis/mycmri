@@ -5,6 +5,7 @@ from httpserver import NodeHTTPServer
 from sktserver import SktServer
 from nodetypes import ERRORRESPONSE, WARNINGRESPONSE
 from nodeexceptions import NodeException
+from config import NodeConfig
 
 import json
 import queue
@@ -17,9 +18,11 @@ class NodeServerMain:
 						filemode='w',
 						format='%(asctime)s - %(levelname)s - %(message)s',
 						level=logging.INFO)		
-		self.cfgfn = cfgfn
-		with open(cfgfn, "r") as fp:
-			self.cfg = json.load(fp)
+			
+		self.cfg = NodeConfig(cfgfn).load()
+		if self.cfg is None:
+			logging.error("unable to load configuration file: %s" % cfgfn)
+			exit(1)
 			
 		logging.info("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
 		
