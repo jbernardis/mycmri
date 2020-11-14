@@ -40,7 +40,7 @@ class SktServer (threading.Thread):
 			for i in range(len(self.sockets)):
 				if self.sockets[i][1] == addr:
 					del(self.sockets[i])
-					logging.info("Disconnecting socket client at %d" % str(addr))
+					logging.info("Disconnecting socket client at %s" % str(addr))
 					return
 
 	def run(self):

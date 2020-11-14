@@ -54,6 +54,26 @@ class Server(object):
 	def getTurnouts(self, addr):
 		r = requests.get(self.ipAddr, params={"cmd": "turnouts", "addr": addr})
 		return r.status_code, r.text
+	
+	def setFlag(self, addr, fx):
+		r = requests.get(self.ipAddr, params={"cmd": "setflag", "addr": addr, "index": fx})
+		return r.status_code, r.text
+	
+	def clearFlag(self, addr, fx):
+		r = requests.get(self.ipAddr, params={"cmd": "clearflag", "addr": addr, "index": fx})
+		return r.status_code, r.text
+		
+	def getFlags(self, addr):
+		r = requests.get(self.ipAddr, params={"cmd": "flags", "addr": addr})
+		return r.status_code, r.text
+	
+	def setRegister(self, addr, rx, value):
+		r = requests.get(self.ipAddr, params={"cmd": "setregister", "addr": addr, "index": rx, "value": value})
+		return r.status_code, r.text
+		
+	def getRegisters(self, addr):
+		r = requests.get(self.ipAddr, params={"cmd": "registers", "addr": addr})
+		return r.status_code, r.text
 		
 	def getConfig(self, addr):
 		r = requests.get(self.ipAddr, params={"cmd": "getconfig", "addr": addr})

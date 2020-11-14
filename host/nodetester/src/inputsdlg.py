@@ -39,6 +39,7 @@ class InputsDlg(wx.Dialog):
 				png = self.images.pngInputon
 					
 			bmp = wx.StaticBitmap(self, wx.ID_ANY, png)
+			bmp.SetToolTip("Input %d" % i)
 			hsizer.Add(bmp)
 			hsizer.AddSpacer(2)
 			self.bmpMap.append(bmp)
