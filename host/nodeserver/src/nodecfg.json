@@ -10,6 +10,8 @@
 			"inputs": 2,
 			"outputs": 2,
 			"servos": 2,
+			"flags": 2,
+			"registers": 2,
 			"name": "tower1"
 		}
 	]

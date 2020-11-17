@@ -3,7 +3,7 @@
 		{
 			"conditions": [
 				[1, 1, false],
-				[1, 2, false]
+				["i", 1, 2, false]
 			],
 			"actions": [
 				[ "reverse", 1, 31 ],
@@ -12,8 +12,8 @@
 		},
 		{
 			"conditions": [
-				[1, 3, false],
-				[1, 2, false]
+				["i", 1, 3, false],
+				["i", 1, 2, false]
 			],
 			"actions": [
 				[ "angle", 1, 31, 90 ]
@@ -21,8 +21,8 @@
 		},
 		{
 			"conditions": [
-				[1, 1, false],
-				[1, 3, false]
+				["i", 1, 1, false],
+				["i", 1, 3, false]
 			],
 			"actions": [
 				[ "normal", 1, 31 ],

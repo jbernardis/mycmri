@@ -1,17 +1,47 @@
 import json
 import logging
 
+CTYPE_INPUT = 'i'
+CTYPE_FLAG = 'f'
+CTYPE_REGISTER = 'r'
+
+class Condition:
+	def __init__(self, ctype, addr, idx, val):
+		self.ctype = ctype
+		self.addr = addr
+		self.idx = idx
+		self.val = val
+
+	def getType(self):
+		return self.ctype
+			
+	def getAddr(self):
+		return self.addr
+			
+	def getIndex(self):
+		return self.idx
+	
+	def getValue(self):
+		return self.val
+		
 class TriggerTable:
 	def __init__(self, nodes):
 		self.nodes = nodes
 		self.nBytes = {}
+		self.nFlags = {}
+		self.nRegisters = {}
 		self.inputsMap = {}
+		self.flagsMap = {}
+		self.registersMap = {}
 		for t in nodes:
 			self.nBytes[t[0]] = t[1]
-			self.inputsMap[t[0]] = [0xff]*t[1]
+			self.inputsMap[t[0]] = [True] * (t[1] * 8)
+			self.nFlags[t[0]] = t[2]
+			self.flagsMap[t[0]] = [False] * t[2]
+			self.nRegisters[t[0]] = t[3]
+			self.registersMap[t[0]] = [""] * t[3]
 			
 		self.rules = []
-		self.ruleIndex = {}
 		
 		with open("rules.json", "r") as fp:
 			rules = json.load(fp)
@@ -25,94 +55,97 @@ class TriggerTable:
 			else:
 				self.addRule(r["conditions"], r["actions"])
 			rct += 1
-
-	def updateInput(self, addr, ix, ival):
-		byteIndex, bitIndex = self.getIndices(ix)
-		mask = 1 << bitIndex
-
-		if ival:
-			self.inputsMap[addr][byteIndex] |= mask
-		else:
-			self.inputsMap[addr][byteIndex] &= ~mask
 		
 	def updateInputs(self, addr, imap):
 		for i in range(len(imap)):
-			self.updateInput(addr, i, imap[i])
+			self.inputsMap[addr][i] = imap[i]
+			
+	def updateInput(self, addr, ix, val):
+		self.inputsMap[addr][ix] = val
 		
-	def checkInputTriggers(self, addr):
-		if addr not in self.ruleIndex:
-			return []
+	def updateFlags(self, addr, flags):
+		for i in range(len(flags)):
+			self.flagsMap[addr][i] = flags[i]
+		
+	def updateRegisterss(self, addr, regs):
+		for i in range(len(regs)):
+			self.registersMap[addr][i] = regs[i]
+	
+	def addRule(self, conditions, actions):
+		self.actions = actions
+		rconditions = []
+		
+		for c in conditions:
+			try:
+				ctype, addr, idx, val = c
+			except ValueError:
+				logging.warning("Unable to parse condition: %s - skipping" % str(c))
+				continue
+			
+			if addr not in self.nBytes:
+				logging.warning("Address %d referenced in rule has not been defined - skipping" % addr)
+				continue
+			rconditions.append(Condition(ctype, addr, idx, val))
+
+		self.rules.append([rconditions, actions])
+		
+	def checkTriggers(self, addr):
 		if addr not in self.inputsMap:
 			return []
 		
 		triggered = [False] * len(self.rules)
 		
-		for ix in self.ruleIndex[addr].keys():
-			for r in self.ruleIndex[addr][ix]:
-				checkFailed = False			
-				# True rules
-				tr = self.rules[r][0]
-				for addr, rl in tr.items():
-					for i in range(len(rl)):
-						v = self.inputsMap[addr][i] & rl[i]
-						if v != rl[i]:
-							checkFailed = True
-							break
-				if checkFailed:
-					continue
+		for rx in range(len(self.rules)):
+			conditionTriggered = True			
+			conditions = self.rules[rx][0]
+			logging.info("checking rule %d" % rx)
+			for c in conditions:
+				ctype = c.getType()
+				cvx = c.getIndex()
+				caddr = c.getAddr()
+				cv = c.getValue()
+				if ctype == CTYPE_INPUT:
+					v = self.inputsMap[caddr][cvx]
+					if not cv == v:
+						logging.info("Address %d rule %d rejected for input %d:%d: %s != %s" % (
+							addr, rx, caddr, cvx, str(v), str(cv)))
+						conditionTriggered = False
+						break
+					else:
+						logging.info("Address %d input %d:%d matched %s" % (addr, caddr, cvx, v))
+
+				elif ctype == CTYPE_FLAG:
+					v = self.flagsMap[caddr][cvx]
+					if not cv == v:
+						logging.info("Address %d rule %d rejected for flag %d:%d: %s != %s" % (
+							addr, rx, caddr, cvx, str(v), str(cv)))
+						conditionTriggered = False
+						break
+					else:
+						logging.info("Address %d flag %d:%d matched %s" % (addr, caddr, cvx, v))
+
+				elif ctype == CTYPE_REGISTER:
+					v = self.registersMap[caddr][cvx]
+					if not cv == v:
+						logging.info("Address %d rule %d rejected for register %d:%d: %s != %s" % (
+							addr, rx, caddr, cvx, str(v), str(cv)))
+						conditionTriggered = False
+						break
+					else:
+						logging.info("Address %d register %d:%d matched %s" % (addr, caddr, cvx, v))
+						
+				else:
+					logging.warning("Unknown condition type: %s - skipping" % ctype)
 					
-				# False rules
-				tr = self.rules[r][1]
-				for addr, rl in tr.items():
-					for i in range(len(rl)):
-						v = ~self.inputsMap[addr][i] & rl[i]
-						if v != rl[i]:
-							checkFailed = True
-							break
-				if checkFailed:
-					continue
-				triggered[r] = True
+			if conditionTriggered:
+				logging.info("Condition matched for rule %d" % rx)
+				triggered[rx] = True
+
 
 		actions = []
 		for r in range(len(triggered)):
 			if triggered[r]:
-				actions.extend(self.rules[r][2])
+				actions.extend(self.rules[r][1])
 		
 		return actions
-	
-	def addRule(self, conditions, actions):
-		self.actions = actions
-		trueCond = {}
-		falseCond = {}
-		
-		rx = len(self.rules)
-		for addr, inp, val in conditions:
-			if addr not in self.nBytes:
-				logging.warning("Address %d referenced in rule has not been defined - skipping" % addr)
-				continue
-
-			byteIndex, bitIndex = self.getIndices(inp)
-			mask = 1 << bitIndex
-			if addr not in self.ruleIndex:
-				self.ruleIndex[addr] = {}
-				
-			if inp not in self.ruleIndex[addr]:
-				self.ruleIndex[addr][inp] = []
-				
-			self.ruleIndex[addr][inp].append(rx)
-	
-			if val:
-				if addr not in trueCond:
-					trueCond[addr] = [0] * self.nBytes[addr]
-				trueCond[addr][byteIndex] |= mask
-			else:
-				if addr not in falseCond:
-					falseCond[addr] = [0] * self.nBytes[addr]
-				falseCond[addr][byteIndex] |= mask
-		self.rules.append([trueCond, falseCond, actions])
-			
-	def getIndices(self, ix):
-		byteIndex = int(ix/8)
-		bitIndex = ix % 8
-		return byteIndex, bitIndex
 

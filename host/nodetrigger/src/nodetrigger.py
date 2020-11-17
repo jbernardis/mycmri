@@ -40,7 +40,9 @@ class NodeTrigger:
 			self.createSocketServer = False
 
 		nodes = []
-		self.inputsMap = {}
+		self.inputs = {}
+		self.flags = {}
+		self.registers = {}
 		
 		for n in self.cfg["nodes"]:
 			try:
@@ -60,10 +62,22 @@ class NodeTrigger:
 			except KeyError:
 				logging.error("Node %s missing inputs parameters - exiting")
 				exit(1)
+				
+			try:				
+				nflags = n["flags"]
+			except KeyError:
+				nflags = 0
+				
+			try:
+				nregisters = n["registers"]
+			except KeyError:
+				nregisters = 0
 
-			nodes.append([ad, inp])
-			self.inputsMap[ad] = [True] * (inp*8)
 
+			nodes.append([ad, inp, nflags, nregisters])
+			self.inputs[ad] = [True] * (inp*8)
+			self.flags[ad] = [False] * nflags
+			self.registers[ad] = [""] * nregisters
 		
 		self.triggerTable = TriggerTable(nodes)
 		
@@ -93,16 +107,24 @@ class NodeTrigger:
 				elif jdata["type"] == "input":
 					self.inputRcvd(jdata["addr"], jdata["values"], jdata["delta"])
 					
+				elif jdata["type"] == "flags":
+					self.flagsRcvd(jdata["addr"], jdata["values"])
+					
+				elif jdata["type"] == "registers":
+					self.registersRcvd(jdata["addr"], jdata["values"])
+					
 		logging.info("joining with listener thread")
 		self.listener.join()
 			
-	def inputRcvd(self, addr, vals, delta):
-		imap = self.inputsMap[addr]
-		
-		for inp, val in vals:
-			imap[inp] = val == 1
-
-		if not delta:
+	def inputRcvd(self, addr, vals, deltaRpt):
+		if not deltaRpt:
+			delta = False
+			for inp, val in vals:
+				nv = val == 1
+				if self.inputs[addr[inp]] != nv:
+					self.inputs[addr][inp] = nv
+					delta = True
+					
 			rpt = "Current input report for addr %d\n" % addr
 			
 			i = 0
@@ -113,9 +135,12 @@ class NodeTrigger:
 					rpt += "\n"
 			logging.info(rpt)
 			
-			self.triggerTable.updateInputs(addr, imap)
+			self.triggerTable.updateInputs(addr, self.inputs[addr])
 			
-		else: # delta is true
+		else: # deltaRpt is true
+			delta = True
+			for inp, val in vals:
+				self.inputs[addr][inp] = val == 1
 			if len(vals) == 0:
 				return
 			
@@ -129,16 +154,60 @@ class NodeTrigger:
 				if i % 4 == 0:
 					rpt += "\n"
 			logging.info(rpt)
-				
-			logging.info("check for triggers")
-			actions = self.triggerTable.checkInputTriggers(addr)
 			
-			if len(actions) == 0:
-				logging.info("No actions triggered")
-			else:
-				logging.info("%d Triggered actions" % len(actions))
-				for a in actions:
-					self.performAction(a[0], a[1], a[2:])
+		if delta:
+			self.checkTriggers(addr)
+			
+	def flagsRcvd(self, addr, vals):
+		delta = False
+		print("Flags Rcvd: %d (%s)" % (addr, str(vals)))
+		for i in range(len(vals)):
+			if self.flags[addr][i] != vals[i]:
+				self.flags[addr][i] = vals[i]
+				delta = True
+
+		rpt = "Current flags report for addr %d\n" % addr
+		
+		for i in range(len(vals)):
+			rpt +="    %2d: %s" % (i, vals[i])
+			if i % 4 == 0:
+				rpt += "\n"
+		logging.info(rpt)
+		
+		self.triggerTable.updateFlags(addr, self.flags)
+		if delta:
+			self.checkTriggers(addr)
+
+		
+	def registersRcvd(self, addr, vals):
+		delta = False
+		for i in range(len(vals)):
+			if self.registers[addr][i] != vals[i]:
+				self.registers[addr][i] = vals[i]
+				delta = True
+
+		rpt = "Current registers report for addr %d\n" % addr
+		
+		for i in range(len(vals)):
+			rpt +="    %2d: %s" % (i, vals[i])
+			if i % 4 == 0:
+				rpt += "\n"
+		logging.info(rpt)
+		
+		self.triggerTable.updateRegisters(addr, self.registers)
+		if delta:
+			self.checkTriggers(addr)
+		
+	def checkTriggers(self, addr):
+		logging.info("check for triggers")
+		actions = self.triggerTable.checkTriggers(addr)
+		
+		if len(actions) == 0:
+			logging.info("No actions triggered")
+		else:
+			logging.info("%d Triggered actions" % len(actions))
+			for a in actions:
+				self.performAction(a[0], a[1], a[2:])
 					
 	def performAction(self, verb, addr, params):
 		logging.info("Performing action: %s %s %s" % (verb, addr, str(params)))
