@@ -207,7 +207,7 @@ class NodeTrigger:
 		else:
 			logging.info("%d Triggered actions" % len(actions))
 			for a in actions:
-				self.performAction(a[0], a[1], a[2:])
+				self.performAction(a[0], a[1], a[2])
 					
 	def performAction(self, verb, addr, params):
 		logging.info("Performing action: %s %s %s" % (verb, addr, str(params)))
@@ -229,6 +229,15 @@ class NodeTrigger:
 		elif verb == "outoff":
 			self.server.setOutputOff(addr, params[0])
 			
+		elif verb == "flagon":
+			self.server.setFlag(addr, params[0])
+			
+		elif verb == "flagoff":
+			self.server.clearFlag(addr, params[0])
+			
+		elif verb == "register":
+			self.server.setRegister(addr, params[0], params[1])
+
 		else:
 			logging.error("Unknown action verb: %s" % verb)
 

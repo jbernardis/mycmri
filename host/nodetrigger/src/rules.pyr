@@ -1,0 +1,12 @@
+def rules():
+	Node(0)
+	if Input(1) and Input(2):
+		Reverse(31)
+		Output(15)
+		
+	if Input(3) and Input(2):
+		Normal(31)
+		Output(15, OFF)
+		
+	if Input(0):
+		Toggle(0)

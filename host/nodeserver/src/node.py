@@ -7,11 +7,11 @@ class Node:
 		self.nflags = f
 		self.nregisters = r
 		
-		self.inputs = [True] * (i*8)		
-		self.outputs = [False] * (o*8)
-		self.servos = [[0, 0, 0, 0]] * (s*16)
-		self.flags = [False] * f
-		self.registers = [""] * r
+		self.inputs = [True for _ in range(i*8)]		
+		self.outputs = [False for _ in range(o*8)]
+		self.servos = [[0 for _ in range(4)] for _ in range(s*16)]
+		self.flags = [False for _ in range(f)]
+		self.registers = ["" for _ in range(r)]
 		
 	def getName(self):
 		return self.name
@@ -21,7 +21,7 @@ class Node:
 	
 	def setNInputs(self, i):
 		self.ninputs = i
-		self.inputs = [True] * (i*8)
+		self.inputs = [True for _ in range(i*8)]
 		
 	def setInput(self, ix, val):
 		self.inputs[ix] = val
@@ -34,7 +34,7 @@ class Node:
 	
 	def setNOutputs(self, o):
 		self.noutputs = o
-		self.outputs = [False] * (o*8)
+		self.outputs = [False for _ in range(o*8)]
 		
 	def setOutputOn(self, ox):
 		self.outputs[ox] = True
@@ -53,7 +53,7 @@ class Node:
 	
 	def setNServos(self, s):
 		self.nservos = s
-		self.servos = [[0, 0, 0, 0]] * (s*16) # normal, reverse, initial, current
+		self.servos = [[0 for _ in range(4)] for _ in range(s*16)]
 		
 	def getServos(self):
 		return self.servos
