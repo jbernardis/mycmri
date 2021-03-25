@@ -14,7 +14,7 @@ def Node(n):
 	global nodeAddr
 	nodeAddr = n
 
-# testing functions:  input, flag, register	
+# testing functions:  input, output, flag, register	
 def Input(idx, value=False, nd=None):
 	if nd is None:
 		naddr = nodeAddr
@@ -23,6 +23,19 @@ def Input(idx, value=False, nd=None):
 
 	try:
 		v = inputs[naddr][idx]
+	except (KeyError, IndexError):
+		return False
+	
+	return value == v
+
+def Output(idx, value=True, nd=None):
+	if nd is None:
+		naddr = nodeAddr
+	else:
+		naddr = nd
+
+	try:
+		v = outputs[naddr][idx]
 	except (KeyError, IndexError):
 		return False
 	
@@ -54,8 +67,8 @@ def Register(idx, value="", nd=None):
 	
 	return value == v
 
-# output functions: output, setflag, setregister, turnout/servo(normal, reverse, toggle, angle)
-def Output(idx, value=ON, nd=None):
+# output functions: setoutput, setflag, setregister, turnout/servo(normal, reverse, toggle, angle)
+def SetOutput(idx, value=ON, nd=None):
 	if nd is None:
 		naddr = nodeAddr
 	else:
@@ -117,13 +130,15 @@ def Angle(idx, angle, nd=None):
 		
 	actions.append(["angle", naddr, [idx, angle]])
 	
-def initialize(i, f, r):
+def initialize(i, o, f, r):
 	global inputs
+	global outputs
 	global flags
 	global registers
 	global ep
 	
 	inputs = i
+	outputs = o
 	flags = f
 	registers = r
 	

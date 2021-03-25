@@ -4,21 +4,16 @@ import evaluate
 class TriggerTable:
 	def __init__(self, nodes):
 		self.nodes = nodes
-		self.nBytes = {}
-		self.nFlags = {}
-		self.nRegisters = {}
 		self.inputsMap = {}
 		self.flagsMap = {}
 		self.registersMap = {}
 		for t in nodes:
-			self.nBytes[t[0]] = t[1]
 			self.inputsMap[t[0]] = [True for _ in range(t[1] * 8)]
-			self.nFlags[t[0]] = t[2]
-			self.flagsMap[t[0]] = [False for _ in range(t[2])]
-			self.nRegisters[t[0]] = t[3]
-			self.registersMap[t[0]] = ["" for _ in range(t[3])]
+			self.outputsMap[t[0]] = [True for _ in range(t[2] * 8)]
+			self.flagsMap[t[0]] = [False for _ in range(t[3])]
+			self.registersMap[t[0]] = ["" for _ in range(t[4])]
 			
-		evaluate.initialize(self.inputsMap, self.flagsMap, self.registersMap)
+		evaluate.initialize(self.inputsMap, self.outputsMap, self.flagsMap, self.registersMap)
 			
 		
 	def updateInputs(self, addr, imap):
@@ -28,6 +23,10 @@ class TriggerTable:
 	def updateInput(self, addr, ix, val):
 		self.inputsMap[addr][ix] = val
 		
+	def updateOutputs(self, addr, omap):
+		for i in range(len(omap)):
+			self.outputsMap[addr][i] = omap[i]
+			
 	def updateFlags(self, addr, flags):
 		for i in range(len(flags)):
 			self.flagsMap[addr][i] = flags[i]

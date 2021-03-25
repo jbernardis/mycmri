@@ -41,6 +41,7 @@ class NodeTrigger:
 
 		nodes = []
 		self.inputs = {}
+		self.outputs = {}
 		self.flags = {}
 		self.registers = {}
 		
@@ -62,6 +63,12 @@ class NodeTrigger:
 			except KeyError:
 				logging.error("Node %s missing inputs parameters - exiting")
 				exit(1)
+
+			try:
+				outp = n["outputs"]
+			except KeyError:
+				logging.error("Node %s missing outputs parameters - exiting")
+				exit(1)
 				
 			try:				
 				nflags = n["flags"]
@@ -74,10 +81,11 @@ class NodeTrigger:
 				nregisters = 0
 
 
-			nodes.append([ad, inp, nflags, nregisters])
-			self.inputs[ad] = [True] * (inp*8)
-			self.flags[ad] = [False] * nflags
-			self.registers[ad] = [""] * nregisters
+			nodes.append([ad, inp, outp, nflags, nregisters])
+			self.inputs[ad] = [True for _ in range(inp*8)]
+			self.outputs[ad] = [True for _ in range(outp*8)]
+			self.flags[ad] = [False for _ in range(nflags)]
+			self.registers[ad] = ["" for _ in range(nregisters)]
 		
 		self.triggerTable = TriggerTable(nodes)
 		
@@ -106,6 +114,9 @@ class NodeTrigger:
 					
 				elif jdata["type"] == "input":
 					self.inputRcvd(jdata["addr"], jdata["values"], jdata["delta"])
+					
+				elif jdata["type"] == "output":
+					self.outputRcvd(jdata["addr"], jdata["values"])
 					
 				elif jdata["type"] == "flags":
 					self.flagsRcvd(jdata["addr"], jdata["values"])
@@ -155,6 +166,26 @@ class NodeTrigger:
 					rpt += "\n"
 			logging.info(rpt)
 			
+		if delta:
+			self.checkTriggers(addr)
+			
+	def outputRcvd(self, addr, vals):
+		delta = False
+		print("Output Rcvd: %d (%s)" % (addr, str(vals)))
+		for i in range(len(vals)):
+			if self.outputs[addr][i] != vals[i]:
+				self.outputs[addr][i] = vals[i]
+				delta = True
+
+		rpt = "Current outputs report for addr %d\n" % addr
+		
+		for i in range(len(vals)):
+			rpt +="    %2d: %s" % (i, vals[i])
+			if i % 4 == 0:
+				rpt += "\n"
+		logging.info(rpt)
+		
+		self.triggerTable.updateOutputs(addr, self.outputs)
 		if delta:
 			self.checkTriggers(addr)
 			

@@ -14,6 +14,11 @@
 #             The default node address can be overridden with the nd parameter
 #             Returns True if values are equal.
 #
+# Output(idx, value=True, nd=None)
+#             Tests the value of output "idx" against "value" (default True)
+#             The default node address can be overridden with the nd parameter
+#             Returns True if values are equal.
+#
 #
 # Flag(idx, value=False, nd=None)
 #             Tests the value of flag "idx" against "value" (default False)
@@ -30,7 +35,7 @@
 # action functions
 # ****************************************************************************
 #
-# Output(idx, value=ON, nd=None)
+# SetOutput(idx, value=ON, nd=None)
 #             Sets output "idx" to the value (ON or OFF, default ON)
 #             The default node address can be overridden with the nd parameter
 #
@@ -75,11 +80,11 @@ def rules():
 	Node(Dell)
 	if Input(1) and Input(2):
 		Reverse(31)
-		Output(15)
+		SetOutput(15)
 		
 	if Input(3) and Input(2):
 		Normal(31)
-		Output(15, OFF)
+		SetOutput(15, OFF)
 		
 	if Input(0):
 		Toggle(0)
