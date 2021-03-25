@@ -41,7 +41,7 @@ def Flag(idx, value=False, nd=None):
 	
 	return value == v
 
-def Register(idx, value=False, nd=None):
+def Register(idx, value="", nd=None):
 	if nd is None:
 		naddr = nodeAddr
 	else:
@@ -66,7 +66,7 @@ def Output(idx, value=ON, nd=None):
 	else:
 		actions.append(["outoff", naddr, [idx]])
 		
-def SetFlag(idx, value=ON, nd=None):
+def SetFlag(idx, value=True, nd=None):
 	if nd is None:
 		naddr = nodeAddr
 	else:

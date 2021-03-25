@@ -1,5 +1,78 @@
+#
+# pseudo-python for specifying rules
+#
+# Node(n)
+#             Sets the default value to ne used as the node address
+#
+#
+# ****************************************************************************
+# testing functions
+# ****************************************************************************
+#
+# Input(idx, value=False, nd=None)
+#             Tests the value of input "idx" against "value" (default False)
+#             The default node address can be overridden with the nd parameter
+#             Returns True if values are equal.
+#
+#
+# Flag(idx, value=False, nd=None)
+#             Tests the value of flag "idx" against "value" (default False)
+#             The default node address can be overridden with the nd parameter
+#             Returns True if values are equal.
+#
+#
+# Register(idx, value=False, nd=None)
+#             Tests the value of register "idx" against "value" (default "")
+#             The default node address can be overridden with the nd parameter
+#             Returns True if values are equal.
+#
+# ****************************************************************************
+# action functions
+# ****************************************************************************
+#
+# Output(idx, value=ON, nd=None)
+#             Sets output "idx" to the value (ON or OFF, default ON)
+#             The default node address can be overridden with the nd parameter
+#
+#
+# SetFlag(idx, value=True, nd=None)
+#             Sets flag "idx" to the value (True or False, default True)
+#             The default node address can be overridden with the nd parameter
+#
+#
+# SetRegister(idx, value, nd=None)
+#             Sets register "idx" to the value (mandatory)
+#             The default node address can be overridden with the nd parameter
+#
+#
+# Normal(idx, nd=None):
+#             Sets turnout "idx" to the Normal position
+#             The default node address can be overridden with the nd parameter
+#
+#
+# Reverse(idx, nd=None):
+#             Sets turnout "idx" to the Reverse position
+#             The default node address can be overridden with the nd parameter
+#
+#
+# Toggle(idx, nd=None):
+#             Toggles the position of turnout "idx" (Normal->Reverse or Reverse -> Normal)
+#             The default node address can be overridden with the nd parameter
+#
+#
+# Angle(idx, angle nd=None):
+#             Sets the angle of servo "idx" to the specified value
+#             The default node address can be overridden with the nd parameter
+#
+#
+
+# all code must be enclosed in a python procedure named "rules" that receives no parameters.  Python indentation
+# must be observed.  Global variables can be used to replace any numbers
+
+Dell = 0
+
 def rules():
-	Node(0)
+	Node(Dell)
 	if Input(1) and Input(2):
 		Reverse(31)
 		Output(15)
