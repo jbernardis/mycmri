@@ -186,8 +186,6 @@ class NodeTrigger:
 		logging.info(rpt)
 		
 		self.triggerTable.updateOutputs(addr, self.outputs)
-		if delta:
-			self.checkTriggers(addr)
 			
 	def flagsRcvd(self, addr, vals):
 		delta = False
@@ -206,9 +204,6 @@ class NodeTrigger:
 		logging.info(rpt)
 		
 		self.triggerTable.updateFlags(addr, self.flags)
-		if delta:
-			self.checkTriggers(addr)
-
 		
 	def registersRcvd(self, addr, vals):
 		delta = False
@@ -226,8 +221,6 @@ class NodeTrigger:
 		logging.info(rpt)
 		
 		self.triggerTable.updateRegisters(addr, self.registers)
-		if delta:
-			self.checkTriggers(addr)
 		
 	def checkTriggers(self, addr):
 		logging.info("check for triggers")
