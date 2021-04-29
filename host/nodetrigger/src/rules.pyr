@@ -2,7 +2,7 @@
 # pseudo-python for specifying rules
 #
 # Node(n)
-#             Sets the default value to be used as the node address
+#             Sets the default value to ne used as the node address
 #
 #
 # ****************************************************************************
@@ -74,15 +74,15 @@
 # all code must be enclosed in a python procedure named "rules" that receives no parameters.  Python indentation
 # must be observed.  Global variables can be used to replace any numbers
 
-Dell = 0
+Dell = 1
 
 def rules():
 	Node(Dell)
-	if Input(1) and Input(2):
+	if Register(0, "123"):
 		Reverse(31)
 		SetOutput(15)
 		
-	if Input(3) and Input(2):
+	if Flag(1):
 		Normal(31)
 		SetOutput(15, OFF)
 		

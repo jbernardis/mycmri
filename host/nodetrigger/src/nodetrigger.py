@@ -185,11 +185,12 @@ class NodeTrigger:
 				rpt += "\n"
 		logging.info(rpt)
 		
-		self.triggerTable.updateOutputs(addr, self.outputs)
+		self.triggerTable.updateOutputs(addr, self.outputs[addr])
+		if delta:
+			self.checkTriggers(addr)
 			
 	def flagsRcvd(self, addr, vals):
 		delta = False
-		print("Flags Rcvd: %d (%s)" % (addr, str(vals)))
 		for i in range(len(vals)):
 			if self.flags[addr][i] != vals[i]:
 				self.flags[addr][i] = vals[i]
@@ -203,7 +204,10 @@ class NodeTrigger:
 				rpt += "\n"
 		logging.info(rpt)
 		
-		self.triggerTable.updateFlags(addr, self.flags)
+		self.triggerTable.updateFlags(addr, self.flags[addr])
+		if delta:
+			self.checkTriggers(addr)
+
 		
 	def registersRcvd(self, addr, vals):
 		delta = False
@@ -220,7 +224,9 @@ class NodeTrigger:
 				rpt += "\n"
 		logging.info(rpt)
 		
-		self.triggerTable.updateRegisters(addr, self.registers)
+		self.triggerTable.updateRegisters(addr, self.registers[addr])
+		if delta:
+			self.checkTriggers(addr)
 		
 	def checkTriggers(self, addr):
 		logging.info("check for triggers")

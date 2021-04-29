@@ -5,6 +5,7 @@ class TriggerTable:
 	def __init__(self, nodes):
 		self.nodes = nodes
 		self.inputsMap = {}
+		self.outputsMap = {}
 		self.flagsMap = {}
 		self.registersMap = {}
 		for t in nodes:
@@ -12,7 +13,7 @@ class TriggerTable:
 			self.outputsMap[t[0]] = [True for _ in range(t[2] * 8)]
 			self.flagsMap[t[0]] = [False for _ in range(t[3])]
 			self.registersMap[t[0]] = ["" for _ in range(t[4])]
-			
+
 		evaluate.initialize(self.inputsMap, self.outputsMap, self.flagsMap, self.registersMap)
 			
 		
@@ -31,7 +32,7 @@ class TriggerTable:
 		for i in range(len(flags)):
 			self.flagsMap[addr][i] = flags[i]
 		
-	def updateRegisterss(self, addr, regs):
+	def updateRegisters(self, addr, regs):
 		for i in range(len(regs)):
 			self.registersMap[addr][i] = regs[i]
 		

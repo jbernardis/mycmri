@@ -304,7 +304,7 @@ Wire Wire Line
 	3700 1900 3700 2100
 Connection ~ 3700 2100
 $Comp
-L my~symbols:NDP6020P Q1
+L my_symbols:NDP6020P Q1
 U 1 1 5F8B974F
 P 3700 2400
 AR Path="/5F8B974F" Ref="Q1"  Part="1" 
@@ -325,9 +325,8 @@ F 7 "Transistors - FETs, MOSFETs - Single" H 3900 3100 60  0001 L CNN "Family"
 	1    3700 2400
 	-1   0    0    1   
 $EndComp
-Connection ~ 4000 2300
 $Comp
-L my~symbols:NDP6020P Q2
+L my_symbols:NDP6020P Q2
 U 1 1 5F8B975A
 P 4900 2400
 AR Path="/5F8B975A" Ref="Q2"  Part="1" 
@@ -348,7 +347,6 @@ F 7 "Transistors - FETs, MOSFETs - Single" H 5100 3100 60  0001 L CNN "Family"
 	1    4900 2400
 	-1   0    0    1   
 $EndComp
-Connection ~ 5200 2300
 Wire Wire Line
 	4900 1900 3700 1900
 Connection ~ 3700 1900

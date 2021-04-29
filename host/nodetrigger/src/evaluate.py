@@ -41,7 +41,7 @@ def Output(idx, value=True, nd=None):
 	
 	return value == v
 
-def Flag(idx, value=False, nd=None):
+def Flag(idx, value=True, nd=None):
 	if nd is None:
 		naddr = nodeAddr
 	else:
