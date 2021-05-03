@@ -6,12 +6,7 @@
 
 class Output {
 public:
-	Output(void);
-	void setValue(int, int);
-	int getValue(int);
-
-private:
-	int currentValue[NOBITS];
+	bool currentState;
 };
 
 #endif

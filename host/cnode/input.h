@@ -6,12 +6,7 @@
 
 class Input {
 public:
-	Input(void);
-	void setState(int, bool);
-	bool getState(int);
-
-private:
-	bool currentState[NIBITS];
+	bool currentState;
 };
 
 #endif

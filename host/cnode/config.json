@@ -1,0 +1,16 @@
+{
+	"serialport": "/dev/ttyUSB0",
+	"ip": "192.168.1.142",
+	"httpport": 8000,
+	"socketport": 8001,
+	"nodes":[
+		{
+			"name": "dell",
+			"address": 1
+		},
+		{
+			"name": "port",
+			"address": 2
+		}
+	]
+}

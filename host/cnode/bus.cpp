@@ -1,15 +1,17 @@
-#include "bus.h"
-#include "utils.h"
-
 #include <sys/ioctl.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>  
 #include <poll.h>
 #include <thread>
+#include <iostream>
+#include <mutex>
 
+#include "bus.h"
+#include "utils.h"
+
+std::mutex nodeList;
 
 Bus::Bus(const char * portName) {
 	int  baudrate = B115200;
@@ -24,7 +26,7 @@ Bus::Bus(const char * portName) {
 	// Open the serial port
 	busPort = open(portName, O_RDWR|O_NOCTTY);
 	if (busPort < 0) {
-		printf("ERROR! Failed to open %s\n", portName);
+		std::cerr << "ERROR! Failed to open " << portName << std::endl;
 		exit(1);
 	}
 
@@ -73,6 +75,7 @@ Bus::Bus(const char * portName) {
 void Bus::pollThread(int fd) {
 	for (int i = 0; ; i++) {
 		msleep(250);
+		nodeList.lock();
 		for (i=0; i<nNodes; i++) {
 			class busMessage *cmd = new busMessage();
 			cmd->operation = POLL;
@@ -87,12 +90,32 @@ void Bus::pollThread(int fd) {
 
 			cmd = NULL;
 		}
+		nodeList.unlock();
 	}
 }
 
 void Bus::addNode(int addr) {
+	nodeList.lock();
 	nodesToPoll[nNodes] = addr;
 	nNodes++;
+	nodeList.unlock();
+}
+
+void Bus::delNode(int addr) {
+	int newList[32];
+	int n = 0;
+
+	for (int i=0; i<nNodes; i++) {
+		if (nodesToPoll[i] != addr)
+			newList[n++] = nodesToPoll[i];
+	}
+
+	nodeList.lock();
+	for (int i=0; i<n; i++) {
+		nodesToPoll[i] = newList[i];
+	}
+	nNodes = n;
+	nodeList.unlock();
 }
 
 void Bus::Identify(int addr) {
@@ -299,7 +322,7 @@ void Bus::busThread(int cmdQ, int respQ, int busPort) {
 			exit(1);
 		}
 		if (fds[0].revents != POLLIN) {
-			fprintf(stderr, "unexpected poll revents: %hd\n", fds[0].revents);
+			std::cerr << "unexpected poll revents: " << fds[0].revents << std::endl;
 			exit(1);
 		}
 
@@ -333,27 +356,32 @@ void Bus::busThread(int cmdQ, int respQ, int busPort) {
 	}
 }
 
-class busMessage * Bus::getNextResponse(void) {
-	struct pollfd fds[1];
-	class busMessage *response;
-	fds[0].fd = respQ;;
-	fds[0].events = POLLIN;
-	poll(fds, 1, 1);
-
-	if (!(fds[0].revents & POLLIN)) 
-		return NULL;
-
-	if (read(respQ, &response, sizeof(response)) != sizeof(response)) {
-		perror("read");
-		exit(1);
-	}
-	return response;
+int Bus::getResponseFd(void) {
+	return respQ;
 }
 
-void Bus::join(void) {
-	thrPoll->join();
-	thrBus->join();
-}
+
+//class busMessage * Bus::getNextResponse(void) {
+	//struct pollfd fds[1];
+	//class busMessage *response;
+	//fds[0].fd = respQ;;
+	//fds[0].events = POLLIN;
+	//poll(fds, 1, 1);
+//
+	//if (!(fds[0].revents & POLLIN)) 
+		//return NULL;
+//
+	//if (read(respQ, &response, sizeof(response)) != sizeof(response)) {
+		//perror("read");
+		//exit(1);
+	//}
+	//return response;
+//}
+
+//void Bus::join(void) {
+	//thrPoll->join();
+	//thrBus->join();
+//}
 
 void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, int * iaddr) {
 	setMode(TX);
@@ -375,11 +403,11 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 	obuffer[olen++] = ETX;
 
 	if (debug) {
-		printf("==> %d bytes: ", olen);
+		std::cout << "==> " << olen << " bytes: ";
 		for (int i=0; i<olen; i++) {
-			printf("%02x ", obuffer[i] & 0xff);
+			std::cout <<std::hex << (obuffer[i] & 0xff);
 		}
-		printf("\n");
+		std::cout << std::endl;
 	}
 
 	tcflush(busPort, TCIFLUSH);
@@ -397,18 +425,18 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 
 	if (pfd.revents & POLLIN) {
 		if (debug)
-			printf("<== ");
+			std::cout << "<== ";
 		
 		int s, d;
 		char ic;
 		while((s=read(busPort, &ic, 1)) != -1) {
 			if (debug) 
-				printf("%02x ",ic);
+				std::cout << std::hex << ic;
 
 			if (ic == ESC) {
 				read(busPort, &ic, 1);
 				if (debug) 
-					printf("%02x ",ic);
+					std::cout << std::hex << ic;
 				if (*ilen >= 0) {
 					ibuffer[*ilen] = ic;
 					*ilen = *ilen + 1;
@@ -418,7 +446,7 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 				*ilen = 0;
 			else if (ic == ETX) {
 				if (debug) 
-					printf("\n");
+					std::cout << std::endl;
 				break;
 			}
 			else if (*ilen >= 0) {
@@ -429,7 +457,7 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 		*iaddr = int(ibuffer[0]) - 65;
 		if (addr != *iaddr) {
 			if (debug)
-				printf("address mismatch - discard the message\n");
+				std::cerr << "address mismatch - discard the message" << std::endl;
 			*ilen = 3;
 			ibuffer[1] = ERRORADDRESS;
 			ibuffer[2] = addr;
@@ -437,7 +465,7 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 	}
 	else {
 		if (debug)
-			printf("no response\n");
+			std::cerr << "no response" << std::endl;
 		*ilen = 2;
 		ibuffer[0] = 0;
 		ibuffer[1] = ERRORTIMEOUT;

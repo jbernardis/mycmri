@@ -113,6 +113,7 @@ private:
 		}
 		int np = 0;
 		std::string nm, val;
+		req->address = -1;
 		for (int i = 0; i<nparms; i++) {
 			if ((pos = p[i].find("=")) != std::string::npos) {
 				nm = p[i].substr(0, pos);
@@ -124,12 +125,21 @@ private:
 			}
 
 			if (nm == "addr") {
-				req->address = std::stoi(val);
+				try {
+					req->address = std::stoi(val);
+				} catch (const std::exception& e) {
+					std::cerr << "Error converting address to int" << std::endl;
+					req->address = -1;
+				}
 			}
 			else {
-				req->names[np]  = nm;
-				req->args[np] = std::stoi(val);
-				np++;
+				try {
+					req->names[np]  = nm;
+					req->args[np] = std::stoi(val);
+					np++;
+				} catch (const std::exception& e) {
+					std::cerr << "Error converting argument " << nm << " to integer" << std::endl;
+				}
 			}
 		}
 
@@ -220,9 +230,10 @@ void serverThread(boost::asio::ip::address address, unsigned short port) {
     }
 }
 
-void startHttpServer(boost::asio::ip::address address, unsigned short port, int pReq, int pResp) {
+void startHttpServer(const char *caddress, unsigned short port, int pReq, int pResp) {
 	httpReq = pReq;
 	httpResp = pResp;
 
+	auto const address = net::ip::make_address(caddress);
 	thrHttp = new std::thread(serverThread, address, port);
 }

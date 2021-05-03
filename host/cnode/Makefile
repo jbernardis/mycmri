@@ -1,27 +1,35 @@
-OBJECTS = rrctl.o bus.o node.o input.o output.o utils.o
-TARGET = rrctl
+OBJECTS = rrctl.o bus.o node.o utils.o httpserver.o config.o
 LIBS = -lpthread 
 
-server: $(OBJECTS)
-	g++ $(OBJECTS) $(LIBS) -o $(TARGET)
+rrctl: $(OBJECTS)
+	g++ $(OBJECTS) $(LIBS) -o rrctl
+
+all:	client rrctl
+
+client: client.o
+	g++ client.o -o client
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -f *.o client rrctl
 
-rrctl.o: rrctl.cpp bus.h
+backup: .backup
+	tar -cvf backup/cnode.tar *.cpp *.h Makefile
+	touch .backup
+
+rrctl.o: rrctl.cpp bus.h httpserver.h node.h utils.h config.h
 	g++ -c rrctl.cpp
 
 bus.o:	bus.cpp bus.h utils.h
 	g++ -c bus.cpp
 
-node.o:	node.cpp node.h input.h output.h
+node.o:	node.cpp node.h input.h output.h servo.h
 	g++ -c node.cpp
 
-input.o:	input.cpp input.h
-	g++ -c input.cpp
+httpserver.o: 	httpserver.cpp httpserver.h
+	g++ -c httpserver.cpp
 
-output.o:	output.cpp output.h
-	g++ -c output.cpp
+config.o:	config.cpp config.h
+	g++ -c config.cpp
 
 utils.o: utils.cpp
 	g++ -c utils.cpp

@@ -16,7 +16,7 @@ public:
 	std::string body;
 };
 
-void startHttpServer(boost::asio::ip::address, unsigned short, int, int);
+void startHttpServer(const char *, unsigned short, int, int);
 
 #endif
 
