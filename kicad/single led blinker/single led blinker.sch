@@ -303,50 +303,6 @@ Wire Wire Line
 Wire Wire Line
 	3700 1900 3700 2100
 Connection ~ 3700 2100
-$Comp
-L my_symbols:NDP6020P Q1
-U 1 1 5F8B974F
-P 3700 2400
-AR Path="/5F8B974F" Ref="Q1"  Part="1" 
-AR Path="/5F8AD8AD/5F8B974F" Ref="Q?"  Part="1" 
-AR Path="/5F8C8860/5F8B974F" Ref="Q?"  Part="1" 
-AR Path="/5F8C8A56/5F8B974F" Ref="Q?"  Part="1" 
-AR Path="/5F8C8B72/5F8B974F" Ref="Q?"  Part="1" 
-AR Path="/5F8C8C7E/5F8B974F" Ref="Q?"  Part="1" 
-AR Path="/5F8C8D8D/5F8B974F" Ref="Q?"  Part="1" 
-F 0 "Q1" H 3807 2347 60  0000 L CNN
-F 1 "NDP6020P" H 3807 2453 60  0000 L CNN
-F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 3900 2600 60  0001 L CNN
-F 3 "https://www.onsemi.com/pub/Collateral/NDP6020P-D.PDF" H 3900 2700 60  0001 L CNN
-F 4 "NDP6020P-ND" H 3900 2800 60  0001 L CNN "Digi-Key_PN"
-F 5 "NDP60020P" H 3900 2900 60  0001 L CNN "MPN"
-F 6 "Discrete Semiconductor Products" H 3900 3000 60  0001 L CNN "Category"
-F 7 "Transistors - FETs, MOSFETs - Single" H 3900 3100 60  0001 L CNN "Family"
-	1    3700 2400
-	-1   0    0    1   
-$EndComp
-$Comp
-L my_symbols:NDP6020P Q2
-U 1 1 5F8B975A
-P 4900 2400
-AR Path="/5F8B975A" Ref="Q2"  Part="1" 
-AR Path="/5F8AD8AD/5F8B975A" Ref="Q?"  Part="1" 
-AR Path="/5F8C8860/5F8B975A" Ref="Q?"  Part="1" 
-AR Path="/5F8C8A56/5F8B975A" Ref="Q?"  Part="1" 
-AR Path="/5F8C8B72/5F8B975A" Ref="Q?"  Part="1" 
-AR Path="/5F8C8C7E/5F8B975A" Ref="Q?"  Part="1" 
-AR Path="/5F8C8D8D/5F8B975A" Ref="Q?"  Part="1" 
-F 0 "Q2" H 5007 2347 60  0000 L CNN
-F 1 "NDP6020P" H 5007 2453 60  0000 L CNN
-F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 5100 2600 60  0001 L CNN
-F 3 "https://www.onsemi.com/pub/Collateral/NDP6020P-D.PDF" H 5100 2700 60  0001 L CNN
-F 4 "NDP6020P-ND" H 5100 2800 60  0001 L CNN "Digi-Key_PN"
-F 5 "NDP60020P" H 5100 2900 60  0001 L CNN "MPN"
-F 6 "Discrete Semiconductor Products" H 5100 3000 60  0001 L CNN "Category"
-F 7 "Transistors - FETs, MOSFETs - Single" H 5100 3100 60  0001 L CNN "Family"
-	1    4900 2400
-	-1   0    0    1   
-$EndComp
 Wire Wire Line
 	4900 1900 3700 1900
 Connection ~ 3700 1900
@@ -531,4 +487,36 @@ Wire Wire Line
 Wire Wire Line
 	3850 900  3350 900 
 Connection ~ 3350 900 
+$Comp
+L my~symbols:NDP6020P Q1
+U 1 1 608CEEB2
+P 3700 2400
+F 0 "Q1" H 3807 2347 60  0000 L CNN
+F 1 "NDP6020P" H 3807 2453 60  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 3900 2600 60  0001 L CNN
+F 3 "https://www.onsemi.com/pub/Collateral/NDP6020P-D.PDF" H 3900 2700 60  0001 L CNN
+F 4 "NDP6020P-ND" H 3900 2800 60  0001 L CNN "Digi-Key_PN"
+F 5 "NDP60020P" H 3900 2900 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 3900 3000 60  0001 L CNN "Category"
+F 7 "Transistors - FETs, MOSFETs - Single" H 3900 3100 60  0001 L CNN "Family"
+	1    3700 2400
+	-1   0    0    1   
+$EndComp
+$Comp
+L my~symbols:NDP6020P Q2
+U 1 1 608CFF3D
+P 4900 2400
+F 0 "Q2" H 5007 2347 60  0000 L CNN
+F 1 "NDP6020P" H 5007 2453 60  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 5100 2600 60  0001 L CNN
+F 3 "https://www.onsemi.com/pub/Collateral/NDP6020P-D.PDF" H 5100 2700 60  0001 L CNN
+F 4 "NDP6020P-ND" H 5100 2800 60  0001 L CNN "Digi-Key_PN"
+F 5 "NDP60020P" H 5100 2900 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 5100 3000 60  0001 L CNN "Category"
+F 7 "Transistors - FETs, MOSFETs - Single" H 5100 3100 60  0001 L CNN "Family"
+	1    4900 2400
+	-1   0    0    1   
+$EndComp
+Connection ~ 4000 2300
+Connection ~ 5200 2300
 $EndSCHEMATC
