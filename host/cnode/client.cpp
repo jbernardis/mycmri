@@ -6,6 +6,39 @@
 #include <string.h>
 #define PORT 8001
    
+
+int nextMessage(int skt, char * buff) {
+	int totalRead = 0;
+	union {
+		short readLen;
+		unsigned char readChars[2];
+	} u;
+	int nRead;
+	short msgLen;
+			
+	// first et the 2 byte length
+	while (totalRead < 2) {
+		nRead = read(skt, u.readChars+totalRead, 2-totalRead);
+		if (nRead == 0)
+			return -1;
+
+		totalRead = totalRead + nRead;
+	}
+	
+	if (u.readLen > 0) {
+		totalRead = 0;
+
+		while (totalRead < u.readLen) {
+			nRead = read(skt, buff+totalRead, u.readLen-totalRead);
+			if (nRead == 0)
+				return -1;
+
+			totalRead = totalRead + nRead;
+		}
+	}
+	return totalRead;
+}
+
 int main(int argc, char const *argv[])
 {
     int sock = 0, valread;
@@ -35,21 +68,9 @@ int main(int argc, char const *argv[])
     }
 	short msgLen;
 	while (true) {
-		valread = read( sock , &msgLen, 2);
-		if (valread == 0)
+		valread = nextMessage(sock, buffer);
+		if (valread <= 0)
 			break;
-
-		if (valread != 2) {
-			printf("did not read an valid length value\n");
-			continue;
-		}
-
-		valread = read( sock , buffer, msgLen);
-		if (valread == 0)
-			break;
-		if (valread != msgLen) {
-			printf("did not get all characters in the message");
-		}
 
 		buffer[valread] = '\0';
 		printf("%s\n", buffer);

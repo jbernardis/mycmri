@@ -18,20 +18,64 @@
 #include "config.h"
 
 
+class PendingID {
+public:
+	int errorCount;
+	int addr;
+};
+
 Config *cfg;
 Bus *bus;
 
 #define MAXCLIENTS 8
+#define ERRORTHRESHOLD 10
 int clients[MAXCLIENTS];
 int nClients;
 struct sockaddr_in socketAddr;
 int socketAddrlen;
 
+PendingID * PID[32];
+int nPID;
 Node * knownNodes[32];
 int nNodes;
 
 bool exitServer;
 
+bool isConfigured(int addr) {
+	for (int i=0; i<cfg->nNodes; i++) {
+		if (cfg->nodeAddrs[i] == addr)
+			return true;
+	} 
+	return false;
+}
+
+PendingID * findPID(int addr) {
+	for (int i=0; i<nPID; i++)
+		if (addr == PID[i]->addr)
+			return PID[i];
+
+	return NULL;
+}
+
+void delPID(int addr) {
+    PendingID * newList[32];
+    int n = 0;
+
+    for (int i=0; i<nPID; i++) {
+        if (PID[i]->addr != addr) {
+            newList[n++] = PID[i];
+		}
+		else {
+			PendingID *p = PID[i];
+			delete p;
+		}
+    }
+
+    for (int i=0; i<n; i++) {
+        PID[i] = newList[i];
+    }
+    nPID = n;
+}
 
 bool nodeExists(int addr) {
 	for (int i=0; i<nNodes; i++)
@@ -116,6 +160,9 @@ void ProcessIdentifyResponse(int addr, int ninputs, int noutputs, int nservos) {
 	Node *n = new Node(nm, addr, ninputs, noutputs, nservos);
 	knownNodes[nNodes] = n;
 	nNodes++;
+
+	delPID(addr);
+
 	bus->InputCurrent(addr);
 	bus->OutputCurrent(addr);
 	bus->GetTurnout(addr);
@@ -163,6 +210,43 @@ void ProcessBusResponse(class busMessage *response) {
 	short normal[64], reverse[64], initial[64], current[64];
 
 	int j;
+
+	Node *n = findNode(response->address);
+
+	if (response->operation == ERRORADDRESS || response->operation == ERRORTIMEOUT) {
+		if (response->operation ==  ERRORADDRESS)
+			std::cerr << "error: unexpected response from address " << response->address << ", expecting " << response->args[0] << std::endl;
+		else
+			std::cerr << "error: no response from address  " << response->address << std::endl;
+
+		if (n == NULL) {	
+			PendingID *p = findPID(response->address);
+			if (p != NULL) {
+				p->errorCount++;
+				if (p->errorCount > ERRORTHRESHOLD) {
+					std::cerr << "too many errors from address " << response->address << ". removing from identify list." << std::endl;
+					delPID(response->address);
+				}
+				else {
+					std::cerr << "Retrying identify for address " << response->address << std::endl;
+					bus->Identify(response->address);
+				}
+			}
+		}
+		else {
+			n->errorCount++;
+			if (n->errorCount > ERRORTHRESHOLD) {
+				bus->delNode(response->address);
+				delNode(response->address);
+				std::cerr << "too many errors from address " << response->address << ". removing from poll list." << std::endl;
+			}
+		}
+		return;
+	}
+	else {
+		if (n != NULL)
+			n->errorCount = 0;
+	}
 
 	switch (response->operation) {
 	case OUTPUT_CURRENT:
@@ -227,14 +311,6 @@ void ProcessBusResponse(class busMessage *response) {
 		std::cout << "store" << std::endl;
 		break;
 
-	case ERRORADDRESS:
-		std::cerr << "error: unexpected response from address " << response->address << ", expecting " << response->args[0] << std::endl;
-		break;
-
-	case ERRORTIMEOUT:
-		std::cerr << "error: no response from address  " << response->address << std::endl;
-		break;
-
 	default:
 		std::cerr << "default case in response: " << response->operation << std::endl;
 	}
@@ -255,7 +331,7 @@ int getParameter(class httpMessage *request, std::string name) {
 
 void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) { 
 	Node *n = NULL;
-	if (request->command != "/quit" && request->command != "/noderpt") {
+	if (request->command != "/quit" && request->command != "/noderpt" && request->command != "/init") { 
 		if (request->address < 0) {
 			resp->rc = 1;
 			resp->body = "node address missing";
@@ -520,11 +596,21 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		bus->Store(request->address);
 	}
 	else if (request->command == "/init") {
-		resp->rc = 0;
-		resp->body = "command accepted";
-		bus->delNode(request->address);
-		delNode(request->address);
-		bus->Identify(request->address);
+		n = findNode(request->address);
+		if (n != NULL) {
+			bus->delNode(request->address);
+			delNode(request->address);
+		}
+		if (isConfigured(request->address)) {
+			bus->Identify(request->address);
+			resp->rc = 0;
+			resp->body = "command accepted";
+		}
+		else {
+			resp->rc = 1;
+			resp->body = "unknown node address";
+			std::cerr << "Attempt to init non configured node address " << request->address << std::endl;
+		}
 	}
 	else if (request->command == "/quit") {
 		exitServer = true;
@@ -570,9 +656,6 @@ int main(void) {
 	socketAddrlen = sizeof(socketAddr);
 	nNodes = 0;
 	exitServer = false;
-
-
-std::cout << "=============================================== " << sizeof(short) << std::endl;
 
 	cfg = new Config("config.json");
 
@@ -622,6 +705,11 @@ std::cout << "=============================================== " << sizeof(short)
 	// kick things off on the RS485 side by asking each node to identify itself
 	for (int i=0; i<cfg->nNodes; i++) {
 		std::cout << "Initializing node " << (cfg->nodeNames[i]) << " at address " << (cfg->nodeAddrs[i]) << std::endl;
+		PendingID *p = new PendingID();
+		p->addr = cfg->nodeAddrs[i];
+		p->errorCount = 0;
+		PID[nPID] = p;
+		nPID++;
 		bus->Identify(cfg->nodeAddrs[i]);
 	} 
 

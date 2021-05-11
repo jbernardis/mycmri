@@ -32,6 +32,8 @@ public:
 	bool isTurnoutReversed(int);
 	std::string ServoAngle(int, int);
 
+	int errorCount;
+
 private:
 	int addr, ninputs, noutputs, nservos;
 	int nibits, nobits, nsbits;

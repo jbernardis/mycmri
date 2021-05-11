@@ -28,6 +28,7 @@ void Node::nodeInit(std::string nm, int a, int i, int o, int s) {
 	nservos = s;
 	nsbits = s*16;
 
+	errorCount = 0;
 
 	std::cout << "Node " << name << " at address " << addr << " created with config i:" << ninputs << "(" << nibits
 					<< ")/o:" << noutputs << "(" << nobits << ")/s:" << nservos << "(" << nsbits << ")" << std::endl;
