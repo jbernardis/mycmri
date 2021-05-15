@@ -1,8 +1,8 @@
 OBJECTS = rrctl.o bus.o node.o utils.o httpserver.o config.o
-LIBS = -lpthread 
+LIBS = -lboost_log_setup -lboost_log -lboost_thread -lpthread
 
 rrctl: $(OBJECTS)
-	g++ $(OBJECTS) $(LIBS) -o rrctl
+	g++ -static $(OBJECTS) $(LIBS) -o rrctl
 
 all:	client rrctl
 

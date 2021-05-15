@@ -6,6 +6,8 @@
 #include <string>
 #include <thread>
 
+#include <boost/log/trivial.hpp>
+
 #include "httpserver.h"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -128,7 +130,7 @@ private:
 				try {
 					req->address = std::stoi(val);
 				} catch (const std::exception& e) {
-					std::cerr << "Error converting address to int" << std::endl;
+					BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "HTTTP Server: Error converting address to int";
 					req->address = -1;
 				}
 			}
@@ -138,7 +140,7 @@ private:
 					req->args[np] = std::stoi(val);
 					np++;
 				} catch (const std::exception& e) {
-					std::cerr << "Error converting argument " << nm << " to integer" << std::endl;
+					BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "HTTTP Server: Error converting argument " << nm << " to integer";
 				}
 			}
 		}
@@ -148,7 +150,7 @@ private:
 		int rc = write(httpReq, &req, sizeof(req));
 
 		if (rc != sizeof(req)) {
-			perror("http outon write");
+			BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " during http resquest write";
 			exit(1);
 		}
 
@@ -225,7 +227,7 @@ void serverThread(boost::asio::ip::address address, unsigned short port) {
         ioc.run();
     }
     catch(std::exception const& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(fatal) << __func__ << ": " << "Error: " << e.what();
         exit(EXIT_FAILURE);
     }
 }

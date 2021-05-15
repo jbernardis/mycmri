@@ -44,9 +44,7 @@ class Bus {
 public:
 	Bus(const char *);
 	int getResponseFd(void);
-	//void process(void);
 	void join(void);
-	void setDebug(int);
 	void addNode(int);
 	void delNode(int);
 	void Identify(int);
@@ -63,7 +61,6 @@ public:
 	void SetTurnout(int, int, int, int);
 	void Config(int, int, int, int, int);
 	void Store(int);
-	//class busMessage *getNextResponse(void);
 
 private:
 	void send(char, const char *, int, char *, int *, int *);
@@ -73,7 +70,6 @@ private:
 
 	int cmdQ, respQ;
 	int busPort;
-	int debug;
 	std::thread *thrPoll, *thrBus;
 	int nodesToPoll[32];
 	int nNodes;

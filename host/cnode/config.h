@@ -11,6 +11,7 @@ public:
 	std::string ipaddr;
 	short httpport;
 	short socketport;
+	std::string loglevel;
 	std::string nodeNames[8];
 	int nodeAddrs[8];
 	int nNodes = 0;

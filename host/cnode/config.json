@@ -3,6 +3,7 @@
 	"ip": "192.168.1.142",
 	"httpport": 8000,
 	"socketport": 8001,
+	"loglevel": "info",
 	"nodes":[
 		{
 			"name": "dell",

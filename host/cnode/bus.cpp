@@ -6,12 +6,15 @@
 #include <poll.h>
 #include <thread>
 #include <iostream>
+#include <sstream>
 #include <mutex>
+#include <boost/log/trivial.hpp>
 
 #include "bus.h"
 #include "utils.h"
 
 std::mutex nodeList;
+extern boost::log::trivial::severity_level my_log_level;
 
 Bus::Bus(const char * portName) {
 	int  baudrate = B115200;
@@ -19,14 +22,12 @@ Bus::Bus(const char * portName) {
 	struct termios ti;
 	struct termios ti_prev;
 
-	debug = 0;
-
 	nNodes = 0;
 
 	// Open the serial port
 	busPort = open(portName, O_RDWR|O_NOCTTY);
 	if (busPort < 0) {
-		std::cerr << "ERROR! Failed to open " << portName << std::endl;
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": " << "ERROR! Failed to open " << portName;
 		exit(1);
 	}
 
@@ -55,13 +56,13 @@ Bus::Bus(const char * portName) {
 
 	int pipeCmd[2];
 	if (pipe(pipeCmd) != 0) {
-		perror("command pipe");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " during command pipe creation";
 		exit(1);
 	}
 
 	int pipeResp[2];
 	if (pipe(pipeResp) != 0) {
-		perror("response pipe");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " during response pipe creation";
 		exit(1);
 	}
 
@@ -84,7 +85,7 @@ void Bus::pollThread(int fd) {
 			int rc = write(fd, &cmd, sizeof(cmd));
 
 			if (rc != sizeof(cmd)) {
-				perror("poll write");
+				BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 				exit(1);
 			}
 
@@ -126,7 +127,7 @@ void Bus::Identify(int addr) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("identify write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -139,8 +140,7 @@ void Bus::InputCurrent(int addr) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("input current write");
-		exit(1);
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 	}
 }
 
@@ -152,7 +152,7 @@ void Bus::InputDelta(int addr) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("input delta write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -165,7 +165,7 @@ void Bus::OutputCurrent(int addr) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("output current write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -178,7 +178,7 @@ void Bus::GetTurnout(int addr) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("get turnout write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -192,7 +192,7 @@ void Bus::OutputOn(int addr, int ox) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("output on write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -206,7 +206,7 @@ void Bus::OutputOff(int addr, int ox) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("output off write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -220,7 +220,7 @@ void Bus::TurnoutNormal(int addr, int tx) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("turnout normal write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -234,7 +234,7 @@ void Bus::TurnoutReverse(int addr, int tx) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("turnout reverse write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -249,7 +249,7 @@ void Bus::ServoAngle(int addr, int sx, int ang) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("servo angle write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -266,7 +266,7 @@ void Bus::SetTurnout(int addr, int tx, int norm, int rev, int initial) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("set turnout write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -287,7 +287,7 @@ void Bus::Config(int addr, int naddr, int inputs, int outputs, int servos) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("config write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -300,7 +300,7 @@ void Bus::Store(int addr) {
 	int rc = write(cmdQ, &cmd, sizeof(cmd));
 
 	if (rc != sizeof(cmd)) {
-		perror("store write");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " writing to command pipe";
 		exit(1);
 	}
 }
@@ -318,16 +318,16 @@ void Bus::busThread(int cmdQ, int respQ, int busPort) {
 
 	for (;;) {
 		if (poll(fds, 1, -1) != 1) {
-			perror("poll");
+			BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " poll call failed";
 			exit(1);
 		}
 		if (fds[0].revents != POLLIN) {
-			std::cerr << "unexpected poll revents: " << fds[0].revents << std::endl;
+			BOOST_LOG_TRIVIAL(fatal) << __func__ << ": " << "unexpected poll revents: " << fds[0].revents;
 			exit(1);
 		}
 
 		if (read(cmdQ, &cmd, sizeof(cmd)) != sizeof(cmd)) {
-			perror("read");
+			BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " read from command pipe failed";
 			exit(1);
 		}
 
@@ -348,7 +348,7 @@ void Bus::busThread(int cmdQ, int respQ, int busPort) {
 
 		int rc = write(respQ, &resp, sizeof(resp));
 		if (rc != sizeof(cmd)) {
-			perror("response write");
+			BOOST_LOG_TRIVIAL(fatal) << __func__ << ": Error " << errno << " write to response pipe failed";
 			exit(1);
 		}
 
@@ -359,29 +359,6 @@ void Bus::busThread(int cmdQ, int respQ, int busPort) {
 int Bus::getResponseFd(void) {
 	return respQ;
 }
-
-
-//class busMessage * Bus::getNextResponse(void) {
-	//struct pollfd fds[1];
-	//class busMessage *response;
-	//fds[0].fd = respQ;;
-	//fds[0].events = POLLIN;
-	//poll(fds, 1, 1);
-//
-	//if (!(fds[0].revents & POLLIN)) 
-		//return NULL;
-//
-	//if (read(respQ, &response, sizeof(response)) != sizeof(response)) {
-		//perror("read");
-		//exit(1);
-	//}
-	//return response;
-//}
-
-//void Bus::join(void) {
-	//thrPoll->join();
-	//thrBus->join();
-//}
 
 void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, int * iaddr) {
 	setMode(TX);
@@ -402,12 +379,13 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 	}
 	obuffer[olen++] = ETX;
 
-	if (debug) {
-		std::cout << "==> " << olen << " bytes: ";
+	if (my_log_level <= boost::log::trivial::trace) {
+		std::stringstream lmsg;
+		lmsg << "==> " << olen << " bytes:";
 		for (int i=0; i<olen; i++) {
-			std::cout <<std::hex << (obuffer[i] & 0xff);
+			lmsg << " " << std::hex << (obuffer[i] & 0xff);
 		}
-		std::cout << std::endl;
+		BOOST_LOG_TRIVIAL(trace) << lmsg.str();
 	}
 
 	tcflush(busPort, TCIFLUSH);
@@ -424,19 +402,20 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 	poll(&pfd, 1, 500);
 
 	if (pfd.revents & POLLIN) {
-		if (debug)
-			std::cout << "<== ";
+		std::stringstream lmsg;
+		if (my_log_level <= boost::log::trivial::trace) 
+			lmsg << "<== ";
 		
 		int s, d;
-		char ic;
+		unsigned int ic;
 		while((s=read(busPort, &ic, 1)) != -1) {
-			if (debug) 
-				std::cout << std::hex << ic;
+			if (my_log_level <= boost::log::trivial::trace) 
+				lmsg << " " << std::hex << ic;
 
 			if (ic == ESC) {
 				read(busPort, &ic, 1);
-				if (debug) 
-					std::cout << std::hex << ic;
+				if (my_log_level <= boost::log::trivial::trace) 
+					lmsg << " " << std::hex << ic;
 				if (*ilen >= 0) {
 					ibuffer[*ilen] = ic;
 					*ilen = *ilen + 1;
@@ -445,8 +424,8 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 			else if (ic == STX && *ilen == -1)
 				*ilen = 0;
 			else if (ic == ETX) {
-				if (debug) 
-					std::cout << std::endl;
+				if (my_log_level <= boost::log::trivial::trace) 
+					BOOST_LOG_TRIVIAL(trace) << lmsg.str();
 				break;
 			}
 			else if (*ilen >= 0) {
@@ -456,16 +435,14 @@ void Bus::send(char addr, const char *omsg, int n, char * ibuffer, int * ilen, i
 		}
 		*iaddr = int(ibuffer[0]) - 65;
 		if (addr != *iaddr) {
-			if (debug)
-				std::cerr << "address mismatch - discard the message" << std::endl;
+			BOOST_LOG_TRIVIAL(trace) << __func__ << ": " << "address mismatch - discard the message";
 			*ilen = 3;
 			ibuffer[1] = ERRORADDRESS;
 			ibuffer[2] = addr;
 		}
 	}
 	else {
-		if (debug)
-			std::cerr << "no response" << std::endl;
+		BOOST_LOG_TRIVIAL(trace) << __func__ << ": " << "no response";
 		*ilen = 2;
 		ibuffer[0] = 0;
 		ibuffer[1] = ERRORTIMEOUT;
@@ -493,8 +470,4 @@ void Bus::setMode(int mode) {
 		ioctl(busPort, TIOCMBIC, RTS_flag);
 		ioctl(busPort, TIOCMBIC, DTR_flag);
 	}
-}
-
-void Bus::setDebug(int d) {
-	debug = d;
 }

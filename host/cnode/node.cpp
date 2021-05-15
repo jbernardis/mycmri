@@ -2,11 +2,13 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <boost/log/trivial.hpp>
 
 #include "node.h"
 #include "input.h"
 #include "output.h"
 #include "servo.h"
+#include "utils.h"
 
 Node::Node(int a, int i, int o, int s) {
 	std::stringstream n;
@@ -30,8 +32,8 @@ void Node::nodeInit(std::string nm, int a, int i, int o, int s) {
 
 	errorCount = 0;
 
-	std::cout << "Node " << name << " at address " << addr << " created with config i:" << ninputs << "(" << nibits
-					<< ")/o:" << noutputs << "(" << nobits << ")/s:" << nservos << "(" << nsbits << ")" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "Node " << name << " at address " << addr << " created with config i:" << ninputs << "(" << nibits
+					<< ")/o:" << noutputs << "(" << nobits << ")/s:" << nservos << "(" << nsbits << ")";
 	for (int i=0; i<nibits; i++) {
 		inputs[i] = new Input();
 		inputs[i]->currentState = true;
@@ -69,7 +71,7 @@ int Node::setInputStates(bool *bvals, int *idx, int n) {
 		int ix = idx[i];
 
 		if (ix < 0 || ix >= nibits) {
-			std::cerr << "input index of " << ix << " is out of range" << std::endl;
+			BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "input index of " << ix << " is out of range";
 			return diffs;
 		}
 		int ov = inputs[ix]->currentState;
@@ -124,7 +126,7 @@ int Node::setOutputStates(bool *vals, int n) {
 std::string Node::OutputOn(int ox) {
 	std::ostringstream rpt;
 	if (ox < 0 || ox >= nobits) {
-		std::cerr << "output index of " << ox << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "output index of " << ox << " is out of range";
 		return "";
 	}
 	bool ov = outputs[ox]->currentState;
@@ -139,7 +141,7 @@ std::string Node::OutputOn(int ox) {
 std::string Node::OutputOff(int ox) {
 	std::ostringstream rpt;
 	if (ox < 0 || ox >= nobits) {
-		std::cerr << "output index of " << ox << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "output index of " << ox << " is out of range";
 		return "";
 	}
 	bool ov = outputs[ox]->currentState;
@@ -193,7 +195,7 @@ std::string Node::ServosReport(void) {
 std::string Node::TurnoutNormal(int tx) {
 	std::ostringstream rpt;
 	if (tx < 0 || tx > nsbits) {
-		std::cerr << "servo index of " << tx << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "servo index of " << tx << " is out of range";
 		return "";
 	}
 	if (servos[tx]->current == servos[tx]->normal)
@@ -208,7 +210,7 @@ std::string Node::TurnoutNormal(int tx) {
 std::string Node::TurnoutReverse(int tx) {
 	std::ostringstream rpt;
 	if (tx < 0 || tx > nsbits) {
-		std::cerr << "servo index of " << tx << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "servo index of " << tx << " is out of range";
 		return "";
 	}
 	if (servos[tx]->current == servos[tx]->reverse)
@@ -222,7 +224,7 @@ std::string Node::TurnoutReverse(int tx) {
 
 bool Node::isTurnoutReversed(int tx) {
 	if (tx < 0 || tx > nsbits) {
-		std::cerr << "servo index of " << tx << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "servo index of " << tx << " is out of range";
 		return false;
 	}
 	return servos[tx]->current == servos[tx]->reverse;
@@ -230,7 +232,7 @@ bool Node::isTurnoutReversed(int tx) {
 
 bool Node::isTurnoutNormal(int tx) {
 	if (tx < 0 || tx > nsbits) {
-		std::cerr << "servo index of " << tx << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "servo index of " << tx << " is out of range";
 		return false;
 	}
 	return servos[tx]->current == servos[tx]->normal;
@@ -239,7 +241,7 @@ bool Node::isTurnoutNormal(int tx) {
 std::string Node::SetTurnoutLimits(int tx, int n, int r, int ini) {
 	std::ostringstream rpt;
 	if (tx < 0 || tx > nsbits) {
-		std::cerr << "servo index of " << tx << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "servo index of " << tx << " is out of range";
 		return "";
 	}
 	servos[tx]->normal = n;
@@ -253,7 +255,7 @@ std::string Node::SetTurnoutLimits(int tx, int n, int r, int ini) {
 std::string Node::ServoAngle(int sx, int ang) {
 	std::ostringstream rpt;
 	if (sx < 0 || sx > nsbits) {
-		std::cerr << "servo index of " << sx << " is out of range" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "servo index of " << sx << " is out of range";
 		return "";
 	}
 	if (servos[sx]->current == ang)

@@ -4,6 +4,11 @@
 #include <ostream>
 #include <sstream>
 
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+
 #include <cstdlib>
 #include <string>
 
@@ -17,6 +22,32 @@
 #include "utils.h"
 #include "config.h"
 
+namespace logging = boost::log;
+
+logging::trivial::severity_level my_log_level = logging::trivial::info;
+
+void init_logging(std::string loglevel) {
+	logging::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%] [%Severity%] %Message%");
+
+	my_log_level = logging::trivial::info;
+	if (loglevel == "trace")
+		my_log_level = logging::trivial::trace;
+	else if (loglevel == "debug")
+		my_log_level = logging::trivial::debug;
+	else if (loglevel == "info")
+		my_log_level = logging::trivial::info;
+	else if (loglevel == "warning")
+		my_log_level = logging::trivial::warning;
+	else if (loglevel == "error")
+		my_log_level = logging::trivial::error;
+
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= my_log_level
+    );
+
+	logging::add_common_attributes();
+}
 
 class PendingID {
 public:
@@ -131,8 +162,9 @@ void broadcast(std::string rpt) {
 	int n;
 	bool cleanup = false;
 	for (int i=0; i<nClients; i++)  {
+		BOOST_LOG_TRIVIAL(info) << __func__ << ":sending to client " << i << "(socket " << clients[i] << ")";
 		if (!sendToClient(clients[i], rpt)) {
-			std::cout << "Remote end disconnected for socket " << clients[i] << " - removing client from list" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "Remote end disconnected for socket " << clients[i] << " - removing client from list";
 			clients[i] = -1;
 			cleanup = true;
 		}
@@ -155,7 +187,6 @@ void ProcessIdentifyResponse(int addr, int ninputs, int noutputs, int nservos) {
 	}
 
 	std::string nm = cfg->GetNodeNameAtAddress(addr);
-	std::cout << "retrieved node name (" << nm << ") for address " << addr << std::endl;
 
 	Node *n = new Node(nm, addr, ninputs, noutputs, nservos);
 	knownNodes[nNodes] = n;
@@ -174,34 +205,42 @@ void ProcessIdentifyResponse(int addr, int ninputs, int noutputs, int nservos) {
 void ProcessInputResponse(int addr, bool delta, int ninput, bool* bval, int* idx) {
 	Node *n = findNode(addr);
 	if (n == NULL) {
-		std::cerr << "input report for unknown node.  addr = " << addr << std::endl;
+		BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "input report for unknown node.  addr = " << addr;
 		return;
 	}
+	std::string rpt;
 	int diffs = n->setInputStates(bval, idx, ninput);
 	if (delta) 
-		broadcast(n->InputsReportDelta(idx, ninput));
+		rpt = n->InputsReportDelta(idx, ninput);
 	else
-		broadcast(n->InputsReport());
+		rpt = n->InputsReport();
+
+	BOOST_LOG_TRIVIAL(info) << __func__ << ": Inputs Report: " << rpt;
+	broadcast(rpt);
 }
 
 void ProcessOutputResponse(int addr, int noutput, bool* val) {
 	Node *n = findNode(addr);
 	if (n == NULL) {
-		std::cerr << "output report for unknown node.  addr = " << addr << std::endl;
+		BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "output report for unknown node.  addr = " << addr;
 		return;
 	}
 	int diffs = n->setOutputStates(val, noutput);
-	broadcast(n->OutputsReport());
+	std::string rpt = n->OutputsReport();
+	BOOST_LOG_TRIVIAL(info) << __func__ << ": Outputs Report: " << rpt;
+	broadcast(rpt);
 }
 
 void ProcessTurnoutResponse(int addr, short * normal, short * reverse, short * initial, short * current, int nargs) {
 	Node *n = findNode(addr); 
 	if (n == NULL) {
-		std::cerr << "turnout report for unknown node.  addr = " << addr << std::endl;
+		BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "turnout report for unknown node.  addr = " << addr;
 		return;
 	}
 	int diffs = n->setServoValues(normal, reverse, initial, current, nargs);
-	broadcast(n->ServosReport());
+	std::string rpt = n->ServosReport();
+	BOOST_LOG_TRIVIAL(info) << __func__ << ": Servos Report: " << rpt;
+	broadcast(rpt);
 }
 
 void ProcessBusResponse(class busMessage *response) {
@@ -215,20 +254,20 @@ void ProcessBusResponse(class busMessage *response) {
 
 	if (response->operation == ERRORADDRESS || response->operation == ERRORTIMEOUT) {
 		if (response->operation ==  ERRORADDRESS)
-			std::cerr << "error: unexpected response from address " << response->address << ", expecting " << response->args[0] << std::endl;
+			BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "error: unexpected response from address " << response->address << ", expecting " << response->args[0];
 		else
-			std::cerr << "error: no response from address  " << response->address << std::endl;
+			BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "error: no response from address  " << response->address;
 
 		if (n == NULL) {	
 			PendingID *p = findPID(response->address);
 			if (p != NULL) {
 				p->errorCount++;
 				if (p->errorCount > ERRORTHRESHOLD) {
-					std::cerr << "too many errors from address " << response->address << ". removing from identify list." << std::endl;
+					BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "too many errors from address " << response->address << ". removing from identify list.";
 					delPID(response->address);
 				}
 				else {
-					std::cerr << "Retrying identify for address " << response->address << std::endl;
+					BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "Retrying identify for address " << response->address;
 					bus->Identify(response->address);
 				}
 			}
@@ -238,7 +277,7 @@ void ProcessBusResponse(class busMessage *response) {
 			if (n->errorCount > ERRORTHRESHOLD) {
 				bus->delNode(response->address);
 				delNode(response->address);
-				std::cerr << "too many errors from address " << response->address << ". removing from poll list." << std::endl;
+				BOOST_LOG_TRIVIAL(error) << __func__ << ": " << "too many errors from address " << response->address << ". removing from poll list.";
 			}
 		}
 		return;
@@ -282,7 +321,7 @@ void ProcessBusResponse(class busMessage *response) {
 
 	case IDENTIFY:
 		if (response->nargs != 4) {
-			std::cerr << "Unexpected number of parameters in identify response" << std::endl;
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "Unexpected number of parameters in identify response";
 			return;
 		}
 		ProcessIdentifyResponse((int) response->args[0], (int) response->args[1], (int) response->args[2], (int) response->args[3]);
@@ -301,18 +340,19 @@ void ProcessBusResponse(class busMessage *response) {
 		break;
 
 	case CONFIG:
-		std::cout << "config" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "Config response";
 		break;
 
 	case ACKNOWLEDGE:
+		BOOST_LOG_TRIVIAL(trace) << __func__ << ": " << "ACK";
 		break;
 
 	case STORE:
-		std::cout << "store" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "Store response";
 		break;
 
 	default:
-		std::cerr << "default case in response: " << response->operation << std::endl;
+		BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "default case in response: " << response->operation;
 	}
 }
 
@@ -335,12 +375,14 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (request->address < 0) {
 			resp->rc = 1;
 			resp->body = "node address missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "Node address missing from HTTP request";
 			return;
 		}
 		n = findNode(request->address);
 		if (n == NULL) {
 			resp->rc = 1;
 			resp->body = "unknown node address";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "Unknown node address in HTTP request";
 			return;
 		}
 	}
@@ -350,16 +392,19 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from outon HTTP request";
 			return;
 		}
 
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "outon HTTP request address " << request->address << " index " << index;
 		std::string r;
 
 		r = n->OutputOn(index);
 		if (r.length() != 0) {
 			bus->OutputOn(request->address, index);
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": Output On Report: " << r;
 			broadcast(r);
 		}
 	}
@@ -368,16 +413,19 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from outoff HTTP request";
 			return;
 		}
 
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "outoff HTTP request address " << request->address << " index " << index;
 		std::string r;
 
 		r = n->OutputOff(index);
 		if (r.length() != 0) {
 			bus->OutputOff(request->address, index);
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": Output Off Report: " << r;
 			broadcast(r);
 		}
 	}
@@ -386,16 +434,19 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from normal HTTP request";
 			return;
 		}
 
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "normal HTTP request address " << request->address << " index " << index;
 		std::string r;
 
 		r = n->TurnoutNormal(index);
 		if (r.length() != 0) {
 			bus->TurnoutNormal(request->address, index);
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": Turnout Normal Report: " << r;
 			broadcast(r);
 		}
 	}
@@ -404,16 +455,19 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from reverse HTTP request";
 			return;
 		}
 
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "reverse HTTP request address " << request->address << " index " << index;
 		std::string r;
 
 		r = n->TurnoutReverse(index);
 		if (r.length() != 0) {
 			bus->TurnoutReverse(request->address, index);
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": Turnout Reverse Report: " << r;
 			broadcast(r);
 		}
 	}
@@ -423,13 +477,16 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from toggle HTTP request";
 			return;
 		}
 
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "toggle HTTP request address " << request->address << " index " << index;
 		if (n->isTurnoutNormal(index)) {
 			r = n->TurnoutReverse(index);
 			if (r.length() != 0) {
 				bus->TurnoutReverse(request->address, index);
+				BOOST_LOG_TRIVIAL(info) << __func__ << ": Turnout Reverse Report: " << r;
 				broadcast(r);
 			}
 		}
@@ -437,6 +494,7 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 			r = n->TurnoutNormal(index);
 			if (r.length() != 0) {
 				bus->TurnoutNormal(request->address, index);
+				BOOST_LOG_TRIVIAL(info) << __func__ << ": Turnout Normal Report: " << r;
 				broadcast(r);
 			}
 		}
@@ -448,40 +506,48 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from angle HTTP request";
 			return;
 		}
 		int angle = getParameter(request, "angle");
 		if (angle < 0 || angle > 180) {
 			resp->rc = 1;
 			resp->body = "parameter angle missing or out of range";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "angle missing from angle HTTP request";
 			return;
 		}
 
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "angle HTTP request address " << request->address << " index " << index << " angle " << angle;
 		std::string r;
 
 		r = n->ServoAngle(index, angle);
 		if (r.length() != 0) {
 			bus->ServoAngle(request->address, index, angle);
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": Servo Angle Report: " << r;
 			broadcast(r);
 		}
 	}
 	else if (request->command == "/getconfig") {
 		resp->rc = 0;
 		resp->body = n->GetConfig();
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "getconfig HTTP request address " << request->address;
 	}
 	else if (request->command == "/outputs") {
 		resp->rc = 0;
 		resp->body = n->OutputsReport();
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "outputs HTTP request address " << request->address;
 	}
 	else if (request->command == "/inputs") {
 		resp->rc = 0;
 		resp->body = n->InputsReport();
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "inputs HTTP request address " << request->address;
 	}
 	else if (request->command == "/turnouts") {
 		resp->rc = 0;
 		resp->body = n->ServosReport();
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "turnouts HTTP request address " << request->address;
 	}
 	else if (request->command == "/refresh") {
 		bool inputRpt = false;
@@ -500,6 +566,7 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 			turnoutRpt = true;
 		}
 
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "refresh HTTP request address " << request->address;
 		if (inputRpt)
 			bus->InputCurrent(request->address);
 
@@ -517,6 +584,7 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (index < 0) {
 			resp->rc = 1;
 			resp->body = "parameter index missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "index missing from setlimits HTTP request";
 			return;
 		}
 
@@ -524,12 +592,14 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (normal < 0 || normal > 180) {
 			resp->rc = 1;
 			resp->body = "parameter normal missing or out of range";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "normal value missing from setlimits HTTP request";
 			return;
 		}
 		int reverse = getParameter(request, "reverse");
 		if (reverse < 0 || reverse > 180) {
 			resp->rc = 1;
 			resp->body = "parameter reverse missing or out of range";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "reverse value missing from setlimits HTTP request";
 			return;
 		}
 		int initial = getParameter(request, "initial");
@@ -538,6 +608,8 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 
 		std::string r;
 		r = n->SetTurnoutLimits(index, normal, reverse, initial);
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "setlimits HTTP request, address "
+				<< request->address << " normal " << normal << " reverse " << reverse << " initial " << initial;
 		if (r.length() != 0) {
 			bus->SetTurnout(request->address, index, normal, reverse, initial);
 			broadcast(r);
@@ -550,6 +622,7 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (naddr < 0) {
 			resp->rc = 1;
 			resp->body = "parameter naddr missing";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "new address missing from setconfig HTTP request";
 			return;
 		}
 
@@ -557,27 +630,33 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		if (inputs < 0) {
 			resp->rc = 1;
 			resp->body = "parameter inputs missing or out of range";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "inputs missing from setconfig HTTP request";
 			return;
 		}
 		int outputs = getParameter(request, "outputs");
 		if (outputs < 0) {
 			resp->rc = 1;
 			resp->body = "parameter outputs missing or out of range";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "outputs missing from setconfig HTTP request";
 			return;
 		}
 		int servos = getParameter(request, "servos");
 		if (servos < 0) {
 			resp->rc = 1;
 			resp->body = "parameter servos missing or out of range";
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "servos missing from setconfig HTTP request";
 			return;
 		}
 		bus->Config(request->address, naddr, inputs, outputs, servos);
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "setconfig HTTP request address " << request->address << " new address " << naddr
+				<< " inputs " << inputs << " outputs " << outputs << " servos " << servos;
 	}
 	else if (request->command == "/noderpt") {
 		resp->rc = 0;
 		resp->body = "command accepted";
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "noderpt HTTP request";
 
 		std::ostringstream rpt;
 		rpt << "[";
@@ -594,6 +673,7 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		resp->rc = 0;
 		resp->body = "command accepted";
 		bus->Store(request->address);
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "store HTTP request";
 	}
 	else if (request->command == "/init") {
 		n = findNode(request->address);
@@ -605,18 +685,19 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 			bus->Identify(request->address);
 			resp->rc = 0;
 			resp->body = "command accepted";
+			BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "init HTTP request address " << request->address;
 		}
 		else {
 			resp->rc = 1;
 			resp->body = "unknown node address";
-			std::cerr << "Attempt to init non configured node address " << request->address << std::endl;
+			BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "Attempt to init non configured node address " << request->address;
 		}
 	}
 	else if (request->command == "/quit") {
 		exitServer = true;
 	}
 	else {
-		std::cout << "unknown http request: " << request->command << std::endl;
+		BOOST_LOG_TRIVIAL(warning) << __func__ << ": " << "unknown http request: " << request->command;
 		resp->rc = 1;
 		resp->body = "unknown command";
 	}
@@ -626,13 +707,13 @@ int startSocketListener(const char * IPAddress, unsigned short port) {
 
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == 0) {
-		perror("socket failed");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " socket call failed";
 		exit(1);
 	}
 
 	int opt = 1;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-		perror("setsocket");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " setsocket call failed";
 		exit(1);
 	}
 
@@ -640,12 +721,12 @@ int startSocketListener(const char * IPAddress, unsigned short port) {
 	socketAddr.sin_addr.s_addr = inet_addr(IPAddress); 
 	socketAddr.sin_port = htons(port);
 	if (bind(sockfd, (struct sockaddr *) &socketAddr, socketAddrlen) < 0) {
-		perror("bind");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " bind call failed";
 		exit(1);
 	}
 
 	if (listen(sockfd, 3) < 0) {
-		perror("listen");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " listen call failed";
 		exit(1);
 	}
 	return sockfd;
@@ -657,12 +738,15 @@ int main(void) {
 	nNodes = 0;
 	exitServer = false;
 
+
 	cfg = new Config("config.json");
 
 	if (cfg->ConfigErrors()) {
-		std::cout << "Config errors - exiting" << std::endl;
+		std::cerr << __func__ << ": " << "Config errors - exiting" << std::endl;
 		exit(1);
 	}
+
+	init_logging(cfg -> loglevel);
 
 	const char * address = (cfg -> ipaddr).c_str();
 	unsigned short httpPort = cfg -> httpport;
@@ -676,13 +760,13 @@ int main(void) {
 	// initialize the HTTP server
     int pipeReq[2];
     if (pipe(pipeReq) != 0) {
-        perror("HTTP request pipe");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " HTTP Request pipe creation failed";
         exit(1);
     }
 
     int pipeResp[2];
     if (pipe(pipeResp) != 0) {
-        perror("HTTP response pipe");
+		BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " HTTP Response pipe creation failed";
         exit(1);
     }
 
@@ -704,7 +788,7 @@ int main(void) {
 
 	// kick things off on the RS485 side by asking each node to identify itself
 	for (int i=0; i<cfg->nNodes; i++) {
-		std::cout << "Initializing node " << (cfg->nodeNames[i]) << " at address " << (cfg->nodeAddrs[i]) << std::endl;
+		BOOST_LOG_TRIVIAL(info) << __func__ << ": Initializing node " << (cfg->nodeNames[i]) << " at address " << (cfg->nodeAddrs[i]);
 		PendingID *p = new PendingID();
 		p->addr = cfg->nodeAddrs[i];
 		p->errorCount = 0;
@@ -715,13 +799,13 @@ int main(void) {
 
 	for (;;) {
 		if (exitServer) {
-			std::cout << "Exiting server" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "Exiting server";
 			break;
 		}
 		poll(fds, 3, 250);
 		if ((fds[0].revents & POLLIN)) {
 			if (read(busRespFd, &response, sizeof(response)) != sizeof(response)) {
-				perror("read");
+				BOOST_LOG_TRIVIAL(error) << __func__ << ": error " << errno << " Bus Response pipe read failed";
 			}
 			else {
 				ProcessBusResponse(response);
@@ -730,7 +814,7 @@ int main(void) {
 		}
 		if ((fds[1].revents & POLLIN)) {
 			if (read(pipeReq[0], &request, sizeof(request)) != sizeof(request)) {
-				perror("http request read");
+				BOOST_LOG_TRIVIAL(error) << __func__ << ": error " << errno << " HTTP Request pipe read failed";
 			}
 			else {
 				httpMessageBody * resp = new httpMessageBody();
@@ -738,7 +822,7 @@ int main(void) {
 
 				int rc = write(pipeResp[1], &resp, sizeof(resp));
 				if (rc != sizeof(resp)) {
-					perror("http response write");
+					BOOST_LOG_TRIVIAL(error) << __func__ << ": error " << errno << " HTTP Response pipe write failed";
 					exit(1);
 				}
 
@@ -748,13 +832,13 @@ int main(void) {
 		if ((fds[2].revents & POLLIN)) {
 			int new_socket = accept(socketFd, (struct sockaddr *) & socketAddr, (socklen_t *) &socketAddrlen);
 			if (new_socket < 0) {
-				perror("accept");
+				BOOST_LOG_TRIVIAL(fatal) << __func__ << ": error " << errno << " accept call failed";
 				exit(1);
 			}
-			std::cout << "new socket: " << new_socket << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "new subscription from socket: " << new_socket;
 
 			if (nClients >= MAXCLIENTS) {
-				std::cerr << "Maximum clients already connected - ignoring new connection request" << std::endl;
+				BOOST_LOG_TRIVIAL(warning) << "Maximum clients already connected - ignoring new connection request";
 			}
 			else {
 				std::string rpt;
@@ -777,17 +861,13 @@ int main(void) {
 				}
 				if (!pipeError) {
 					clients[nClients++] = new_socket;
-					std::cout << "Clients: " << nClients << std::endl;;
 				}
 				else {
-					std::cout << "New connection ignored because of pipe error" << std::endl;
+					BOOST_LOG_TRIVIAL(error) << "New connection ignored because of pipe error";
 				}
 			}
 		}
 	}
 	return 0;
 }
-
-
-
 

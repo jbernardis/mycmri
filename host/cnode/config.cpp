@@ -12,6 +12,7 @@ Config::Config(std::string fileName) {
 	bool hasIP = false;
 	bool hasHttpPort = false;
 	bool hasSocketPort = false;
+	bool hasLogLevel = false;
 
 	bool hasName;
 	bool hasAddr;
@@ -39,7 +40,7 @@ Config::Config(std::string fileName) {
 				if (hasName && hasAddr)
 					nNodes++;
 				else {
-					std::cerr << "JSON Config of node incomplete - need both name and address" << std::endl;
+					std::cerr << __func__ << ": " << "JSON Config of node incomplete - need both name and address" << std::endl;
 					jsonError = true;
 				}
 			}
@@ -60,22 +61,29 @@ Config::Config(std::string fileName) {
 			socketport = cfgparms.second.get_value < short > ();
 			hasSocketPort = true;
 		}
+		else if (cfgparms.first == "loglevel") {
+			loglevel = cfgparms.second.get_value < std::string > ();
+			hasLogLevel = true;
+		}
 	}
 
+	if (!hasLogLevel)
+		loglevel = "info";
+
 	if (!hasSerialPort) {
-		std::cerr << "Missing serial port name from configuration" << std::endl;
+		std::cerr << __func__ << ": " << "Missing serial port name from configuration" <<std::endl;
 		jsonError = true;
 	}
 	if (!hasIP) {
-		std::cerr << "Missing IP address from configuration" << std::endl;
+		std::cerr << __func__ << ": " << "Missing IP address from configuration" <<std::endl;
 		jsonError = true;
 	}
 	if (!hasHttpPort) {
-		std::cerr << "Missing HTTP port number from configuration" << std::endl;
+		std::cerr << __func__ << ": " << "Missing HTTP port number from configuration" <<std::endl;
 		jsonError = true;
 	}
 	if (!hasSocketPort) {
-		std::cerr << "Missing Socket Listening port number from configuration" << std::endl;
+		std::cerr << __func__ << ": " << "Missing Socket Listening port number from configuration" <<std::endl;
 		jsonError = true;
 	}
 }
