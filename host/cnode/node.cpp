@@ -57,7 +57,7 @@ int Node::getAddr(void) {
 
 std::string Node::GetConfig(void) {
 	std::ostringstream rpt;
-	rpt << "{\"name\":" << name << ",\"address\":" << addr << ",\"input\":" << nibits << ",\"output\":" << nobits
+	rpt << "{\"name\":\"" << name << "\",\"address\":" << addr << ",\"input\":" << nibits << ",\"output\":" << nobits
 		<< ",\"servo\":" << nsbits << "}";
 	return rpt.str();
 }
@@ -247,7 +247,7 @@ std::string Node::SetTurnoutLimits(int tx, int n, int r, int ini) {
 	servos[tx]->normal = n;
 	servos[tx]->reverse = r;
 	servos[tx]->initial = ini;
-	rpt << "{\"servos\":{\"address\":" << addr << ",\"count\":1,\"delta\":true,\"values\":[";
+	rpt << "{\"servos\":{\"address\":" << addr << ",\"count\":1,\"delta\":true,\"limits\":true,\"values\":[";
 	rpt << "[" << tx << ", " << n << ", " << r << ", " << ini << "]]}}";
 	return rpt.str();
 }

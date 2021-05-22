@@ -356,6 +356,18 @@ void ProcessBusResponse(class busMessage *response) {
 	}
 }
 
+std::string NodeReport() {
+	std::ostringstream rpt;
+	rpt << "{\"nodes\":[";
+	for (int i=0; i<nNodes; i++) {
+		if (i != 0)
+			rpt << ", ";
+		rpt << (knownNodes[i]->GetConfig());
+	}
+	rpt << "]}";
+	return rpt.str();
+}
+
 //***************************************************************************************
 //
 // Routines to handle bus operations initiated by HTTP requests
@@ -658,16 +670,9 @@ void ProcessHttpRequest(class httpMessage *request, httpMessageBody * resp) {
 		resp->body = "command accepted";
 		BOOST_LOG_TRIVIAL(info) << __func__ << ": " << "noderpt HTTP request";
 
-		std::ostringstream rpt;
-		rpt << "[";
-		for (int i=0; i<nNodes; i++) {
-			if (i != 0)
-				rpt << ", ";
-			rpt << (knownNodes[i]->GetConfig());
-		}
-		rpt << "]";
+		std::string rpt = NodeReport();
 		resp->rc = 0;
-		resp->body = rpt.str();
+		resp->body = rpt;
 	}
 	else if (request->command == "/store") {
 		resp->rc = 0;
@@ -843,6 +848,9 @@ int main(void) {
 			else {
 				std::string rpt;
 				bool pipeError = false;
+				if (!sendToClient(new_socket, NodeReport())) {
+					pipeError = true;
+				}
 				for (int i=0; i<nNodes && !pipeError; i++) {
 					Node *nd = knownNodes[i];
 					if (!sendToClient(new_socket, nd->InputsReport())) {
