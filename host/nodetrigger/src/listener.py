@@ -25,9 +25,9 @@ class Listener(threading.Thread):
 			totalRead = 0
 			szBuf = b''
 					
-			while totalRead < 4 and self.isRunning:
+			while totalRead < 2 and self.isRunning:
 				try:
-					b = self.skt.recv(4-totalRead)
+					b = self.skt.recv(2-totalRead)
 					if len(b) == 0:
 						self.skt.close()
 						self.sendDisconnect()
@@ -42,12 +42,7 @@ class Listener(threading.Thread):
 		
 			if not self.isRunning:
 				break
-			
-			try:
-				msgSize = int(szBuf)
-			except:
-				print("Unable to determine message length: (", szBuf, ")")
-				msgSize = None
+			msgSize = szBuf[0] + 256 * szBuf[1];
 
 			if msgSize:		
 				totalRead = 0
@@ -76,6 +71,6 @@ class Listener(threading.Thread):
 		self.endOfLife = True
 		
 	def sendDisconnect(self):
-		s = json.dumps({"type": "disconnect"})
+		s = json.dumps({"disconnect": True})
 		self.msgQ.put(s.encode())
 		

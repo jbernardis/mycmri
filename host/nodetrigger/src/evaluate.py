@@ -3,11 +3,8 @@ OFF = 0
 
 nodeAddr = 0
 actions = []
+RR = None
 ep = None
-
-inputs = []
-flags = []
-registers = []
 
 # set node address default value
 def Node(n):
@@ -20,12 +17,10 @@ def Input(idx, value=False, nd=None):
 		naddr = nodeAddr
 	else:
 		naddr = nd
+	print("look for input %d at address %d" % (idx, naddr))
 
-	try:
-		v = inputs[naddr][idx]
-	except (KeyError, IndexError):
-		return False
-	
+	v = RR.getInput(naddr, idx)	
+	print("got back (%s)" % v)
 	return value == v
 
 def Output(idx, value=True, nd=None):
@@ -33,38 +28,10 @@ def Output(idx, value=True, nd=None):
 		naddr = nodeAddr
 	else:
 		naddr = nd
+	print("look for output %d at address %d" % (idx, naddr))
 
-	try:
-		v = outputs[naddr][idx]
-	except (KeyError, IndexError):
-		return False
-	
-	return value == v
-
-def Flag(idx, value=True, nd=None):
-	if nd is None:
-		naddr = nodeAddr
-	else:
-		naddr = nd
-
-	try:
-		v = flags[naddr][idx]
-	except (KeyError, IndexError):
-		return False
-	
-	return value == v
-
-def Register(idx, value="", nd=None):
-	if nd is None:
-		naddr = nodeAddr
-	else:
-		naddr = nd
-
-	try:
-		v = registers[naddr][idx]
-	except (KeyError, IndexError):
-		return False
-	
+	v = RR.getOutput(naddr, idx)
+	print("got back (%s)" % v)
 	return value == v
 
 # output functions: setoutput, setflag, setregister, turnout/servo(normal, reverse, toggle, angle)
@@ -79,25 +46,6 @@ def SetOutput(idx, value=ON, nd=None):
 	else:
 		actions.append(["outoff", naddr, [idx]])
 		
-def SetFlag(idx, value=True, nd=None):
-	if nd is None:
-		naddr = nodeAddr
-	else:
-		naddr = nd
-		
-	if value:
-		actions.append(["flagon", naddr, [idx]])
-	else:
-		actions.append(["flagoff", naddr, [idx]])
-		
-def SetRegister(idx, value, nd=None):
-	if nd is None:
-		naddr = nodeAddr
-	else:
-		naddr = nd
-		
-	actions.append(["register", naddr, [idx, value]])
-
 def Normal(idx, nd=None):
 	if nd is None:
 		naddr = nodeAddr
@@ -130,17 +78,11 @@ def Angle(idx, angle, nd=None):
 		
 	actions.append(["angle", naddr, [idx, angle]])
 	
-def initialize(i, o, f, r):
-	global inputs
-	global outputs
-	global flags
-	global registers
+def initialize(rr):
+	global RR
 	global ep
 	
-	inputs = i
-	outputs = o
-	flags = f
-	registers = r
+	RR = rr
 	
 	fn = "rules.pyr"
 	try:

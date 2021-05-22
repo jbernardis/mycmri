@@ -20,33 +20,12 @@
 #             Returns True if values are equal.
 #
 #
-# Flag(idx, value=False, nd=None)
-#             Tests the value of flag "idx" against "value" (default False)
-#             The default node address can be overridden with the nd parameter
-#             Returns True if values are equal.
-#
-#
-# Register(idx, value=False, nd=None)
-#             Tests the value of register "idx" against "value" (default "")
-#             The default node address can be overridden with the nd parameter
-#             Returns True if values are equal.
-#
 # ****************************************************************************
 # action functions
 # ****************************************************************************
 #
 # SetOutput(idx, value=ON, nd=None)
 #             Sets output "idx" to the value (ON or OFF, default ON)
-#             The default node address can be overridden with the nd parameter
-#
-#
-# SetFlag(idx, value=True, nd=None)
-#             Sets flag "idx" to the value (True or False, default True)
-#             The default node address can be overridden with the nd parameter
-#
-#
-# SetRegister(idx, value, nd=None)
-#             Sets register "idx" to the value (mandatory)
 #             The default node address can be overridden with the nd parameter
 #
 #
@@ -78,11 +57,11 @@ Dell = 1
 
 def rules():
 	Node(Dell)
-	if Register(0, "123"):
+	if Output(0) and Output(3):
 		Reverse(31)
 		SetOutput(15)
 		
-	if Flag(1):
+	if Input(1):
 		Normal(31)
 		SetOutput(15, OFF)
 		
