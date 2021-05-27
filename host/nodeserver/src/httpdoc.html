@@ -20,216 +20,231 @@ li {
 <h1>NODE Server HTTP API</h1>
 <h2>Node</h2>
 
-<p id="pq">http://IP:PORT?cmd="init"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/init?addr="node-address"</p>
 <p>Initializes the specified node.</p>
 
-<p id="pq">http://IP:PORT?cmd="refresh"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/refresh?addr="node-address"</p>
 <p>Causes the node to resend all of its status reports</p>
 
-<p id="pq">http://IP:PORT?cmd="setconfig"&addr="node-address"&naddr="new-node-address"&inputs="ninputs"&outputs="noutputs"&servos="nservos"</p>
+<p id="pq">http://IP:PORT/setconfig?addr="node-address"&naddr="new-node-address"&inputs="ninputs"&outputs="noutputs"&servos="nservos"</p>
 <p>This command is used to change the addess of a node as well as the number of circuits of each type that it has.  ninputs is the number of input circuits, not input bits.  Each input circuit supports 8 input bits.
 The same for outputs and servos; each output circuit supports 8 output bits, and each servo circuit supports 16 servos</p>
-<p>NOTE:  Once this command i run, accessing that node will not be possible.  Everything will need to be reinitialized, and any node configuration files will need to be updated to reflect the new configuration.</p>
+<p>NOTE:  Once this command is run, accessing that node will not be possible.  Everything will need to be reinitialized, and any node configuration files will need to be updated to reflect the new configuration.</p>
 
-<p id="pq">http://IP:PORT?cmd="store"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/store?&addr="node-address"</p>
 <p>forces the node to store its current configuration into non-volatile memory</p>
 
-<p id="pq">http://IP:PORT?cmd="noderpt"</p>
+<p id="pq">http://IP:PORT/noderpt</p>
 <p>identifies the nodes that have responded.</p>
 <p>This report is a JSON string with the following format:</p>
 <pre><code>
 {
-	node: {
-		'addr': node-address, 
-		'input': number-of-input-circuits, 
-		'output': number-of-output-circuits',
-		'servo': number-of-servo-circuits, 
-		'flags': number-of-flags, 
-		'registers': number-of-flags, 
-		'active': has-the-node-responded
-	},
-	...
+	"nodes":[
+		{
+			"name":"dell",
+			"address":1,
+			"input":16,
+			"output":16,
+			"servo":32,
+			"active":true
+		},
+		{
+			"name":"port",
+			"address":2,
+			"input":16,
+			"output":16,
+			"servo":32,
+			"active":true
+		},
+		.
+		.
+		.
+	]
 }
 </code></pre>
-<p>The "active" value is a boolean value that indicates if a configured node has responded yet.</p> 
+<p>The active field indicates if the node has responded to its initial query</p>
 
-<p id="pq">http://IP:PORT?cmd="quit"</p>
+<p id="pq">http://IP:PORT/quit</p>
 <p>shuts down the node server</p>
 
 
 <h2>Turnouts</h2>
 <p>These commands refer to turnouts and servos.  These two items share the same index-space.  The difference is that turnouts have pre-defined angles for normal, reverse, and initial positions;  servos can be set to any arbitrary angle.</p>
-<p id="pq">http://IP:PORT?cmd="normal"&addr="node-address"&index="turnout-index"</p>
+<p id="pq">http://IP:PORT/normal?addr="node-address"&index="turnout-index"</p>
 <p>Sets the indicated turnout to NORMAL position</p>
 
-<p id="pq">http://IP:PORT?cmd="reverse"&addr="node-address"&index="turnout-index"</p>
+<p id="pq">http://IP:PORT/reverse?addr="node-address"&index="turnout-index"</p>
 <p>Sets the indicated turnout to REVERSE position</p>
 
-<p id="pq">http://IP:PORT?cmd="toggle"&addr="node-address"&index="turnout-index"</p>
+<p id="pq">http://IP:PORT/toggle?addr="node-address"&index="turnout-index"</p>
 <p>Changes the position of the indicated turnout, NORMAL -> REVERSE, or REVERSE -> NORMAL.</p>
 
-<p id="pq">http://IP:PORT?cmd="angle"&addr="node-address"&index="servo-index"&angle="angle"</p>
+<p id="pq">http://IP:PORT/angle?addr="node-address"&index="servo-index"&angle="angle"</p>
 <p>Sets the position of the indicated servo to the specified angle</p>
 
-<p id="pq">http://IP:PORT?cmd="setlimits"&addr="node-address"&index="turnout-index"&normal="normal-angle"&reverse="reverse-angle"&initial="initial-angle"</p>
-<p>Sets the three pre-defined positions for the indicated turnout.  If initial is not proveded, the normal value will be used.</p>
+<p id="pq">http://IP:PORT/setlimits?addr="node-address"&index="turnout-index"&normal="normal-angle"&reverse="reverse-angle"&initial="initial-angle"</p>
+<p>Sets the three pre-defined positions for the indicated turnout.  If initial is not provided, the normal value will be used.</p>
 
 <h2>Outputs</h2>
 <p>These commands refer to the node outputs.  These are either on or off.</p>
 
-<p id="pq">http://IP:PORT?cmd="outon"&addr="node-address"&index="output-index"</p>
+<p id="pq">http://IP:PORT/outon?addr="node-address"&index="output-index"</p>
 <p>Turns the indicated output on</p>
 
-<p id="pq">http://IP:PORT?cmd="outoff"&addr="node-address"&index="output-index"</p>
+<p id="pq">http://IP:PORT/outoff?addr="node-address"&index="output-index"</p>
 <p>Turns the indicated output off</p>
-
-<h2>Server Internal Objects</h2>
-<p>The node server has two objects that have no physical manifestation.  Flags are boolean objects that can be set, cleared, and tested.  Registers are simply variables.  They can be set to, and tested for, any arbitrary string value.</p>
-<h3>Flags</h3>
-
-<p id="pq">http://IP:PORT?cmd="setflag"&addr="node-address"&index="flag-index"</p>
-<p>Turns the indicated flag to True</p>
-
-<p id="pq">http://IP:PORT?cmd="clearflag"&addr="node-address"&index="flag-index"</p>
-<p>Turns the indicated flag to False</p>
-
-
-<h3>Registers</h3>
-
-<p id="pq">http://IP:PORT?cmd="setregister"&addr="node-address"&index="register-index"&value="value"</p>
-<p>Sets the indicated register to value</p>
 
 <h2>Reports</h2>
 These commands all generate reports, sent as JSON strings, indicating the current status of the specified node.
 
-<p id="pq">http://IP:PORT?cmd="inputs"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/inputs?addr="node-address"</p>
 <p>Resulting report:</p>
 <pre><code>
-[True, False, .....]
+{
+	"inputs": {
+		"address":1,
+		"count":16,
+		"values":[true, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
+	}
+}
 </code></pre>
 <p>Where there will be one boolean flag for each input bit.  Inputs are pulled high, so they will report True normally, and False when "pressed"</p>
 
-<p id="pq">http://IP:PORT?cmd="outputs"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/outputs?addr="node-address"</p>
 <p>Resulting report:</p>
 <pre><code>
-[True, False, .....]
+{
+	"outputs":{
+		"address":1,
+		"count":16,
+		"values":[false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false]
+	}
+}
 </code></pre>
 <p>Where there will be one boolean flag for each output bit.</p>
 
-<p id="pq">http://IP:PORT?cmd="turnouts"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/turnouts?addr="node-address"</p>
+<p>or</p>
+<p id="pq">http://IP:PORT/servos?addr="node-address"</p>
 <p>Resulting report:</p>
 <pre><code>
-[
-	[normal-value, reverse-value, initial-value, current-value],
-	...
-]
+{
+	"servos":{
+		"address":1,
+		"count":32,
+		"values":[
+			[ 76, 112, 76, 76],
+			[ 76, 112, 76, 76],
+			[ 76, 112, 76, 76], 
+			.
+			.
+			.
+			[ 70, 104, 70, 70]
+		]
+	}
+}
 </code></pre>
-<p>Where there will be one line, containing the above 4 values, for each servo.  For those servos not being used as turnouts, only the current-value will have meaning</p>
+<p>Where there will be one line, containing the above 4 values, for each servo.  The values are normal, reverse, initial, and current.  For those servos not being used as turnouts, only the initial and current values will have meaning</p>
 
-<p id="pq">http://IP:PORT?cmd="flags"&addr="node-address"</p>
-<p>Resulting report:</p>
-<pre><code>
-[True, False, .....]
-</code></pre>
-<p>Where there will be one boolean flag for each flag.</p>
-
-<p id="pq">http://IP:PORT?cmd="registers"&addr="node-address"</p>
-<p>Resulting report:</p>
-<pre><code>
-[value, value, .....]
-</code></pre>
-<p>Where there will be one value for each register.</p>
-
-<p id="pq">http://IP:PORT?cmd="getconfig"&addr="node-address"</p>
+<p id="pq">http://IP:PORT/getconfig?addr="node-address"</p>
 <p>Resulting report:</p>
 <pre><code>
 {
 	'name': node-name, 
-	'input': number-of-input-circuits, 
-	'output': number-of-output-circuits',
-	'servo': number-of-servo-circuits, 
-	'flags': number-of-flags, 
-	'registers': number-of-flags
+	'address': node-address,
+	'input': number-of-input-nits, 
+	'output': number-of-output-bits',
+	'servo': number-of-servos,
+	'active': true if node has responded to its initial query, else false
 }
 </code></pre>
 
 <h1>Subscribing to the node server</h1>
 <p>Any client program has the ability to subscribe to the node server to receive notifications whenever there are any changes to the node status.
-These notifications are sent in the form of JSON-encoded reports.  There are 5 such reports, each of which is described below.</p>
+These notifications are sent in the form of JSON-encoded reports.  
+When a client first connects, it will receive the same report described under the noderpt command above.
+It will then receive and inputs report, an outputs report, and a servos report from each configured node;
+these reports are described above under the inputs, outputs, and servos commands respectively.</p>
+<p>Additionally, as changes occur to inputs, outputs, and/or servos, the following messages will be sent.</p>
 <ul>
 <li>Inputs</li>
-<p>Any time any of the inputs for a node changes, an inputs report is sent as follows.</p>
+<p>Upon initial connection, a report identical to the above inputs report will be generated for each node.</p>
+<p>Any time any of the inputs for a node changes, an inputs delta report is sent as follows.</p>
 <pre><code>
 {
-	"type": "input",
-	"addr": addr,
-	"values": vals,
-	"delta": delta
+	"inputs":{
+		"address":1,
+		"count":1,
+		"delta":true,
+		"values":[
+			[10, false],
+			.
+			.
+			.
+		]
+	}
 }
 </code></pre>
-<p>The delta field is a boolean indicating if this is a full report (False) or a delta report (True).   The format of the values field will be different for each of these. </p>
-
-<p>If delta is True, values is a two dimensional array of <index, value> pairs, and only the changed inputs will be present:</p>
-<pre><code>
-[
-	[3, True],
-	[7, False],
-	...
-]
-</code></pre>
-
-<p>Whereas if delta is False, values will simply be an array of every input value:</p>
-<pre><code>
-[True, False, ...]
-</code></pre>
-
+<p>There will only be a value in the values array for changed inputs.  Each entry will indicate the index of the input and the current state of that input.  Inputs are held high, so a value of false indicates the input has been pressed/closed.</p>
 
 <li>Outputs</li>
-Any time any of the outputs change, an outputs report will be sent as follows.</p>
+<p>Upon initial connection, a report identical to the above outputs report will be generated for each node.</p>
+<p>Any time any of the outputs change, an outputs delta report will be sent as follows.</p>
 <pre><code>
 {
-	"type": "output",
-	"addr": addr,
-	"values": [ True, False, ... ]
+	"outputs":{
+		"address":1,
+		"count":1,
+		"delta":true,
+		"values":[
+			[3, true],
+			.
+			.
+			.
+		]
+	}
 }
 </code></pre>
-<p>There will be a value in the values array for every output.</p>
+<p>There will only be a value in the values array for changed outputs.  Each entry will indicate the index of the output and the current state of that output.</p>
 						
 <li>Turnouts/Servos</li>
-Any time any of the servos or turnouts change, a turnouts report will be sent as follows.</p>
+<p>Upon initial connection, a report identical to the above servos report will be generated for each node.</p>
+<p>Any time any of the servos or turnouts change, a turnouts delta report will be sent as follows.</p>
 <pre><code>
 {
-	"type": "turnout",
-	"addr": addr,
-	"values": [
-		[ normal, reverse, initial, current ],
-		...
-	]
+	"servos":{
+		"address":1,
+		"count":1,
+		"delta":true,
+		"values":[
+			[3, 112],
+			.
+			.
+			.
+		]
+	}
 }
 </code></pre>
-			
-<li>Registers</li>
-Any time any of the register change, a registers report will be sent as follows.</p>
+<p>There will only be a value in the values array for changed turnout/servos.  Each entry will indicate the index of the turnout/servo and the current value of that turnout/servo.</p>
+<p>If any of the limits of a turnout is changed through the setlimits command, the following turnout limits report will be sent.</p>
 <pre><code>
 {
-	"type": "registers",
-	"addr": addr,
-	"values": [ value, value, ... ]
+	"servos":{
+		"address":1,
+		"count":1,
+		"delta":true,
+		"limits":true,
+		"values":[
+			[3, 76, 112, 76],
+			.
+			.
+			.
+		]
+	}
 }
-</code></pre>
-<p>There will be a value in the values array for every register.</p>
-
-<li>Flags</li>
-Any time any of the flags change, a flags report will be sent as follows.</p>
-<pre><code>
-{
-	"type": "flags",
-	"addr": addr,
-	"values": [ True, False, ... ]
-}
-</code></pre>
-<p>There will be a value in the values array for every flag.</p>
-			
+</code></pre>	
+<p>There will only be a value in the values array for changed turnout/servos.  Each entry will indicate the index of the turnout/servo and the new values for normal, reverse, and initial positions.</p>
+	
 </ul>
 			
 

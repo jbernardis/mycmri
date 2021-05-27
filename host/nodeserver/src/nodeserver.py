@@ -595,7 +595,7 @@ class NodeServerMain:
 				self.HttpRespQ.put((400, b'bad request'))
 				
 	def nodesReport(self):
-		rpt  = "{'nodes': ["
+		rpt  = "{\"nodes\": ["
 		first = True
 		for n in self.nodes:
 			if not first:
