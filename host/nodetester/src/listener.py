@@ -23,9 +23,9 @@ class Listener(threading.Thread):
 			totalRead = 0
 			szBuf = b''
 					
-			while totalRead < 4 and self.isRunning:
+			while totalRead < 2 and self.isRunning:
 				try:
-					b = self.skt.recv(4-totalRead)
+					b = self.skt.recv(2-totalRead)
 					if len(b) == 0:
 						self.skt.close()
 						self.parent.raiseDisconnectEvent()
@@ -40,9 +40,9 @@ class Listener(threading.Thread):
 		
 			if not self.isRunning:
 				break
-			
+
 			try:
-				msgSize = int(szBuf)
+				msgSize = int.from_bytes(szBuf, "little")
 			except:
 				print("Unable to determine message length: (", szBuf, ")")
 				msgSize = None

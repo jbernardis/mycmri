@@ -9,8 +9,6 @@ from listener import Listener
 from nodedlg import NodeDlg
 from inputsdlg import InputsDlg
 from outputsdlg import OutputsDlg
-from flagsdlg import FlagsDlg
-from registersdlg import RegistersDlg
 from servosdlg import ServosDlg
 from nodeconfigdlg import NodeConfigDlg
 
@@ -19,10 +17,6 @@ import os
 SVRLABELW = 80
 CFGLABELW = 80
 
-iperckt = 8
-operckt = 8
-tperckt = 16
-
 MENU_SERVER_NODES = 101
 MENU_SERVER_SHUTDOWN = 109
 MENU_NODE_CONFIG = 201
@@ -30,8 +24,6 @@ MENU_NODE_INIT = 202
 MENU_WINDOW_INPUTS = 301
 MENU_WINDOW_OUTPUTS = 302
 MENU_WINDOW_SERVOS = 303
-MENU_WINDOW_FLAGS = 304
-MENU_WINDOW_REGISTERS = 305
 
 (DeliveryEvent, EVT_DELIVERY) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
 (DisconnectEvent, EVT_DISCONNECT) = wx.lib.newevent.NewEvent()   # @UndefinedVariable
@@ -55,8 +47,6 @@ class NodeTester(wx.Frame):
 		self.menuWindow.Append(MENU_WINDOW_INPUTS, "Inputs")
 		self.menuWindow.Append(MENU_WINDOW_OUTPUTS, "Outputs")
 		self.menuWindow.Append(MENU_WINDOW_SERVOS, "Servos/Turnouts")
-		self.menuWindow.Append(MENU_WINDOW_FLAGS, "Flags")
-		self.menuWindow.Append(MENU_WINDOW_REGISTERS, "Registers")
 		
 		menuBar.Append(self.menuServer, "Server")
 		menuBar.Append(self.menuNode, "Node")
@@ -69,8 +59,6 @@ class NodeTester(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.onMenuInputs, id=MENU_WINDOW_INPUTS)		
 		self.Bind(wx.EVT_MENU, self.onMenuOutputs, id=MENU_WINDOW_OUTPUTS)		
 		self.Bind(wx.EVT_MENU, self.onMenuServos, id=MENU_WINDOW_SERVOS)	
-		self.Bind(wx.EVT_MENU, self.onMenuFlags, id=MENU_WINDOW_FLAGS)	
-		self.Bind(wx.EVT_MENU, self.onMenuRegisters, id=MENU_WINDOW_REGISTERS)	
 		
 		self.SetMenuBar(menuBar)
 		
@@ -89,8 +77,6 @@ class NodeTester(wx.Frame):
 		self.inputsMap = []
 		self.outputsMap = []
 		self.servosMap = []
-		self.flagsMap = []
-		self.registersMap = []
 		self.subscribed = False
 		self.currentNodeAddr = None
 
@@ -103,8 +89,6 @@ class NodeTester(wx.Frame):
 		self.dlgInputs = None
 		self.dlgOutputs = None
 		self.dlgServos = None
-		self.dlgFlags = None
-		self.dlgRegisters = None
 		
 		boxSvr = wx.StaticBox(self, wx.ID_ANY, " Server ")
 		topBorder, botBorder = boxSvr.GetBordersForSizer()
@@ -213,25 +197,9 @@ class NodeTester(wx.Frame):
 		hsizer.AddSpacer(10)
 		bsizer.Add(hsizer)
 		
-		hsizer = wx.BoxSizer(wx.HORIZONTAL)
-		hsizer.AddSpacer(10)
-		hsizer.Add(wx.StaticText(boxCfg, wx.ID_ANY, "Flags:", size=(CFGLABELW, -1)))
-		self.stFlags = wx.StaticText(boxCfg, wx.ID_ANY, "")
-		hsizer.Add(self.stFlags)
-		hsizer.AddSpacer(10)
-		bsizer.Add(hsizer)
-		
-		hsizer = wx.BoxSizer(wx.HORIZONTAL)
-		hsizer.AddSpacer(10)
-		hsizer.Add(wx.StaticText(boxCfg, wx.ID_ANY, "Registers:", size=(CFGLABELW, -1)))
-		self.stRegisters = wx.StaticText(boxCfg, wx.ID_ANY, "")
-		hsizer.Add(self.stRegisters)
-		hsizer.AddSpacer(10)
-		bsizer.Add(hsizer)
-		
 		bsizer.AddSpacer(botBorder)
 		
-		self.setConfigValues(1, 1, 1, 0, 0)
+		self.setConfigValues(1, 1, 1)
 
 		boxCfg.SetSizer(bsizer)	
 		sz.Add(boxCfg, 0, wx.EXPAND|wx.ALL, 5)	
@@ -316,60 +284,6 @@ class NodeTester(wx.Frame):
 		
 	def dlgOutputsExit(self):
 		self.dlgOutputs = None
-		
-	def onMenuFlags(self, _):
-		if self.currentNodeAddr is None:
-			self.setStatusText("Retrieve configuration first")
-		else:
-			self.openFlagsDlg()
-		
-	def openFlagsDlg(self):
-		if len(self.flagsMap) == 0:
-			self.setStatusText("No flags information available")
-			return
-
-		pos = None	
-		if self.dlgFlags is not None:
-			try:
-				pos = self.dlgFlags.GetScreenPosition()
-				self.dlgFlags.Destroy()
-			except:
-				pos = None
-
-		self.dlgFlags = FlagsDlg(self, self.flagsMap, self.flags, self.currentNodeAddr)
-		if pos is not None:
-			self.dlgFlags.SetPosition(pos)
-		self.dlgFlags.Show()
-		
-	def dlgFlagsExit(self):
-		self.dlgFlags = None
-		
-	def onMenuRegisters(self, _):
-		if self.currentNodeAddr is None:
-			self.setStatusText("Retrieve configuration first")
-		else:
-			self.openRegistersDlg()
-		
-	def openRegistersDlg(self):
-		if len(self.registersMap) == 0:
-			self.setStatusText("No registers information available")
-			return
-
-		pos = None	
-		if self.dlgRegisters is not None:
-			try:
-				pos = self.dlgRegisters.GetScreenPosition()
-				self.dlgRegisters.Destroy()
-			except:
-				pos = None
-
-		self.dlgRegisters = RegistersDlg(self, self.registersMap, self.registers, self.currentNodeAddr)
-		if pos is not None:
-			self.dlgRegisters.SetPosition(pos)
-		self.dlgRegisters.Show()
-		
-	def dlgRegistersExit(self):
-		self.dlgRegisters = None
 		
 	def onMenuServos(self, _):
 		if self.currentNodeAddr is None:
@@ -597,70 +511,13 @@ class NodeTester(wx.Frame):
 			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
 		
-	def setFlag(self, fx, newState):
-		ip = self.teIpAddr.GetValue()
-		pt = self.teHPort.GetValue()
-		addr = self.currentNodeAddr
-		
-		if newState:
-			try:
-				sc, data = self.server.setFlag(addr, fx)
-			except:
-				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-				return False
-		else:
-			try:
-				sc, data = self.server.clearFlag(addr, fx)
-			except:
-				self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-				return False
-		
-		if sc < 400:
-			try:
-				self.flagsMap[fx] = newState
-				self.setStatusText("Success")
-				return True
-			except:
-				self.setStatusText("Unable to process return data: '%s'" % data)
-				return False
-		else:
-			self.setStatusText("RC <%d> %s" % (sc, data))
-			return False
-		
-	def setRegister(self, rx, val):
-		ip = self.teIpAddr.GetValue()
-		pt = self.teHPort.GetValue()
-		addr = self.currentNodeAddr
-		
-		try:
-			sc, data = self.server.setRegister(addr, rx, val)
-		except:
-			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-			return False
-		
-		if sc < 400:
-			try:
-				self.registersMap[rx] = val
-				self.setStatusText("Success")
-				return True
-			except:
-				self.setStatusText("Unable to process return data: '%s'" % data)
-				return False
-		else:
-			self.setStatusText("RC <%d> %s" % (sc, data))
-			return False
-		
-	def setConfigValues(self, i, o, s, f, r):
+	def setConfigValues(self, i, o, s):
 		self.inputs = i		
-		self.stInputs.SetLabel("%d (%d total)" % (i, i*iperckt))
+		self.stInputs.SetLabel("%d" % i)
 		self.outputs = o
-		self.stOutputs.SetLabel("%d (%d total)" % (o, o*operckt))
+		self.stOutputs.SetLabel("%d" % o)
 		self.servos = s
-		self.stServos.SetLabel("%d (%d total)" % (s, s*tperckt))
-		self.flags = f
-		self.stFlags.SetLabel("%d" % f)
-		self.registers = r
-		self.stRegisters.SetLabel("%d" % r)
+		self.stServos.SetLabel("%d" % s)
 		
 	def onSubscribe(self, _):
 		if self.subscribed:
@@ -752,8 +609,8 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				d = eval(data)
-				self.setConfigValues(d['inputs'], d['outputs'], d['servos'], d['flags'], d['registers'])
+				d = json.loads(data)
+				self.setConfigValues(d['input'], d['output'], d['servo'])
 				self.setStatusText("Retrieve Node Config Success")
 			except:
 				self.setStatusText("Unable to process return data: '%s'" % data)
@@ -768,7 +625,8 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.inputsMap = eval(data)
+				d = json.loads(data)
+				self.inputsMap = d["inputs"]["values"]
 				self.openInputsDlg()
 				self.setStatusText("Retrieve Inputs Success")
 			except:
@@ -785,7 +643,8 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.outputsMap = eval(data)
+				d = json.loads(data)
+				self.outputsMap = d["outputs"]["values"]
 				self.openOutputsDlg()
 				self.setStatusText("Retrieve Outputs Success")
 			except:
@@ -802,46 +661,12 @@ class NodeTester(wx.Frame):
 		
 		if sc < 400:
 			try:
-				self.servosMap = eval(data)
+				d = json.loads(data)
+				self.servosMap = d["servos"]["values"]
 				self.openServosDlg()
 				self.setStatusText("Retrieve Turnouts Success")
 			except:
 				self.servosMap = []
-				self.setStatusText("Unable to process return data: '%s'" % data)
-		else:
-			self.setStatusText("RC <%d> %s" % (sc, data))
-			
-		try:
-			sc, data = self.server.getFlags(addr)
-		except:
-			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-			return 
-
-		if sc < 400:
-			try:
-				self.flagsMap = eval(data)
-				self.openFlagsDlg()
-				self.setStatusText("Retrieve Flags Success")
-			except:
-				self.flagsMap = []
-				self.setStatusText("Unable to process return data: '%s'" % data)
-		else:
-			self.setStatusText("RC <%d> %s" % (sc, data))
-			
-		try:
-			sc, data = self.server.getRegisters(addr)
-		except:
-			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
-			return 
-
-		if sc < 400:
-			try:
-				self.registersMap = eval(data)
-				self.openRegistersDlg()
-				self.setStatusText("Retrieve Registers Success")
-			except Exception as e:
-				print("In Exception: ", e)
-				self.registersMap = []
 				self.setStatusText("Unable to process return data: '%s'" % data)
 		else:
 			self.setStatusText("RC <%d> %s" % (sc, data))
@@ -851,93 +676,95 @@ class NodeTester(wx.Frame):
 		self.menuWindow.Enable(MENU_WINDOW_INPUTS, flag)	
 		self.menuWindow.Enable(MENU_WINDOW_OUTPUTS, flag)	
 		self.menuWindow.Enable(MENU_WINDOW_SERVOS, flag)
-		self.menuWindow.Enable(MENU_WINDOW_FLAGS, flag)
-		self.menuWindow.Enable(MENU_WINDOW_REGISTERS, flag)
 		self.bRefresh.Enable(flag)	
 			
 	def onDeliveryEvent(self, evt):
-		msgType = evt.data["type"]
-		if msgType == "input":
-			iaddr = evt.data["addr"]
+		if "inputs" in evt.data:
+			imsg = evt.data["inputs"]
+			iaddr = imsg["address"]
 			
 			if iaddr != self.currentNodeAddr:
 				return 
 			
-			if evt.data["delta"]:
-				vals = evt.data["values"]
+			if "delta" in imsg and imsg["delta"]:
+				vals = imsg["values"]
 				if len(vals) > 0:
 					for inp, val in vals:
-						self.inputsMap[inp] = val == 1
+						self.inputsMap[inp] = val
 					if self.dlgInputs is not None:
 						self.dlgInputs.update(self.inputsMap)
 	
 			else:
-				vals = evt.data["values"]
+				vals = imsg["values"]
 				if len(vals) == len(self.inputsMap):
-					self.inputsMap = [x == 1 for x in vals]
+					self.inputsMap = [x for x in vals]
 					if self.dlgInputs is not None:
 						self.dlgInputs.update(self.inputsMap)
 				else:
 					self.setStatusText("Mismatch number of inputs")
 					
-		elif msgType == "output":
-			iaddr = evt.data["addr"]
+		elif "outputs" in evt.data:
+			omsg = evt.data["outputs"]
+			iaddr = omsg["address"]
 			
 			if iaddr != self.currentNodeAddr:
 				return 
 			
-			vals = evt.data["values"]
-			if len(vals) == len(self.outputsMap):
-				self.outputsMap = [x for x in vals]
-				if self.dlgOutputs is not None:
-					self.dlgOutputs.update(self.outputsMap)
-			else:
-				self.setStatusText("Mismatch number of outputs")
-			
-		elif msgType == "turnout":
-			iaddr = evt.data["addr"]
-			
-			if iaddr != self.currentNodeAddr:
-				return 
-			
-			vals = evt.data["values"]
-			if len(vals) == len(self.servosMap):
-				self.servosMap = [x for x in vals]
-				if self.dlgServos is not None:
-					self.dlgServos.update(self.servosMap)
-			else:
-				self.setStatusText("Mismatch number of turnouts/servos")
-				
-		elif msgType == "flags":
-			iaddr = evt.data["addr"]
-			
-			if iaddr != self.currentNodeAddr:
-				return 
-			
-			vals = evt.data["values"]
-			if len(vals) == len(self.flagsMap):
-				self.flagsMap = [x for x in vals]
-				if self.dlgFlags is not None:
-					self.dlgFlags.update(self.flagsMap)
-			else:
-				self.setStatusText("Mismatch number of flags")
-				
-		elif msgType == "registers":
-			iaddr = evt.data["addr"]
-			
-			if iaddr != self.currentNodeAddr:
-				return 
-			
-			vals = evt.data["values"]			
-			if len(vals) == len(self.registersMap):
-				self.registersMap = [x for x in vals]
-				if self.dlgRegisters is not None:
-					self.dlgRegisters.update(self.registersMap)
-			else:
-				self.setStatusText("Mismatch number of registers")
+			if "delta" in omsg and omsg["delta"]:
+				vals = omsg["values"]
+				if len(vals) > 0:
+					for outp, val in vals:
+						self.outputsMap[outp] = val
+					if self.dlgOutputs is not None:
+						self.dlgOutputs.update(self.outputsMap)
 						
+			else:
+				vals = omsg["values"]
+				if len(vals) == len(self.outputsMap):
+					self.outputsMap = [x for x in vals]
+					if self.dlgOutputs is not None:
+						self.dlgOutputs.update(self.outputsMap)
+				else:
+					self.setStatusText("Mismatch number of outputs")
+			
+		elif "servos" in evt.data:
+			smsg = evt.data["servos"]
+			iaddr = smsg["address"]
+			
+			if iaddr != self.currentNodeAddr:
+				return 
+			
+			if "limits" in smsg and smsg["limits"]:
+				vals = smsg["values"]
+				if len(vals) > 0:
+					for outp, v0, v1, v2 in vals:
+						self.servosMap[outp][0] = v0
+						self.servosMap[outp][1] = v1
+						self.servosMap[outp][2] = v2
+					if self.dlgServos is not None:
+						self.dlgServos.update(self.servosMap)
+				
+			elif "delta" in smsg and smsg["delta"]:
+				vals = smsg["values"]
+				if len(vals) > 0:
+					for outp, val in vals:
+						self.servosMap[outp][3] = val
+					if self.dlgServos is not None:
+						self.dlgServos.update(self.servosMap)
+			else:
+				vals = smsg["values"]
+				if len(vals) == len(self.servosMap):
+					self.servosMap = [x for x in vals]
+					if self.dlgServos is not None:
+						self.dlgServos.update(self.servosMap)
+				else:
+					self.setStatusText("Mismatch number of turnouts/servos")
+				
+		elif "nodes" in evt.data:
+			pass
+		
 		else:
-			print("Unknown report type (%s)" % msgType)
+			print("Unknown report type (%s)" % evt.data.keys()[0])
 			
 	def onMessageEvent(self, evt):
 		self.setStatusText(evt.message)
@@ -954,7 +781,7 @@ class NodeTester(wx.Frame):
 		if sc < 400:
 			try:
 				self.setStatusText("Success")
-				d = eval(data)
+				d = json.loads(data)
 				return d
 			except:
 				self.setStatusText("Unable to process return data: '%s'" % data)
@@ -970,9 +797,9 @@ class NodeTester(wx.Frame):
 		rpt = ""
 		for nd in sorted(d.keys()):
 			active = "Active" if d[nd]["active"] else "Inactive" 
-			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d   F:%-2d  R:%-2d   %s\n" % (
+			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d   %s\n" % (
 				nd, d[nd]["addr"], d[nd]["input"], d[nd]["output"],
-				d[nd]["servo"], d[nd]["flags"], d[nd]["registers"], active)
+				d[nd]["servo"], active)
 			
 		dlg = wx.MessageDialog(self, rpt, "Nodes Report", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()

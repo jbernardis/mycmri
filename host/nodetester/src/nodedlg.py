@@ -1,24 +1,22 @@
 import wx
 
 class NodeDlg(wx.Dialog):
-	def __init__(self, parent, startVal, nodes):
+	def __init__(self, parent, startVal, nodeRpt):
 		wx.Dialog.__init__(self, parent, wx.ID_ANY, "Choose Node")
 		self.parent = parent
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
+		nodes = nodeRpt["nodes"]
+
 		if nodes is None:
 			choices = []
 			sval = None
 		else:
 			choices = []
 			cx = 0
-			for t in sorted(nodes.keys()):
-				c = "%s (%d)" % (t, nodes[t]["addr"])
-				if not nodes[t]['active']:
-					c += " *"
-
-				choices.append([c, nodes[t]["addr"]])
-				if startVal and startVal == nodes[t]["addr"]:
+			for n in nodes:
+				choices.append(["%s (%d)" % (n["name"], n["address"]), n["address"]])
+				if startVal and startVal == n["address"]:
 						sval = cx
 				cx += 1
 					

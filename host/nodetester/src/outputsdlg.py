@@ -12,7 +12,7 @@ class OutputsDlg(wx.Dialog):
 		self.noutputs = noutputs
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
-		self.nbits = self.noutputs*8;
+		self.nbits = self.noutputs;
 		if self.nbits != len(data):
 			self.parent.setStatusText("Configuration mismatch")
 			maxbit = min(self.nbits, len(data))

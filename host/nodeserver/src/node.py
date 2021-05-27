@@ -1,17 +1,13 @@
 class Node:
-	def __init__(self, n, i, o, s, f, r):
+	def __init__(self, n, i, o, s):
 		self.name = n
 		self.ninputs = i
 		self.noutputs = o
 		self.nservos = s
-		self.nflags = f
-		self.nregisters = r
 		
 		self.inputs = [True for _ in range(i*8)]		
 		self.outputs = [False for _ in range(o*8)]
 		self.servos = [[0 for _ in range(4)] for _ in range(s*16)]
-		self.flags = [False for _ in range(f)]
-		self.registers = ["" for _ in range(r)]
 		
 	def getName(self):
 		return self.name
@@ -83,29 +79,8 @@ class Node:
 		
 	def isReversed(self, sx):
 		return self.servos[sx][3] == self.servos[sx][1]
-		
-	def getNFlags(self):
-		return self.nflags
-	
-	def setFlag(self, fx):
-		self.flags[fx] = True
-		
-	def clearFlag(self, fx):
-		self.flags[fx] = False
-		
-	def getFlags(self):
-		return self.flags
-	
-	def getNRegisters(self):
-		return self.nregisters
-	
-	def setRegister(self, rx, val):
-		self.registers[rx] = val
-		
-	def getRegisters(self):
-		return self.registers
-	
+
 	def __str__(self):
-		return("{'name': '%s', 'inputs': %d,  'outputs': %d,  'servos': %d,  'flags': %d,  'registers': %d}" % (self.name, self.ninputs, self.noutputs, self.nservos, self.nflags, self.nregisters))
+		return("{'name': '%s', 'inputs': %d,  'outputs': %d,  'servos': %d}" % (self.name, self.ninputs, self.noutputs, self.nservos))
 
 

@@ -1,7 +1,5 @@
 import wx
 
-
-
 class InputsDlg(wx.Dialog):
 	def __init__(self, parent, data, ninputs, addr):
 		wx.Dialog.__init__(self, parent, wx.ID_ANY, "Inputs for node %d" % addr)
@@ -11,7 +9,7 @@ class InputsDlg(wx.Dialog):
 		self.ninputs = ninputs
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
-		self.nbits = self.ninputs*8;
+		self.nbits = self.ninputs;
 		if self.nbits != len(data):
 			self.parent.setStatusText("Configuration mismatch")
 			maxbit = min(self.nbits, len(data))
@@ -64,7 +62,7 @@ class InputsDlg(wx.Dialog):
 			maxbit = min(self.nbits, len(data))
 		else:
 			maxbit = self.nbits
-			
+
 		for i in range(maxbit):
 			if data[i] != self.data[i]:
 				self.data[i] = data[i]

@@ -87,15 +87,6 @@ class NodeServerMain:
 				logging.error("Invalid node address - must be > 0 - exiting")
 				exit(1)
 
-			try:				
-				nflags = n["flags"]
-			except KeyError:
-				nflags = 0
-			try:
-				nregisters = n["registers"]
-			except KeyError:
-				nregisters = 0
-
 			try:
 				inp = n["inputs"]
 				outp = n["outputs"]
@@ -108,7 +99,7 @@ class NodeServerMain:
 			if ad in self.nodes:
 				logging.error("Node %d is already defined - skipping" % ad)
 			else:
-				self.nodes[ad] = Node(nm, inp, outp, servo, nflags, nregisters)
+				self.nodes[ad] = Node(nm, inp, outp, servo)
 				nodesToPoll.append(ad)
 			
 		self.bus.start(nodesToPoll)
@@ -127,6 +118,12 @@ class NodeServerMain:
 	def process(self):
 		self.HTTPProcess()
 		self.bus.process()
+		ns = self.socketServer.getNewSockets()
+		if ns is not None:
+			for skt, addr in ns:
+				# TODO
+				print("send noderpt, inputs rpt, outputs rpt, servos rpt to new client at address %s" % addr)
+				#self.socketServer.sendToOne(ski, addr, msg)
 		
 	def identityRcvd(self, addr, inp, outp, servo):
 		msg = "Configuration received:\n  Addr: %d" % addr
@@ -155,7 +152,16 @@ class NodeServerMain:
 			self.nodes[addr].setInput(inp, val == 1)
 				
 		if self.createSocketServer:
-			s = json.dumps({"addr": addr, "type": "input", "values": vals, "delta": delta})
+			s = "{\"inputs\":{\"address\" %d: \"count\": %d, \"delta\": %s, \"values\":[" % (addr, len(vals), "true" if delta else "false")
+			if delta:
+				# TODO:
+				s += "]}}"
+			else:
+				vstr = []
+				for i in vals:
+					vstr.append("true" if i else "false")
+				s += ", ".join(vstr) + "]}}"
+				
 			self.socketServer.sendToAll(s.encode())
 
 		if not delta:
@@ -185,6 +191,7 @@ class NodeServerMain:
 		self.bus.setTurnoutNormal(addr, tx)
 		self.nodes[addr].setTurnoutNormal(tx)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getInputs()})
 			self.socketServer.sendToAll(s.encode())
 
@@ -193,6 +200,7 @@ class NodeServerMain:
 		self.bus.setTurnoutReverse(addr, tx)
 		self.nodes[addr].setTurnoutReverse(tx)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
 			self.socketServer.sendToAll(s.encode())
 
@@ -209,6 +217,7 @@ class NodeServerMain:
 			return
 			
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
 			self.socketServer.sendToAll(s.encode())
 		
@@ -217,6 +226,7 @@ class NodeServerMain:
 		self.bus.setOutputOn(addr, ox)
 		self.nodes[addr].setOutputOn(ox)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "output", "values": self.nodes[addr].getOutputs()})
 			self.socketServer.sendToAll(s.encode())
 		
@@ -225,6 +235,7 @@ class NodeServerMain:
 		self.bus.setOutputOff(addr, ox)
 		self.nodes[addr].setOutputOff(ox)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "output", "values": self.nodes[addr].getOutputs()})
 			self.socketServer.sendToAll(s.encode())
 
@@ -233,34 +244,15 @@ class NodeServerMain:
 		self.bus.setAngle(addr, sx, ang)
 		self.nodes[addr].setServoAngle(sx, ang)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
-			self.socketServer.sendToAll(s.encode())
-			
-	def setRegister(self, addr, rx, val):
-		logging.info("  Register %d:%d = '%s'" % (addr, rx, val))
-		self.nodes[addr].setRegister(rx, val)
-		if self.createSocketServer:
-			s = json.dumps({"addr": addr, "type": "registers", "values": self.nodes[addr].getRegisters()})
-			self.socketServer.sendToAll(s.encode())		
-			
-	def setFlag(self, addr, fx):
-		logging.info("  Flag %d:%d SET" % (addr, fx))
-		self.nodes[addr].setFlag(fx)
-		if self.createSocketServer:
-			s = json.dumps({"addr": addr, "type": "flags", "values": self.nodes[addr].getFlags()})
-			self.socketServer.sendToAll(s.encode())
-			
-	def clearFlag(self, addr, fx):
-		logging.info("  Flag %d:%d CLEAR" % (addr, fx))
-		self.nodes[addr].clearFlag(fx)
-		if self.createSocketServer:
-			s = json.dumps({"addr": addr, "type": "flags", "values": self.nodes[addr].getFlags()})
 			self.socketServer.sendToAll(s.encode())
 
 	def setTurnoutLimits(self, addr, tx, norm, rev, ini):		
 		self.bus.setTurnoutLimits(addr, tx, norm, rev, ini)
 		self.nodes[addr].setTurnoutLimits(tx, norm, rev, ini)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
 			self.socketServer.sendToAll(s.encode())
 	
@@ -276,6 +268,7 @@ class NodeServerMain:
 				rpt += "\n"
 		logging.info(rpt)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "output", "values": self.nodes[addr].getOutputs()})
 			self.socketServer.sendToAll(s.encode())
 			
@@ -289,6 +282,7 @@ class NodeServerMain:
 				rpt += "\n"
 		logging.info(rpt)
 		if self.createSocketServer:
+			# TODO
 			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
 			self.socketServer.sendToAll(s.encode())
 			
@@ -498,17 +492,13 @@ class NodeServerMain:
 				self.setRegister(addr, rx, val)
 				self.HttpRespQ.put((200, b'command performed'))
 
-			elif verb in ["inputs", "outputs", "turnouts", "flags", "registers", "getconfig"]:
+			elif verb in ["inputs", "outputs", "turnouts", "getconfig"]:
 				if verb == "inputs":
 					resp = str(self.nodes[addr].getInputs())
 				elif verb == "outputs":
 					resp = str(self.nodes[addr].getOutputs())
 				elif verb == "turnouts":
 					resp = str(self.nodes[addr].getServos())
-				elif verb == "flags":
-					resp = str(self.nodes[addr].getFlags())
-				elif verb == "registers":
-					resp = str(self.nodes[addr].getRegisters())
 				else: # verb == "getconfig"
 					resp = str(self.nodes[addr])
 					
@@ -656,20 +646,16 @@ class NodeServerMain:
 				self.HttpRespQ.put((200, b'command performed'))
 
 			elif verb == "noderpt":
-				result = "{"
+				result = "{'nodes': ["
 				first = True
 				for n in self.nodes:
 					if not first:
 						result += ", "
 					first = False
 					cfg = self.nodes[n]
-					try:
-						active = not self.awaitingInitialIdentity[n]
-					except:
-						active = False
-					result += "'%s': {'addr': %d, 'input': %d, 'output': %d, 'servo': %d, 'flags': %d, 'registers': %d, 'active': %s} " % \
-						(cfg.getName(), n, cfg.getNInputs(), cfg.getNOutputs(), cfg.getNServos(), cfg.getNFlags(), cfg.getNRegisters(), active)
-				result += "}"
+					result += "{\"name\": \"%s\", \"addr\": %d, \"input\": %d, \"output\": %d, \"servo\": %d} " % \
+						(cfg.getName(), n, cfg.getNInputs(), cfg.getNOutputs(), cfg.getNServos())
+				result += "]}"
 				
 				self.HttpRespQ.put((200, result.encode()))
 

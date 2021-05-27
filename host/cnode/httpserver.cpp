@@ -171,8 +171,7 @@ private:
 					<< "error reading response from server\n";
 			}
 			else {
-				beast::ostream(response_.body()) 
-					<< "rc=" << rsp->rc << ";msg=\"" << rsp->body << "\"";
+				beast::ostream(response_.body()) << rsp->body;
 				delete rsp;
 			}
 		}

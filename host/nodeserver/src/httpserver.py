@@ -5,6 +5,7 @@ from socketserver import ThreadingMixIn
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import logging
+import pprint
 
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
@@ -13,6 +14,13 @@ class Handler(BaseHTTPRequestHandler):
 
 		parsed_path = urlparse(self.path)
 		cmdDict = parse_qs(parsed_path.query)
+		cmd = parsed_path.path
+		if cmd.startswith('/'):
+			cmd = cmd[1:]
+			
+		cmdDict['cmd'] = [cmd]
+		
+		pprint.pprint(cmdDict)
 		
 		if "cmd" not in cmdDict or len(cmdDict["cmd"]) == 0:
 			rc = 400

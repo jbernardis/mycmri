@@ -12,6 +12,7 @@ class SktServer (threading.Thread):
 		self.endOfLife = False
 		self.socketLock = threading.Lock()
 		self.sockets = []
+		self.newSockets = []
 		logging.info("Starting socket server at address: %s:%d" % (ip, port))
 
 	def getSockets(self):
@@ -25,12 +26,15 @@ class SktServer (threading.Thread):
 		return self.endOfLife
 
 	def sendToAll(self, msg):
-		nbytes = "%04d" % len(msg)
 		with self.socketLock:
 			tl = [x for x in self.sockets]
 		for skt, addr in tl:
+			self.sendToOne(skt, addr, msg)
+			
+	def sendToOne(self, skt, addr, msg):
 			try:
-				skt.send(nbytes.encode())
+				nbytes = len(msg).to_bytes(2, "little")
+				skt.send(nbytes)
 				skt.send(msg)
 			except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
 				self.deleteSocket(addr)
@@ -42,6 +46,15 @@ class SktServer (threading.Thread):
 					del(self.sockets[i])
 					logging.info("Disconnecting socket client at %s" % str(addr))
 					return
+				
+	def getNewSockets(self):
+		if len(self.newSockets) == 0:
+			return None
+		
+		with self.socketLock:
+			ns = [x for x in self.newSockets]
+			self.newSockets = []
+			return ns
 
 	def run(self):
 		self.isRunning = True
@@ -57,6 +70,8 @@ class SktServer (threading.Thread):
 				logging.info("Subscription from address %s" % str(addr))
 				with self.socketLock:
 					self.sockets.append((skt, addr))
+					self.newSockets.append((skt, addr))
+				# TODO - notify main thread of new socket so it can send initial reports
 
 		for skt in self.sockets:
 			skt[0].close()
