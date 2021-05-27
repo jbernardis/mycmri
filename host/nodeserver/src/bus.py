@@ -57,8 +57,8 @@ class Bus:
 		self.sender = NodeSendThread(self, self.port, self.cmdQ, self.resultQ, INPUT_DELTA)
 		self.sender.start()
 		for a in self.addrList:
-			self.setPoll(a, False)  #TODO for all known addrs
-
+			self.setPoll(a, False)  
+			
 	def stop(self):
 		self.sender.kill()
 		self.sender.join()

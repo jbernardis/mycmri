@@ -1,14 +1,24 @@
 class Node:
-	def __init__(self, a, n, i, o, s):
+	def __init__(self, a, n):
 		self.addr = a
 		self.name = n
-		self.ninputs = i
-		self.noutputs = o
-		self.nservos = s
+		self.ninputs = 0
+		self.noutputs = 0
+		self.nservos = 0
+		self.initialized = False
 		
-		self.inputs = [True for _ in range(i*8)]		
-		self.outputs = [False for _ in range(o*8)]
-		self.servos = [[0 for _ in range(4)] for _ in range(s*16)]
+		self.inputs = []		
+		self.outputs = []
+		self.servos = []
+		
+	def isInitialized(self):
+		return self.initialized
+		
+	def setConfig(self, i, o, s):
+		self.initialized = True
+		self.setNInputs(i)
+		self.setNOutputs(o)
+		self.setNServos(s)
 		
 	def getName(self):
 		return self.name
@@ -94,6 +104,7 @@ class Node:
 		return self.servos[sx][3] == self.servos[sx][1]
 
 	def __str__(self):
-		return("{\"name\": \"%s\", \"address\": %d, \"inputs\": %d,  \"outputs\": %d,  \"servos\": %d}" % (self.name, self.addr, self.ninputs*8, self.noutputs*8, self.nservos*16))
+		active = "true" if self.initialized else "false"
+		return("{\"name\": \"%s\", \"address\": %d, \"inputs\": %d,  \"outputs\": %d,  \"servos\": %d, \"active\": %s}" % (self.name, self.addr, self.ninputs*8, self.noutputs*8, self.nservos*16, active))
 
 

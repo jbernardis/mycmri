@@ -14,8 +14,6 @@ import queue
 import threading
 import logging
 
-import pprint
-
 class NodeServerMain:
 	def __init__(self, cfgfn):
 		logging.basicConfig(filename='nodeserver.log',
@@ -31,7 +29,6 @@ class NodeServerMain:
 		logging.info("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
 		
 		self.nodes = {}
-		self.awaitingInitialIdentity = {}
 		self.createSocketServer = True
 		nodesToPoll = []
 		if "nodes" not in self.cfg:
@@ -91,18 +88,15 @@ class NodeServerMain:
 				exit(1)
 
 			try:
-				inp = n["inputs"]
-				outp = n["outputs"]
-				servo = n["servos"]
 				nm = n["name"]
 			except KeyError:
-				logging.error("Node %s missing parameters - inputs, outputs, servos, name all required - exiting")
+				logging.error("Node %s missing name - exiting")
 				exit(1)
 
 			if ad in self.nodes:
 				logging.error("Node %d is already defined - skipping" % ad)
 			else:
-				self.nodes[ad] = Node(ad, nm, inp, outp, servo)
+				self.nodes[ad] = Node(ad, nm)
 				nodesToPoll.append(ad)
 			
 		self.bus.start(nodesToPoll)
@@ -115,7 +109,6 @@ class NodeServerMain:
 			self.socketServer.start()
 			
 	def startNode(self, addr):
-		self.awaitingInitialIdentity[addr] = True
 		self.bus.getIdentity(addr)		
 		
 	def process(self):
@@ -145,12 +138,8 @@ class NodeServerMain:
 		logging.info(msg)
 
 		# things to do the first time through		
-		if self.awaitingInitialIdentity[addr]:
-			self.awaitingInitialIdentity[addr] = False
-			
-			self.nodes[addr].setNInputs(inp)
-			self.nodes[addr].setNOutputs(outp)
-			self.nodes[addr].setNServos(servo)
+		if not self.nodes[addr].isInitialized():
+			self.nodes[addr].setConfig(inp, outp, servo)
 			self.bus.setPoll(addr, True)
 			self.bus.getCurrentInput(addr)
 			self.bus.getCurrentOutput(addr)
@@ -299,11 +288,11 @@ class NodeServerMain:
 	def msgRcvd(self, addr, cmd, msg):
 		if cmd == ERRORRESPONSE:
 			logging.error("Error from node at address %d: %s" % (addr, msg))
-			if self.awaitingInitialIdentity[addr]:
+			if not self.nodes[addr].isInitialized():
 				logging.error("This node has not responded with initial identity")
 		elif cmd == WARNINGRESPONSE:
 			logging.error("Warning from node at address %d: %s" % (addr, msg))
-			if self.awaitingInitialIdentity[addr]:
+			if not self.nodes[addr].isInitialized():
 				logging.error("This node has not responded with initial identity")
 		else:
 			s = "Unknown message received from address %d %02x: " % (addr, ord(cmd))   
@@ -352,7 +341,7 @@ class NodeServerMain:
 					self.HttpRespQ.put((200, b'command accepted'))
 					continue
 				
-				if addr not in self.awaitingInitialIdentity or self.awaitingInitialIdentity[addr]:
+				if not self.nodes[addr].isInitialized():
 					msg = "communications with node %d has not been established" % addr
 					self.HttpRespQ.put((400, msg.encode()))
 					continue
