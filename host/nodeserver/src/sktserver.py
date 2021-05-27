@@ -35,7 +35,11 @@ class SktServer (threading.Thread):
 			try:
 				nbytes = len(msg).to_bytes(2, "little")
 				skt.send(nbytes)
-				skt.send(msg)
+				try:
+					m = msg.encode()
+				except:
+					m = msg
+				skt.send(m)
 			except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
 				self.deleteSocket(addr)
 
@@ -71,7 +75,6 @@ class SktServer (threading.Thread):
 				with self.socketLock:
 					self.sockets.append((skt, addr))
 					self.newSockets.append((skt, addr))
-				# TODO - notify main thread of new socket so it can send initial reports
 
 		for skt in self.sockets:
 			skt[0].close()

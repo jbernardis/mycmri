@@ -1,5 +1,6 @@
 class Node:
-	def __init__(self, n, i, o, s):
+	def __init__(self, a, n, i, o, s):
+		self.addr = a
 		self.name = n
 		self.ninputs = i
 		self.noutputs = o
@@ -13,7 +14,7 @@ class Node:
 		return self.name
 		
 	def getNInputs(self):
-		return self.ninputs
+		return self.ninputs*8
 	
 	def setNInputs(self, i):
 		self.ninputs = i
@@ -26,7 +27,7 @@ class Node:
 		return self.inputs		
 		
 	def getNOutputs(self):
-		return self.noutputs
+		return self.noutputs*8
 	
 	def setNOutputs(self, o):
 		self.noutputs = o
@@ -45,7 +46,7 @@ class Node:
 		return self.outputs
 		
 	def getNServos(self):
-		return self.nservos
+		return self.nservos*16
 	
 	def setNServos(self, s):
 		self.nservos = s
@@ -54,11 +55,23 @@ class Node:
 	def getServos(self):
 		return self.servos
 		
+	def getTurnoutLimits(self, tx):
+		return self.servos[tx][0], self.servos[tx][1], self.servos[tx][2]
+		
+	def getTurnoutCurrent(self, tx):
+		return self.servos[tx][3]
+		
 	def setTurnoutNormal(self, tx):
 		self.servos[tx][3] = self.servos[tx][0]
 
+	def getTurnoutNormal(self, tx):
+		return self.servos[tx][0]
+
 	def setTurnoutReverse(self, tx):
 		self.servos[tx][3] = self.servos[tx][1]
+
+	def getTurnoutReverse(self, tx):
+		return self.servos[tx][1]
 		
 	def setTurnoutLimits(self, tx, norm, rev, ini):
 		self.servos[tx][0] = norm
@@ -81,6 +94,6 @@ class Node:
 		return self.servos[sx][3] == self.servos[sx][1]
 
 	def __str__(self):
-		return("{'name': '%s', 'inputs': %d,  'outputs': %d,  'servos': %d}" % (self.name, self.ninputs, self.noutputs, self.nservos))
+		return("{\"name\": \"%s\", \"address\": %d, \"inputs\": %d,  \"outputs\": %d,  \"servos\": %d}" % (self.name, self.addr, self.ninputs*8, self.noutputs*8, self.nservos*16))
 
 

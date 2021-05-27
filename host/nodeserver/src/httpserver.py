@@ -5,7 +5,6 @@ from socketserver import ThreadingMixIn
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import logging
-import pprint
 
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
@@ -19,21 +18,6 @@ class Handler(BaseHTTPRequestHandler):
 			cmd = cmd[1:]
 			
 		cmdDict['cmd'] = [cmd]
-		
-		pprint.pprint(cmdDict)
-		
-		if "cmd" not in cmdDict or len(cmdDict["cmd"]) == 0:
-			rc = 400
-			req += (" - %d" % rc)
-			logging.info(req)
-			msg = b'missing cmd parameter'
-			logging.error(msg)
-			self.send_response(rc)
-			self.send_header("Content-type", "text/plain")
-			self.end_headers()
-			self.wfile.write(msg)
-			return
-
 		rc, b = app.dispatch(cmdDict)
 		req += (" - %d" % rc)
 		logging.info(req)

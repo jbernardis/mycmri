@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+#TODO - do not have inputs/outputs/servos in config file - instead use the balue that comes back from identity report
 from bus import Bus
 from httpserver import NodeHTTPServer
 from sktserver import SktServer
@@ -12,6 +13,8 @@ import json
 import queue
 import threading
 import logging
+
+import pprint
 
 class NodeServerMain:
 	def __init__(self, cfgfn):
@@ -99,7 +102,7 @@ class NodeServerMain:
 			if ad in self.nodes:
 				logging.error("Node %d is already defined - skipping" % ad)
 			else:
-				self.nodes[ad] = Node(nm, inp, outp, servo)
+				self.nodes[ad] = Node(ad, nm, inp, outp, servo)
 				nodesToPoll.append(ad)
 			
 		self.bus.start(nodesToPoll)
@@ -120,10 +123,19 @@ class NodeServerMain:
 		self.bus.process()
 		ns = self.socketServer.getNewSockets()
 		if ns is not None:
-			for skt, addr in ns:
-				# TODO
-				print("send noderpt, inputs rpt, outputs rpt, servos rpt to new client at address %s" % addr)
-				#self.socketServer.sendToOne(ski, addr, msg)
+			rpt = self.nodesReport()
+			for skt, saddr in ns:
+				self.socketServer.sendToOne(skt, saddr, rpt)
+			for ad in self.nodes:
+				rpt = self.inputsReport(ad)
+				for skt, saddr in ns:
+					self.socketServer.sendToOne(skt, saddr, rpt)
+				rpt = self.outputsReport(ad)
+				for skt, saddr in ns:
+					self.socketServer.sendToOne(skt, saddr, rpt)
+				rpt = self.servosReport(ad)
+				for skt, saddr in ns:
+					self.socketServer.sendToOne(skt, saddr, rpt)
 		
 	def identityRcvd(self, addr, inp, outp, servo):
 		msg = "Configuration received:\n  Addr: %d" % addr
@@ -154,8 +166,10 @@ class NodeServerMain:
 		if self.createSocketServer:
 			s = "{\"inputs\":{\"address\" %d: \"count\": %d, \"delta\": %s, \"values\":[" % (addr, len(vals), "true" if delta else "false")
 			if delta:
-				# TODO:
-				s += "]}}"
+				vstr = []
+				for ix, iv in vals:
+					vstr.append("[%d, %s]" % (ix, "true" if iv else "false"))
+				s += ", ".join(vstr) + "]}}"
 			else:
 				vstr = []
 				for i in vals:
@@ -191,18 +205,18 @@ class NodeServerMain:
 		self.bus.setTurnoutNormal(addr, tx)
 		self.nodes[addr].setTurnoutNormal(tx)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getInputs()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r += "[ %d, %d ]]}}" % (tx, self.nodes[addr].getTurnoutNormal(tx))
+			self.socketServer.sendToAll(r)
 
 	def setTurnoutReverse(self, addr, tx):
 		logging.info("  Reverse turnout %d:%d" % (addr, tx))
 		self.bus.setTurnoutReverse(addr, tx)
 		self.nodes[addr].setTurnoutReverse(tx)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r += "[ %d, %d ]]}}" % (tx, self.nodes[addr].getTurnoutReverse(tx))
+			self.socketServer.sendToAll(r)
 
 	def setTurnoutToggle(self, addr, tx):
 		logging.info("  Toggle turnout %d:%d" % (addr, tx))
@@ -217,44 +231,42 @@ class NodeServerMain:
 			return
 			
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r += "[ %d, %d ]]}}" % (tx, self.nodes[addr].getTurnoutCurrent(tx))
+			self.socketServer.sendToAll(r)
 		
 	def setOutputOn(self, addr, ox):
 		logging.info("  Output %d:%d ON" % (addr, ox))
 		self.bus.setOutputOn(addr, ox)
 		self.nodes[addr].setOutputOn(ox)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "output", "values": self.nodes[addr].getOutputs()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [%d, true]}}" % (addr, ox)
+			self.socketServer.sendToAll(r.encode())
 		
 	def setOutputOff(self, addr, ox):
 		logging.info("  Output %d:%d OFF" % (addr, ox))
 		self.bus.setOutputOff(addr, ox)
 		self.nodes[addr].setOutputOff(ox)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "output", "values": self.nodes[addr].getOutputs()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [%d, false]}}" % (addr, ox)
+			self.socketServer.sendToAll(r.encode())
 
 	def setAngle(self, addr, sx, ang):
 		logging.info("  Servo %d:%d to angle %d" % (addr, sx, ang))
 		self.bus.setAngle(addr, sx, ang)
 		self.nodes[addr].setServoAngle(sx, ang)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r += "[ %d, %d ]]}}" % (sx, self.nodes[addr].getTurnoutCurrent(sx))
+			self.socketServer.sendToAll(r)
 
 	def setTurnoutLimits(self, addr, tx, norm, rev, ini):		
 		self.bus.setTurnoutLimits(addr, tx, norm, rev, ini)
 		self.nodes[addr].setTurnoutLimits(tx, norm, rev, ini)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
-			self.socketServer.sendToAll(s.encode())
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"limits\": true, \"count\": 1 \"values\":[" % addr 
+			r += "[ %d, %d, %d, %d ]]}}" % (tx, norm, rev, ini)
+			self.socketServer.sendToAll(r)
 	
 	def setConfig(self, addr, naddr, inputs, outputs, servos):
 		self.bus.setConfig(addr, naddr, inputs, outputs, servos)
@@ -268,9 +280,8 @@ class NodeServerMain:
 				rpt += "\n"
 		logging.info(rpt)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "output", "values": self.nodes[addr].getOutputs()})
-			self.socketServer.sendToAll(s.encode())
+			s = self.outputsReport(addr)
+			self.socketServer.sendToAll(s)
 			
 	def turnoutRcvd(self, addr, vals):
 		rpt = "Turnout report for address %d: (norm, rev, ini, cur)" % addr
@@ -282,8 +293,7 @@ class NodeServerMain:
 				rpt += "\n"
 		logging.info(rpt)
 		if self.createSocketServer:
-			# TODO
-			s = json.dumps({"addr": addr, "type": "turnout", "values": self.nodes[addr].getServos()})
+			s = self.servosReport(addr)
 			self.socketServer.sendToAll(s.encode())
 			
 	def msgRcvd(self, addr, cmd, msg):
@@ -349,8 +359,6 @@ class NodeServerMain:
 				
 				outp  = self.nodes[addr].getNOutputs()
 				servo = self.nodes[addr].getNServos()
-				flags = self.nodes[addr].getNFlags()
-				regs  = self.nodes[addr].getNRegisters()
 			else:
 				addr = None
 
@@ -367,7 +375,7 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unexpected error retrieving turnout index'))
 					continue
 
-				if tx < 0 or tx >= (servo*16):
+				if tx < 0 or tx >= (servo):
 					self.HttpRespQ.put((400, b'turnout index out of range'))
 					continue
 
@@ -394,7 +402,7 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unexpected error retrieving servo index'))
 					continue
 
-				if sx < 0 or sx >= (servo*16):
+				if sx < 0 or sx >= (servo):
 					self.HttpRespQ.put((400, b'servo index out of range'))
 					continue
 
@@ -430,7 +438,7 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unexpected error retrieving output index'))
 					continue
 
-				if ox < 0 or ox >= (outp*8):
+				if ox < 0 or ox >= (outp):
 					self.HttpRespQ.put((400, b'output index out of range'))
 					continue
 
@@ -440,65 +448,13 @@ class NodeServerMain:
 					self.setOutputOn(addr, ox)
 				self.HttpRespQ.put((200, b'command performed'))
 
-			elif verb in ["setflag", "clearflag"]:
-				try:
-					fx = int(cmd["index"][0])
-				except KeyError:
-					self.HttpRespQ.put((400, b'missing flag index'))
-					continue
-				except ValueError:
-					self.HttpRespQ.put((400, b'invalid value for flag index'))
-					continue
-				except:
-					self.HttpRespQ.put((400, b'unexpected error retrieving flag index'))
-					continue
-
-				if fx < 0 or fx >= flags:
-					self.HttpRespQ.put((400, b'flag index out of range'))
-					continue
-
-				if verb == "setflag":
-					self.setFlag(addr, fx)
-				else:
-					self.clearFlag(addr, fx)
-				self.HttpRespQ.put((200, b'command performed'))
-
-			elif verb == "setregister":
-				try:
-					rx = int(cmd["index"][0])
-				except KeyError:
-					self.HttpRespQ.put((400, b'missing register index'))
-					continue
-				except ValueError:
-					self.HttpRespQ.put((400, b'invalid value for register index'))
-					continue
-				except:
-					self.HttpRespQ.put((400, b'unexpected error retrieving register index'))
-					continue
-
-				if rx < 0 or rx >= regs:
-					self.HttpRespQ.put((400, b'register index out of range'))
-					continue
-
-				try:
-					val = cmd["value"][0]
-				except KeyError:
-					self.HttpRespQ.put((400, b'missing register value'))
-					continue
-				except:
-					self.HttpRespQ.put((400, b'unexpected error retrieving register value'))
-					continue
-
-				self.setRegister(addr, rx, val)
-				self.HttpRespQ.put((200, b'command performed'))
-
-			elif verb in ["inputs", "outputs", "turnouts", "getconfig"]:
+			elif verb in ["inputs", "outputs", "turnouts", "servos", "getconfig"]:
 				if verb == "inputs":
-					resp = str(self.nodes[addr].getInputs())
+					resp = self.inputsReport(addr)
 				elif verb == "outputs":
-					resp = str(self.nodes[addr].getOutputs())
-				elif verb == "turnouts":
-					resp = str(self.nodes[addr].getServos())
+					resp = self.outputsReport(addr)
+				elif verb in [ "turnouts", "servos" ]:
+					resp = self.servosReport(addr)
 				else: # verb == "getconfig"
 					resp = str(self.nodes[addr])
 					
@@ -523,7 +479,7 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unexpected error retrieving turnout index'))
 					continue
 
-				if tx < 0 or tx >= (servo*16):
+				if tx < 0 or tx >= (servo):
 					self.HttpRespQ.put((400, b'turnout index out of range'))
 					continue
 
@@ -606,10 +562,6 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unexpected error retrieving inputs'))
 					continue
 
-				if inputs < 0 or inputs > 7:
-					self.HttpRespQ.put((400, b'inputs out of range'))
-					continue
-
 				try:
 					outputs = int(cmd["outputs"][0])
 				except KeyError:
@@ -620,10 +572,6 @@ class NodeServerMain:
 					continue
 				except:
 					self.HttpRespQ.put((400, b'unexpected error retrieving outputs'))
-					continue
-
-				if outputs < 0 or outputs > 7:
-					self.HttpRespQ.put((400, b'outputs out of range'))
 					continue
 
 				try:
@@ -638,26 +586,12 @@ class NodeServerMain:
 					self.HttpRespQ.put((400, b'unexpected error retrieving servos'))
 					continue
 
-				if servos < 0 or servos > 7:
-					self.HttpRespQ.put((400, b'servos out of range'))
-					continue
-
 				self.setConfig(addr, naddr, inputs, outputs, servos)
 				self.HttpRespQ.put((200, b'command performed'))
 
 			elif verb == "noderpt":
-				result = "{'nodes': ["
-				first = True
-				for n in self.nodes:
-					if not first:
-						result += ", "
-					first = False
-					cfg = self.nodes[n]
-					result += "{\"name\": \"%s\", \"addr\": %d, \"input\": %d, \"output\": %d, \"servo\": %d} " % \
-						(cfg.getName(), n, cfg.getNInputs(), cfg.getNOutputs(), cfg.getNServos())
-				result += "]}"
-				
-				self.HttpRespQ.put((200, result.encode()))
+				report = self.nodesReport()
+				self.HttpRespQ.put((200, report.encode()))
 
 			elif verb == "store":
 				self.bus.store(addr)
@@ -670,6 +604,52 @@ class NodeServerMain:
 				
 			else:
 				self.HttpRespQ.put((400, b'bad request'))
+				
+	def nodesReport(self):
+		rpt  = "{'nodes': ["
+		first = True
+		for n in self.nodes:
+			if not first:
+				rpt += ", "
+				
+			first = False
+			nd = self.nodes[n]
+			rpt += str(nd)
+		rpt += "]}"
+		return rpt				
+				
+	def inputsReport(self, addr):
+		inp = self.nodes[addr].getInputs()
+		nin = self.nodes[addr].getNInputs()
+		rpt = "{\"inputs\":{\"address\":%d,\"count\":%d,\"values\":[" % (addr, nin)
+		inpStr = []
+		for i in inp:
+			inpStr.append("true" if i else "false")
+		
+		rpt += ", ".join(inpStr) + "]}}"
+		return rpt
+
+	def outputsReport(self, addr):
+		outp = self.nodes[addr].getOutputs()
+		nout= self.nodes[addr].getNOutputs()
+		rpt = "{\"outputs\":{\"address\":%d,\"count\":%d,\"values\":[" % (addr, nout)
+		outpStr = []
+		for i in outp:
+			outpStr.append("true" if i else "false")
+		
+		rpt += ", ".join(outpStr) + "]}}"
+		return rpt
+
+	def servosReport(self, addr):
+		sv = self.nodes[addr].getServos()
+		nsv= self.nodes[addr].getNServos()
+		rpt = "{\"servos\":{\"address\":%d,\"count\":%d,\"values\":[" % (addr, nsv)
+		svStr = []
+		for i in sv:
+			svStr.append(str(i))
+		
+		rpt += ", ".join(svStr) + "]}}"
+		return rpt
 
 	def startHttpServer(self, ip, port):
 		logging.info("Starting HTTP server at address: %s:%d" % (ip, port))
