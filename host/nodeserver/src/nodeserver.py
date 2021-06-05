@@ -229,7 +229,7 @@ class NodeServerMain:
 		self.bus.setOutputOn(addr, ox)
 		self.nodes[addr].setOutputOn(ox)
 		if self.createSocketServer:
-			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [%d, true]}}" % (addr, ox)
+			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [[%d, true]]}}" % (addr, ox)
 			self.socketServer.sendToAll(r.encode())
 		
 	def setOutputOff(self, addr, ox):
@@ -237,7 +237,7 @@ class NodeServerMain:
 		self.bus.setOutputOff(addr, ox)
 		self.nodes[addr].setOutputOff(ox)
 		if self.createSocketServer:
-			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [%d, false]}}" % (addr, ox)
+			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [[%d, false]]}}" % (addr, ox)
 			self.socketServer.sendToAll(r.encode())
 
 	def setAngle(self, addr, sx, ang):

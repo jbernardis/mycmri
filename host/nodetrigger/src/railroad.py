@@ -2,9 +2,7 @@
 
 from node import Node
 import evaluate
-
 import pprint
-
 
 class Railroad:
 	def __init__(self, server):
@@ -170,7 +168,7 @@ class Railroad:
 		triggerEval = False
 		if "nodes" in jdata.keys():
 			for nd in jdata["nodes"]:
-				self.addNode(Node(nd["address"], nd["name"], nd["input"], nd["output"], nd["servo"]))
+				self.addNode(Node(nd["address"], nd["name"], nd["inputs"], nd["outputs"], nd["servos"]))
 				
 		elif "outputs" in jdata.keys():
 			self.updateOutputs(jdata["outputs"])

@@ -13,6 +13,7 @@ from servosdlg import ServosDlg
 from nodeconfigdlg import NodeConfigDlg
 
 import os
+import queue
 
 SVRLABELW = 80
 CFGLABELW = 80
@@ -35,6 +36,7 @@ class NodeTester(wx.Frame):
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
 		self.CreateStatusBar()
+		self.qStatus = queue.Queue()
 
 		menuBar = wx.MenuBar()
 		self.menuServer = wx.Menu()
@@ -554,8 +556,11 @@ class NodeTester(wx.Frame):
 		self.setStatusText("Server socket closed")
 		
 	def setStatusText(self, text):
-		self.clearTimer = 10
-		self.SetStatusText(text)
+		if self.clearTimer == 0:
+			self.clearTimer = 10
+			self.SetStatusText(text)
+		else:
+			self.qStatus.put(text)
 		
 	def onGetNodeAddr(self, _):
 		dlg = NodeDlg(self, self.currentNodeAddr, self.getNodeRpt())
@@ -610,7 +615,7 @@ class NodeTester(wx.Frame):
 		if sc < 400:
 			try:
 				d = json.loads(data)
-				self.setConfigValues(d['input'], d['output'], d['servo'])
+				self.setConfigValues(d['inputs'], d['outputs'], d['servos'])
 				self.setStatusText("Retrieve Node Config Success")
 			except:
 				self.setStatusText("Unable to process return data: '%s'" % data)
@@ -883,8 +888,13 @@ class NodeTester(wx.Frame):
 			return 
 		
 		if self.clearTimer == 0:
-			self.SetStatusText("")
-			self.clearTimer = None
+			if self.qStatus.empty():
+				self.SetStatusText("")
+				self.clearTimer = None
+			else:
+				t = self.qStatus.get()
+				self.SetStatusText(t)
+				
 		elif self.clearTimer >0:
 			self.clearTimer -= 1
 		

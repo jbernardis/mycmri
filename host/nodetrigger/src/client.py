@@ -43,6 +43,6 @@ server.setServerAddress("192.168.1.142", "8000")
 rr = Railroad(server)
 evaluate.initialize(rr)  # initialize the expression evaluator
 
-rptq = ReportQueue(rr, server)
+rptq = ReportQueue(rr)
 rptq.serve_forever()
 
