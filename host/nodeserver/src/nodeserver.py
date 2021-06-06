@@ -153,7 +153,7 @@ class NodeServerMain:
 			self.nodes[addr].setInput(inp, val == 1)
 				
 		if self.createSocketServer:
-			s = "{\"inputs\":{\"address\" %d: \"count\": %d, \"delta\": %s, \"values\":[" % (addr, len(vals), "true" if delta else "false")
+			s = "{\"inputs\":{\"address\": %d, \"count\": %d, \"delta\": %s, \"values\":[" % (addr, len(vals), "true" if delta else "false")
 			if delta:
 				vstr = []
 				for ix, iv in vals:
