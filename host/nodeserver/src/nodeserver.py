@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3.8
 
-#TODO - do not have inputs/outputs/servos in config file - instead use the balue that comes back from identity report
 from bus import Bus
 from httpserver import NodeHTTPServer
 from sktserver import SktServer
@@ -14,47 +13,59 @@ import queue
 import threading
 import logging
 
+import os, inspect
+cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0]))
+
 class NodeServerMain:
 	def __init__(self, cfgfn):
-		logging.basicConfig(filename='nodeserver.log',
-						filemode='w',
-						format='%(asctime)s - %(levelname)s - %(message)s',
-						level=logging.INFO)		
-			
-		self.cfg = NodeConfig(cfgfn).load()
+		self.cfg = NodeConfig(cmd_folder, cfgfn).load()
 		if self.cfg is None:
-			logging.error("unable to load configuration file: %s" % cfgfn)
+			print("unable to load configuration file: %s/%s" % (cmd_folder, cfgfn))
 			exit(1)
 			
-		logging.info("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
+		print("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
 		
 		self.nodes = {}
 		self.createSocketServer = True
 		nodesToPoll = []
 		if "nodes" not in self.cfg:
-			logging.error("Configuration file does not have any nodes defined - exiting")
+			print("Configuration file does not have any nodes defined - exiting")
 			exit(1)
 
 		if "ip" not in self.cfg:
-			logging.error("Configuration file does not specify an ip address for http server - exiting")
+			print("Configuration file does not specify an ip address for http server - exiting")
 			exit(1)
 
 		if "httpport" not in self.cfg:
-			logging.error("Configuration file does not specify an port for http server - exiting")
+			print("Configuration file does not specify an port for http server - exiting")
 			exit(1)
 
 		if "socketport" not in self.cfg:
-			logging.warning("Configuration file does not define socket port. No server will be created.")
+			print("Configuration file does not define socket port. No server will be created.")
 			self.createSocketServer = False
 
 		if "tty" not in self.cfg:
-			logging.error("Configuration file does not specify a tty device for rs485 connection - exiting")
+			print("Configuration file does not specify a tty device for rs485 connection - exiting")
 			exit(1)
 
 		if "baud" not in self.cfg:
-			logging.error("Configuration file does not specify baud rate for rs485 bus - exiting")
+			print("Configuration file does not specify baud rate for rs485 bus - exiting")
 			exit(1)
 
+		if "logfile" not in self.cfg:
+			logfile = os.path.join(cmd_folder, 'nodeserver.log')
+			print("Configuration file does not specify logfile - using default value")
+		else:
+			logfile = self.cfg['logfile']
+			
+		print("Logs being written to %s" % logfile)
+
+
+		logging.basicConfig(filename=logfile,
+						filemode='w',
+						format='%(asctime)s - %(levelname)s - %(message)s',
+						level=logging.INFO)		
+			
 		self.bus = Bus()
 		self.bus.registerIdentityCallback(self.identityRcvd)
 		self.bus.registerInputCallback(self.inputRcvd)

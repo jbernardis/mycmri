@@ -1,13 +1,18 @@
 {
-	"ip": "192.168.1.210",
+	"ip": "192.168.1.146",
 	"httpport": 8000,
 	"socketport": 8001,
 	"tty": "/dev/ttyUSB0",
 	"baud": 115200,
+	"logfile": "/var/log/rrserver/nodeserver.log",
 	"nodes": [
 		{
 			"address": 1,
-			"name": "tower1"
+			"name": "dell"
+		},
+		{
+			"address": 2,
+			"name": "port"
 		}
 	]
 }

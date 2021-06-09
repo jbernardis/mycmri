@@ -2,13 +2,14 @@ import json
 import os
 
 class NodeConfig:
-	def __init__(self, cfgfn):
+	def __init__(self, folder, cfgfn):
 		self.cfgfn = cfgfn
+		self.cfgfolder = folder
 		
 	def load(self):
-		fn = self.cfgfn
+		fn = os.path.join(self.cfgfolder, self.cfgfn)
 		if not os.path.isfile(fn):
-			fn = "../%s" % self.cfgfn
+			fn = os.path.join(self.cfgfolder, "..", self.cfgfn)
 			if not os.path.isfile(fn):
 				return None
 			
