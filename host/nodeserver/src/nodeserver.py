@@ -232,6 +232,13 @@ class NodeServerMain:
 			r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [[%d, true]]}}" % (addr, ox)
 			self.socketServer.sendToAll(r.encode())
 		
+	def setOutputPulse(self, addr, ox, pl):
+		logging.info("  Output %d:%d PULSE %d" % (addr, ox, pl))
+		self.bus.setOutputPulse(addr, ox, pl)
+		#if self.createSocketServer:
+			#r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [[%d, true]]}}" % (addr, ox)
+			#self.socketServer.sendToAll(r.encode())
+		
 	def setOutputOff(self, addr, ox):
 		logging.info("  Output %d:%d OFF" % (addr, ox))
 		self.bus.setOutputOff(addr, ox)
@@ -435,6 +442,46 @@ class NodeServerMain:
 					self.setOutputOff(addr, ox)
 				else:
 					self.setOutputOn(addr, ox)
+				self.HttpRespQ.put((200, b'command performed'))
+
+			elif verb == "pulse":
+				try:
+					ox = int(cmd["index"][0])
+				except KeyError:
+					self.HttpRespQ.put((400, b'missing output index'))
+					continue
+				except ValueError:
+					self.HttpRespQ.put((400, b'invalid value for output number'))
+					continue
+				except:
+					self.HttpRespQ.put((400, b'unexpected error retrieving output index'))
+					continue
+
+				if ox < 0 or ox >= (outp):
+					self.HttpRespQ.put((400, b'output index out of range'))
+					continue
+
+				try:
+					pl = int(cmd["length"][0])
+				except KeyError:
+					self.HttpRespQ.put((400, b'missing pulse length'))
+					continue
+				except ValueError:
+					self.HttpRespQ.put((400, b'invalid value for pulse length'))
+					continue
+				except:
+					self.HttpRespQ.put((400, b'unexpected error retrieving pulse length'))
+					continue
+
+				if pl < 0 or pl > 255:
+					self.HttpRespQ.put((400, b'pulse length out of range'))
+					continue
+
+				if ox < 0 or ox >= (outp):
+					self.HttpRespQ.put((400, b'output index out of range'))
+					continue
+
+				self.setOutputPulse(addr, ox, pl)
 				self.HttpRespQ.put((200, b'command performed'))
 
 			elif verb in ["inputs", "outputs", "turnouts", "servos", "getconfig"]:

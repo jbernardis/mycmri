@@ -6,7 +6,7 @@ import time
 from nodesendthreadb import NodeSendThread
 from nodeexceptions import NodeException
 
-from nodetypes import OUTPUT_ON, OUTPUT_OFF, OUTPUT_CURRENT, INPUT_DELTA, INPUT_CURRENT, TURNOUT_NORMAL, \
+from nodetypes import OUTPUT_ON, OUTPUT_OFF, OUTPUT_PULSE, OUTPUT_CURRENT, INPUT_DELTA, INPUT_CURRENT, TURNOUT_NORMAL, \
 		TURNOUT_REVERSE, IDENTIFY, SERVO_ANGLE, SET_TURNOUT, GET_TURNOUT, STORE, CONFIG
 
 class Bus:
@@ -157,6 +157,10 @@ class Bus:
 
 	def setOutputOn(self, addr, ox):
 		cmd = OUTPUT_ON + bytes([ox & 0xff])
+		self.cmdQ.put((addr, cmd))
+
+	def setOutputPulse(self, addr, ox, pl):
+		cmd = OUTPUT_PULSE + bytes([ox & 0xff, pl & 0xff])
 		self.cmdQ.put((addr, cmd))
 
 	def setOutputOff(self, addr, ox):

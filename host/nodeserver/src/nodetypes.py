@@ -1,5 +1,6 @@
 OUTPUT_ON = b'1'
 OUTPUT_OFF = b'0'
+OUTPUT_PULSE = b'P'
 OUTPUT_CURRENT = b'O'
 INPUT_DELTA = b'D'
 INPUT_CURRENT = b'C'
@@ -20,6 +21,8 @@ def commandName(cmd):
 		return("OUTPUT_ON")
 	elif cmd == OUTPUT_OFF:
 		return("OUTPUT_OFF")
+	elif cmd == OUTPUT_PULSE:
+		return("OUTPUT_PULSE")
 	elif cmd == OUTPUT_CURRENT:
 		return("OUTPUT_CURRENT")
 	

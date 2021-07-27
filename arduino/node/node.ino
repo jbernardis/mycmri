@@ -15,10 +15,10 @@ SimpleTimer timer;
 #include "rs485.h"
 #include "button.h"
 
-int _address = 1;
+int _address = 2;
 int _i_chips = 2;
 int _o_chips = 2;
-int _servo_bds = 2;
+int _servo_bds = 1;
 
 int ibits;
 int obits;
@@ -50,6 +50,7 @@ int infoIndex;
 int infoMode = INFO_ADDRESS;
 
 int * inputValues;
+int * outputPulses;
 
 enum {
 	PREAMBLE_1,
@@ -70,6 +71,7 @@ enum {
 enum {
 	OUTPUT_ON = '1',
 	OUTPUT_OFF = '0',
+	OUTPUT_PULSE = 'P',
 	OUTPUT_CURRENT = 'O',
 	INPUT_DELTA = 'D',
 	INPUT_CURRENT = 'C',
@@ -114,7 +116,7 @@ void setup() {
 	pinMode(LED_BUILTIN, OUTPUT);
 
 	int _tx_l1 = ibits * 2; // one for each input bit plus its index - worst case
-	int _tx_l2 = svbits * 4; // normal, everse, initial, current for each servo
+	int _tx_l2 = svbits * 4; // normal, reverse, initial, current for each servo
 	int _tx_l3 = obits;
 	
 	_tx_length = max(max(_tx_l1, _tx_l2), _tx_l3);
@@ -126,7 +128,7 @@ void setup() {
 	timer.setInterval(250, pulse);
 
 	inputValues = (int *) malloc(ibits * sizeof(int));
-
+	outputPulses = (int *) malloc(obits * sizeof(int));
 	inBd.setup(_i_chips);
  	outBd.setup(_o_chips);
 	servo.setup(_servo_bds);
@@ -140,6 +142,10 @@ void setup() {
 	for (int i=0; i<ibits; i++) {
 		*(inputValues+i) = inBd.getBit(i);
 	}
+	// initially set all output pulses to 0
+	for (int i=0; i<obits; i++) {
+		*(outputPulses+i) = 0;
+	}
 	bINFO.begin();
 }
 
@@ -151,6 +157,7 @@ void pulse() {
 	int norm, rev, ini, curr;
 
 	inBd.retrieve();
+	pulsedOutputs();
 
 	pulsesTilUpdate--;
 	if (pulsesTilUpdate <= 0) {
@@ -233,8 +240,28 @@ void serialEvent() {
     }
 }
 
+void pulsedOutputs(void) {  
+  for (int i = 0; i<obits; i++) {
+    if (*(outputPulses+i) < 0) {
+      *(outputPulses+i) = - *(outputPulses+i);
+      outBd.setBit(i);
+      outBd.send();
+      disp.outputOn(i);       
+    }
+    else if (*(outputPulses+i) > 0) {
+      *(outputPulses+i) = *(outputPulses+i)-1;
+      if (*(outputPulses+i) == 0) {
+        outBd.clearBit(i);
+        outBd.send();
+        disp.outputOff(i);       
+      }
+    }
+  }
+}
+
 bool process_char(char c) {
 	uint8_t cmd = decode(c);
+ 
 	switch (cmd) {
 	case OUTPUT_ON:
 		if (_rx_index > 0) {
@@ -242,6 +269,18 @@ bool process_char(char c) {
 			outBd.setBit(ox);
 			outBd.send();
 			disp.outputOn(ox);
+		}
+		acknowledge();
+		break;
+
+	case OUTPUT_PULSE:
+		if (_rx_index > 0) {
+			int ox = (int) _rx_buffer[0];
+			int pl = 1;
+			if (_rx_index > 1)
+				pl = (int) _rx_buffer[1];
+
+			*(outputPulses+ox) = -pl;
 		}
 		acknowledge();
 		break;
