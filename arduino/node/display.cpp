@@ -101,7 +101,7 @@ void Display::message(const char * msg) {
 	else {
 		strcpy(buffer, msg);
 	}
-	displayOnLine(msg, 3, 10);
+	displayOnLine(buffer, 3, 10);
 }
 
 void Display::showInputChip(int cx, int cv) {
