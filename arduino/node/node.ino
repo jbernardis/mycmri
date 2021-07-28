@@ -246,7 +246,7 @@ void pulsedOutputs(void) {
       *(outputPulses+i) = - *(outputPulses+i);
       outBd.setBit(i);
       outBd.send();
-      disp.pulseOn(i, *(outputPulses*i));       
+      disp.pulseOn(i, *(outputPulses+i));       
     }
     else if (*(outputPulses+i) > 0) {
       *(outputPulses+i) = *(outputPulses+i)-1;

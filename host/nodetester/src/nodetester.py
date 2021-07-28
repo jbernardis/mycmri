@@ -799,7 +799,7 @@ class NodeTester(wx.Frame):
 			pass
 		
 		else:
-			print("Unknown report type (%s)" % evt.data.keys()[0])
+			print("Unknown report type (%s)" % list(evt.data.keys())[0])
 			
 	def onMessageEvent(self, evt):
 		self.setStatusText(evt.message)
