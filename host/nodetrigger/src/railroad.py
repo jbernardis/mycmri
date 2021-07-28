@@ -179,6 +179,9 @@ class Railroad:
 		elif "servos" in jdata.keys():
 			self.updateServos(jdata["servos"])
 			
+		elif "pulse" in jdata.keys():
+			print("ignoring pulse report for now")
+			
 		else:
 			print("Unexpected message:")
 			pprint.pprint(jdata)
@@ -196,6 +199,8 @@ class Railroad:
 				self.server.setOutputOn(addr, parms[0])
 			elif verb == "outoff":
 				self.server.setOutputOff(addr, parms[0])
+			elif verb == "pulse":
+				self.server.pulseOutput(addr, parms[0], parms[1])
 			elif verb == "normal":
 				self.server.setTurnoutNormal(addr, parms[0])
 			elif verb == "reverse":

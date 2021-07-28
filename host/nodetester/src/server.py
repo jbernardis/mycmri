@@ -42,6 +42,10 @@ class Server(object):
 	def setOutputOff(self, addr, ox):
 		r = requests.get(self.ipAddr+"/outoff", params={"addr": addr, "index": ox})
 		return r.status_code, r.text
+	
+	def pulseOutput(self, addr, ox, pl):
+		r = requests.get(self.ipAddr+"/pulse", params={"addr": addr, "index": ox, "length": pl})
+		return r.status_code, r.text
 		
 	def getInputs(self, addr):
 		r = requests.get(self.ipAddr+"/inputs", params={"addr": addr})

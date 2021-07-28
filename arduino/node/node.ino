@@ -246,14 +246,14 @@ void pulsedOutputs(void) {
       *(outputPulses+i) = - *(outputPulses+i);
       outBd.setBit(i);
       outBd.send();
-      disp.outputOn(i);       
+      disp.pulseOn(i, *(outputPulses*i));       
     }
     else if (*(outputPulses+i) > 0) {
       *(outputPulses+i) = *(outputPulses+i)-1;
       if (*(outputPulses+i) == 0) {
         outBd.clearBit(i);
         outBd.send();
-        disp.outputOff(i);       
+        disp.pulseOff(i);       
       }
     }
   }

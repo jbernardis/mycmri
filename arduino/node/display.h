@@ -12,6 +12,8 @@ class Display {
 		void showConfig();
 		void outputOn(int);
 		void outputOff(int);
+		void pulseOn(int, int);
+		void pulseOff(int);
 		void turnoutNormal(int);
 		void turnoutReverse(int);
 		void servoAngle(int, int);

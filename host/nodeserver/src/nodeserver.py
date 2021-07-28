@@ -246,9 +246,10 @@ class NodeServerMain:
 	def setOutputPulse(self, addr, ox, pl):
 		logging.info("  Output %d:%d PULSE %d" % (addr, ox, pl))
 		self.bus.setOutputPulse(addr, ox, pl)
-		#if self.createSocketServer:
-			#r = "{\"outputs\": {\"address\": %d, \"delta\": true, \"count\": 1, \"values\": [[%d, true]]}}" % (addr, ox)
-			#self.socketServer.sendToAll(r.encode())
+		
+		if self.createSocketServer:
+			s = "{\"pulse\":{\"address\": %d, \"index\": %d, \"length\": %d}}" % (addr, ox, pl)
+			self.socketServer.sendToAll(s.encode())
 		
 	def setOutputOff(self, addr, ox):
 		logging.info("  Output %d:%d OFF" % (addr, ox))
@@ -475,8 +476,8 @@ class NodeServerMain:
 				try:
 					pl = int(cmd["length"][0])
 				except KeyError:
-					self.HttpRespQ.put((400, b'missing pulse length'))
-					continue
+					pl = 1 # default to a single cycle
+
 				except ValueError:
 					self.HttpRespQ.put((400, b'invalid value for pulse length'))
 					continue

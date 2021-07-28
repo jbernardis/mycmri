@@ -512,6 +512,28 @@ class NodeTester(wx.Frame):
 		else:
 			self.setStatusText("RC <%d> %s" % (sc, data))
 			return False
+			
+	def pulseOutput(self, bn, pl):
+		ip = self.teIpAddr.GetValue()
+		pt = self.teHPort.GetValue()
+		addr = self.currentNodeAddr
+		
+		try:
+			sc, data = self.server.pulseOutput(addr, bn, pl)
+		except:
+			self.setStatusText("Unable to connect to node server at address %s:%s" % (ip, pt))
+			return False
+		
+		if sc < 400:
+			try:
+				self.setStatusText("Success")
+				return True
+			except:
+				self.setStatusText("Unable to process return data: '%s'" % data)
+				return False
+		else:
+			self.setStatusText("RC <%d> %s" % (sc, data))
+			return False
 		
 	def setConfigValues(self, i, o, s):
 		self.inputs = i		
@@ -563,7 +585,15 @@ class NodeTester(wx.Frame):
 			self.qStatus.put(text)
 		
 	def onGetNodeAddr(self, _):
-		dlg = NodeDlg(self, self.currentNodeAddr, self.getNodeRpt())
+		nr = self.getNodeRpt()
+		if nr is None:
+			dlg = wx.MessageDialog(self, 'Unable to retrieve node report from server',
+								'Error', wx.OK | wx.ICON_INFORMATION)
+			dlg.ShowModal()
+			dlg.Destroy()
+			return
+		
+		dlg = NodeDlg(self, self.currentNodeAddr, nr)
 		rc = dlg.ShowModal()
 		if rc == wx.ID_OK:
 			n = dlg.getValues()
@@ -904,7 +934,6 @@ class NodeTester(wx.Frame):
 			self.listener.kill()
 			self.listener.join()
 
-		print("exiting")			
 		self.Destroy()
 
 if __name__ == '__main__':

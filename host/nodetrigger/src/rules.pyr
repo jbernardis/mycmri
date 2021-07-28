@@ -28,6 +28,9 @@
 #             Sets output "idx" to the value (ON or OFF, default ON)
 #             The default node address can be overridden with the nd parameter
 #
+# PulseOutput(idx, length=1, nd=None)
+#             Pulses the output ON for the specified number of cycles and then OFF
+#             The default node address can be overridden with the nd parameter
 #
 # Normal(idx, nd=None):
 #             Sets turnout "idx" to the Normal position

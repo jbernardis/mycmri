@@ -68,6 +68,16 @@ void Display::outputOff(int ox) {
 	displayOnLine(buffer, 3, 10);
 }
 
+void Display::pulseOn(int ox, int pl) {
+	sprintf(buffer, "Pulse ON: %2d (%d)", ox, pl);
+	displayOnLine(buffer, 3, 10);
+}
+
+void Display::pulseOff(int ox) {
+	sprintf(buffer, "Pulse OFF: %2d    ", ox);
+	displayOnLine(buffer, 3, 10);
+}
+
 void Display::turnoutNormal(int tx) {
 	sprintf(buffer, "TO Normal: %2d     ", tx);
 	displayOnLine(buffer, 3, 10);

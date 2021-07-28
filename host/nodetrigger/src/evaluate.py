@@ -34,7 +34,7 @@ def Output(idx, value=True, nd=None):
 	print("got back (%s)" % v)
 	return value == v
 
-# output functions: setoutput, setflag, setregister, turnout/servo(normal, reverse, toggle, angle)
+# output functions: setoutput, pulseOutput, setflag, setregister, turnout/servo(normal, reverse, toggle, angle)
 def SetOutput(idx, value=ON, nd=None):
 	if nd is None:
 		naddr = nodeAddr
@@ -45,6 +45,14 @@ def SetOutput(idx, value=ON, nd=None):
 		actions.append(["outon", naddr, [idx]])
 	else:
 		actions.append(["outoff", naddr, [idx]])
+		
+def PulseOutput(idx, length=1, nd=None):
+	if nd is None:
+		naddr = nodeAddr
+	else:
+		naddr = nd
+		
+	actions.append(["pulse", naddr, [idx, length]])
 		
 def Normal(idx, nd=None):
 	if nd is None:

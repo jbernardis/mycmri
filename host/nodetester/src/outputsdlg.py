@@ -43,6 +43,8 @@ class OutputsDlg(wx.Dialog):
 			bmp.SetToolTip("Output %d" % i)
 			bmp.myIndex = i
 			bmp.Bind(wx.EVT_BUTTON,  self.onBOutput)
+			bmp.Bind(wx.EVT_RIGHT_DOWN, self.onBPulse)
+
 			hsizer.Add(bmp)
 			hsizer.AddSpacer(2)
 			self.bmpMap.append(bmp)
@@ -60,6 +62,10 @@ class OutputsDlg(wx.Dialog):
 		self.SetSizer(hsizer)
 		self.Layout()
 		self.Fit()
+		
+	def onBPulse(self, event):
+		bn = event.GetEventObject().myIndex
+		self.parent.pulseOutput(bn, 4)
 		
 	def onBOutput(self, event):
 		bn = event.GetEventObject().myIndex

@@ -94,6 +94,9 @@ The same for outputs and servos; each output circuit supports 8 output bits, and
 <p id="pq">http://IP:PORT/outoff?addr="node-address"&index="output-index"</p>
 <p>Turns the indicated output off</p>
 
+<p id="pq">http://IP:PORT/pulse?addr="node-address"&index="output-index"&length="cycle-count"</p>
+<p>Turns the indicated output on, and then off after the specified number of cycles (1 default)</p>
+
 <h2>Reports</h2>
 These commands all generate reports, sent as JSON strings, indicating the current status of the specified node.
 
