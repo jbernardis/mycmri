@@ -23,7 +23,7 @@ class OutputsDlg(wx.Dialog):
 		vsizer.AddSpacer(10)
 		
 		hsizer = wx.BoxSizer(wx.HORIZONTAL)
-		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "0"))
+		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % 0, size=(20, -1), style=wx.ALIGN_RIGHT), 0, wx.TOP, 8)
 		hsizer.AddSpacer(5)
 		
 		self.bmpMap = []
@@ -31,11 +31,11 @@ class OutputsDlg(wx.Dialog):
 		for i in range(maxbit):
 			if i != 0 and i%8 == 0:
 				hsizer.AddSpacer(5)
-				hsizer.AddS(wx.StaticText(self, wx.ID_ANY, "%d" % (i-1)))
+				hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % (i-1), size=(20, -1), style=wx.ALIGN_LEFT), 0, wx.TOP, 8)
 				vsizer.Add(hsizer)
 				vsizer.AddSpacer(2)
 				hsizer = wx.BoxSizer(wx.HORIZONTAL)
-				hsizer.AddS(wx.StaticText(self, wx.ID_ANY, "%d" % i))
+				hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % i, size=(20, -1), style=wx.ALIGN_RIGHT), 0, wx.TOP, 8)
 				hsizer.AddSpacer(5)
 			elif i != 0 and i%4 == 0:
 				hsizer.AddSpacer(10)
@@ -56,19 +56,19 @@ class OutputsDlg(wx.Dialog):
 			self.bmpMap.append(bmp)
 						
 		hsizer.AddSpacer(5)
-		hsizer.AddS(wx.StaticText(self, wx.ID_ANY, "%d" % (maxbit-1)))
+		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % (maxbit-1), size=(20, -1), style=wx.ALIGN_LEFT), 0, wx.TOP, 8)
 		vsizer.Add(hsizer)
 		
 		vsizer.AddSpacer(10)
 		
 		self.scPl = wx.SpinCtrl(self, wx.ID_ANY, "1")
 		self.scPl.SetRange(1,255)
-		self.sc.SetValue(1)
+		self.scPl.SetValue(1)
 		hsizer = wx.BoxSizer(wx.HORIZONTAL)
 		hsizer.AddSpacer(10)
-		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "Pulse Length: "))
+		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "Pulse Length: "), 0, wx.TOP, 8)
 		hsizer.Add(self.scPl)
-		hsizer.Add(wx.StaticText(self, wx.ID_ANY, " (right-click)"))
+		hsizer.Add(wx.StaticText(self, wx.ID_ANY, " (right-click)"), 0, wx.TOP, 8)
 		vsizer.Add(hsizer)
 		vsizer.AddSpacer(10)
 		
@@ -84,7 +84,6 @@ class OutputsDlg(wx.Dialog):
 		
 	def onBPulse(self, event):
 		pl = self.scPl.GetValue()
-		print("Pulse length = %d" % pl)
 		bn = event.GetEventObject().myIndex
 		self.parent.pulseOutput(bn, pl)
 		
