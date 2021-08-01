@@ -84,6 +84,7 @@ class NodeTester(wx.Frame):
 
 		
 		self.timer = wx.Timer(self)
+		self.ticks = 0
 		self.clearTimer = None
 		
 		sz = wx.BoxSizer(wx.VERTICAL)
@@ -228,7 +229,7 @@ class NodeTester(wx.Frame):
 		self.serverValueChanged = False
 		self.hPortValueChanged = False
 		
-		self.timer.Start(1000)
+		self.timer.Start(250)
 		self.Bind(wx.EVT_TIMER, self.onTimer)
 		self.Bind(EVT_DELIVERY, self.onDeliveryEvent)
 		self.Bind(EVT_DISCONNECT, self.onDisconnectEvent)
@@ -795,6 +796,19 @@ class NodeTester(wx.Frame):
 				else:
 					self.setStatusText("Mismatch number of turnouts/servos")
 				
+		elif "pulse" in evt.data:
+			pmsg = evt.data["pulse"]
+			iaddr = pmsg["address"]
+			
+			if iaddr != self.currentNodeAddr:
+				return 
+			
+			idx = pmsg["index"]
+			pl = pmsg["length"]
+			self.outputsMap[idx] = False  # only on for a brief period
+			if self.dlgOutputs is not None:
+				self.dlgOutputs.pulseOutput(idx, pl)
+			
 		elif "nodes" in evt.data:
 			pass
 		
@@ -914,6 +928,16 @@ class NodeTester(wx.Frame):
 				return False
 			
 	def onTimer(self, _):
+		# do this every quarter second
+		if self.dlgOutputs is not None:
+			self.dlgOutputs.clearPulses()
+
+		self.ticks += 1
+		if self.ticks < 4:
+			return
+		
+		self.ticks = 0
+		# do this once a second			
 		if self.clearTimer is None:
 			return 
 		

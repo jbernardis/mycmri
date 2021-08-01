@@ -205,7 +205,7 @@ class NodeServerMain:
 		self.bus.setTurnoutNormal(addr, tx)
 		self.nodes[addr].setTurnoutNormal(tx)
 		if self.createSocketServer:
-			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1, \"values\":[" % addr 
 			r += "[ %d, %d ]]}}" % (tx, self.nodes[addr].getTurnoutNormal(tx))
 			self.socketServer.sendToAll(r)
 
@@ -214,7 +214,7 @@ class NodeServerMain:
 		self.bus.setTurnoutReverse(addr, tx)
 		self.nodes[addr].setTurnoutReverse(tx)
 		if self.createSocketServer:
-			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1, \"values\":[" % addr 
 			r += "[ %d, %d ]]}}" % (tx, self.nodes[addr].getTurnoutReverse(tx))
 			self.socketServer.sendToAll(r)
 
@@ -231,7 +231,7 @@ class NodeServerMain:
 			return
 			
 		if self.createSocketServer:
-			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1, \"values\":[" % addr 
 			r += "[ %d, %d ]]}}" % (tx, self.nodes[addr].getTurnoutCurrent(tx))
 			self.socketServer.sendToAll(r)
 		
@@ -264,7 +264,7 @@ class NodeServerMain:
 		self.bus.setAngle(addr, sx, ang)
 		self.nodes[addr].setServoAngle(sx, ang)
 		if self.createSocketServer:
-			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1 \"values\":[" % addr 
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"count\": 1, \"values\":[" % addr 
 			r += "[ %d, %d ]]}}" % (sx, self.nodes[addr].getTurnoutCurrent(sx))
 			self.socketServer.sendToAll(r)
 
@@ -272,7 +272,7 @@ class NodeServerMain:
 		self.bus.setTurnoutLimits(addr, tx, norm, rev, ini)
 		self.nodes[addr].setTurnoutLimits(tx, norm, rev, ini)
 		if self.createSocketServer:
-			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"limits\": true, \"count\": 1 \"values\":[" % addr 
+			r = "{\"servos\": { \"address\": %d, \"delta\": true, \"limits\": true, \"count\": 1, \"values\":[" % addr 
 			r += "[ %d, %d, %d, %d ]]}}" % (tx, norm, rev, ini)
 			self.socketServer.sendToAll(r)
 	

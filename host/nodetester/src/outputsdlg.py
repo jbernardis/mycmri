@@ -27,6 +27,7 @@ class OutputsDlg(wx.Dialog):
 		hsizer.AddSpacer(5)
 		
 		self.bmpMap = []
+		self.pulseLen = []
 		
 		for i in range(maxbit):
 			if i != 0 and i%8 == 0:
@@ -54,6 +55,7 @@ class OutputsDlg(wx.Dialog):
 			hsizer.Add(bmp)
 			hsizer.AddSpacer(2)
 			self.bmpMap.append(bmp)
+			self.pulseLen.append(0)
 						
 		hsizer.AddSpacer(5)
 		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % (maxbit-1), size=(20, -1), style=wx.ALIGN_LEFT), 0, wx.TOP, 8)
@@ -86,6 +88,8 @@ class OutputsDlg(wx.Dialog):
 		pl = self.scPl.GetValue()
 		bn = event.GetEventObject().myIndex
 		self.parent.pulseOutput(bn, pl)
+		self.bmpMap[bn].SetBitmap(self.images.pngOutputon)
+		self.pulseLen[bn] = pl + 1
 		
 	def onBOutput(self, event):
 		bn = event.GetEventObject().myIndex
@@ -118,7 +122,17 @@ class OutputsDlg(wx.Dialog):
 					png = self.images.pngOutputoff
 					
 				self.bmpMap[i].SetBitmap(png)
+				
+	def pulseOutput(self, ox, pl):
+		self.bmpMap[ox].SetBitmap(self.images.pngOutputon)
+		self.pulseLen[ox] = pl + 1
 		
+	def clearPulses(self):
+		for i in range(len(self.pulseLen)):
+			if self.pulseLen[i] > 0:
+				self.pulseLen[i] -= 1
+				if self.pulseLen[i] == 0:
+					self.bmpMap[i].SetBitmap(self.images.pngOutputoff)
 		
 	def onClose(self, _):
 		self.parent.dlgOutputsExit()
