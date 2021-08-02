@@ -30,6 +30,7 @@ class NodeServerMain:
 		self.nodes = {}
 		self.errors = {}
 		self.createSocketServer = True
+		self.nodesToInit = {}
 		nodesToPoll = []
 		if "nodes" not in self.cfg:
 			print("Configuration file does not have any nodes defined - exiting")
@@ -115,8 +116,12 @@ class NodeServerMain:
 				nodesToPoll.append(ad)
 			
 		self.bus.start(nodesToPoll)
+		startTime = 10
 		for ad in self.nodes:
-			self.startNode(ad)
+			# we may want to pace this - 1/second or something like that
+			self.nodesToInit[ad] = startTime
+			startTime += 4
+			#self.startNode(ad)
 			
 		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
 		if self.createSocketServer:
@@ -129,7 +134,6 @@ class NodeServerMain:
 	def stopNode(self, addr):
 		self.bus.setPoll(addr, False)
 		self.nodes[addr].uninitialize()
-		self.errors[ad] = 0
 		
 	def process(self):
 		self.HTTPProcess()
@@ -149,11 +153,18 @@ class NodeServerMain:
 				rpt = self.servosReport(ad)
 				for skt, saddr in ns:
 					self.socketServer.sendToOne(skt, saddr, rpt)
-
+				
 		for ad in self.nodes.keys():
 			if self.errors[ad] > ERROR_THRESHOLD:
-				logging.error("Error threshold exceeded for node at addreee %s.  Restarting node" % ad)
+				logging.error("Error threshold exceeded for node at address %s.  Restarting node" % ad)
 				self.stopNode(ad)
+				if not ad in self.nodesToInit:
+					self.nodesToInit[ad] = 8
+
+		for ad in self.nodesToInit.keys():
+			self.nodesToInit[ad] -= 1
+			if self.nodesToInit <= 0:
+				del(self.nodesToInit[ad])
 				self.startNode(ad)
 		
 	def identityRcvd(self, addr, inp, outp, servo):
@@ -262,7 +273,7 @@ class NodeServerMain:
 	def setOutputPulse(self, addr, ox, pl):
 		logging.info("  Output %d:%d PULSE %d" % (addr, ox, pl))
 		self.bus.setOutputPulse(addr, ox, pl)
-		
+		self.nodes[addr].setOutputOff(ox) # after pulse, the output will be off, so record as off
 		if self.createSocketServer:
 			s = "{\"pulse\":{\"address\": %d, \"index\": %d, \"length\": %d}}" % (addr, ox, pl)
 			self.socketServer.sendToAll(s.encode())

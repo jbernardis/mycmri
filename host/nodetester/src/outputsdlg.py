@@ -88,8 +88,7 @@ class OutputsDlg(wx.Dialog):
 		pl = self.scPl.GetValue()
 		bn = event.GetEventObject().myIndex
 		self.parent.pulseOutput(bn, pl)
-		self.bmpMap[bn].SetBitmap(self.images.pngOutputon)
-		self.pulseLen[bn] = pl + 1
+		self.pulseOutput(bn, pl)
 		
 	def onBOutput(self, event):
 		bn = event.GetEventObject().myIndex
@@ -126,6 +125,7 @@ class OutputsDlg(wx.Dialog):
 	def pulseOutput(self, ox, pl):
 		self.bmpMap[ox].SetBitmap(self.images.pngOutputon)
 		self.pulseLen[ox] = pl + 1
+		self.data[ox] = True
 		
 	def clearPulses(self):
 		for i in range(len(self.pulseLen)):
@@ -133,6 +133,7 @@ class OutputsDlg(wx.Dialog):
 				self.pulseLen[i] -= 1
 				if self.pulseLen[i] == 0:
 					self.bmpMap[i].SetBitmap(self.images.pngOutputoff)
+					self.data[i] = False
 		
 	def onClose(self, _):
 		self.parent.dlgOutputsExit()
