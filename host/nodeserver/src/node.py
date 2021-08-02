@@ -13,6 +13,9 @@ class Node:
 		
 	def isInitialized(self):
 		return self.initialized
+
+	def uninitialize(self):
+		self.initialized = False
 		
 	def setConfig(self, i, o, s):
 		self.initialized = True

@@ -16,6 +16,8 @@ import logging
 import os, inspect
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0]))
 
+ERROR_THRESHOLD = 5
+
 class NodeServerMain:
 	def __init__(self, cfgfn):
 		self.cfg = NodeConfig(cmd_folder, cfgfn).load()
@@ -26,6 +28,7 @@ class NodeServerMain:
 		print("configuration loaded: " + json.dumps(self.cfg, sort_keys=True, indent=4))
 		
 		self.nodes = {}
+		self.errors = {}
 		self.createSocketServer = True
 		nodesToPoll = []
 		if "nodes" not in self.cfg:
@@ -108,6 +111,7 @@ class NodeServerMain:
 				logging.error("Node %d is already defined - skipping" % ad)
 			else:
 				self.nodes[ad] = Node(ad, nm)
+				self.errors[ad] = 0
 				nodesToPoll.append(ad)
 			
 		self.bus.start(nodesToPoll)
@@ -121,6 +125,11 @@ class NodeServerMain:
 			
 	def startNode(self, addr):
 		self.bus.getIdentity(addr)		
+
+	def stopNode(self, addr):
+		self.bus.setPoll(addr, False)
+		self.nodes[addr].uninitialize()
+		self.errors[ad] = 0
 		
 	def process(self):
 		self.HTTPProcess()
@@ -140,6 +149,12 @@ class NodeServerMain:
 				rpt = self.servosReport(ad)
 				for skt, saddr in ns:
 					self.socketServer.sendToOne(skt, saddr, rpt)
+
+		for ad in self.nodes.keys():
+			if self.errors[ad] > ERROR_THRESHOLD:
+				logging.error("Error threshold exceeded for node at addreee %s.  Restarting node" % ad)
+				self.stopNode(ad)
+				self.startNode(ad)
 		
 	def identityRcvd(self, addr, inp, outp, servo):
 		msg = "Configuration received:\n  Addr: %d" % addr
@@ -150,6 +165,7 @@ class NodeServerMain:
 
 		# things to do the first time through		
 		if not self.nodes[addr].isInitialized():
+			self.errors[addr] = 0
 			self.nodes[addr].setConfig(inp, outp, servo)
 			self.bus.setPoll(addr, True)
 			self.bus.getCurrentInput(addr)
@@ -307,10 +323,12 @@ class NodeServerMain:
 	def msgRcvd(self, addr, cmd, msg):
 		if cmd == ERRORRESPONSE:
 			logging.error("Error from node at address %d: %s" % (addr, msg))
+			self.errors[addr] += 1
 			if not self.nodes[addr].isInitialized():
 				logging.error("This node has not responded with initial identity")
 		elif cmd == WARNINGRESPONSE:
 			logging.error("Warning from node at address %d: %s" % (addr, msg))
+			self.errors[addr] += 1
 			if not self.nodes[addr].isInitialized():
 				logging.error("This node has not responded with initial identity")
 		else:
@@ -318,6 +336,7 @@ class NodeServerMain:
 			for c in msg:
 				s += "%02x " % ord(c)
 			logging.error(s)	
+			self.errors[addr] += 1
 			
 	def HTTPProcess(self):
 		while not self.HttpCmdQ.empty():
