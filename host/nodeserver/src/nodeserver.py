@@ -118,10 +118,9 @@ class NodeServerMain:
 		self.bus.start(nodesToPoll)
 		startTime = 10
 		for ad in self.nodes:
-			# we may want to pace this - 1/second or something like that
 			self.nodesToInit[ad] = startTime
-			startTime += 4
-			#self.startNode(ad)
+			logging.info("starting node %d after %d cycles" % (ad, startTime))
+			startTime += 10
 			
 		self.startHttpServer(self.cfg["ip"], self.cfg["httpport"])
 		if self.createSocketServer:
@@ -155,16 +154,16 @@ class NodeServerMain:
 					self.socketServer.sendToOne(skt, saddr, rpt)
 				
 		for ad in self.nodes.keys():
-			if self.errors[ad] > ERROR_THRESHOLD:
+			if self.errors[ad] > ERROR_THRESHOLD and not ad in self.nodesToInit:
 				logging.error("Error threshold exceeded for node at address %s.  Restarting node" % ad)
 				self.stopNode(ad)
-				if not ad in self.nodesToInit:
-					self.nodesToInit[ad] = 8
+				self.nodesToInit[ad] = 8
 
-		for ad in self.nodesToInit.keys():
+		for ad in list(self.nodesToInit.keys()):
 			self.nodesToInit[ad] -= 1
-			if self.nodesToInit <= 0:
+			if self.nodesToInit[ad] <= 0:
 				del(self.nodesToInit[ad])
+				logging.info("Starting node %d" % ad)
 				self.startNode(ad)
 		
 	def identityRcvd(self, addr, inp, outp, servo):
@@ -336,7 +335,8 @@ class NodeServerMain:
 			logging.error("Error from node at address %d: %s" % (addr, msg))
 			self.errors[addr] += 1
 			if not self.nodes[addr].isInitialized():
-				logging.error("This node has not responded with initial identity")
+				logging.error("This node has not responded with initial identity - resending identity request")
+				self.startNode(addr)
 		elif cmd == WARNINGRESPONSE:
 			logging.error("Warning from node at address %d: %s" % (addr, msg))
 			self.errors[addr] += 1
