@@ -56,6 +56,10 @@ class NodeServerMain:
 			print("Configuration file does not specify baud rate for rs485 bus - exiting")
 			exit(1)
 
+		if "timeout" not in self.cfg:
+			print("Configuration file does not specify bus timeout - defaulting to 1 second")
+			self.cfg["timeout"] = 1
+
 		if "logfile" not in self.cfg:
 			logfile = os.path.join(cmd_folder, 'nodeserver.log')
 			print("Configuration file does not specify logfile - using default value")
@@ -79,8 +83,9 @@ class NodeServerMain:
 		self.bus.registerDefaultCallback(self.msgRcvd)
 		tty = self.cfg["tty"]
 		baud = self.cfg["baud"]
+		timeout = self.cfg["timeout"]
 		try:
-			self.bus.connect(tty, baud)
+			self.bus.connect(tty, baud, timeout)
 		except NodeException:
 			logging.error("Unable to open port %s - exiting" % tty)
 			exit(1)
@@ -750,9 +755,14 @@ class NodeServerMain:
 		
 	def serve_forever(self, interval):
 		ticker = threading.Event()
-		while not ticker.wait(interval) and self.serving:
-			if self.serving:
-				self.process()
+		try:
+			while not ticker.wait(interval) and self.serving:
+				if self.serving:
+					self.process()
+					
+		except KeyboardInterrupt:
+			logging.info("Keyboard Interrupt - exiting")
+			
 		ticker = None
 		logging.info("Stopping HTTP Server...")
 		self.stopHttpServer()

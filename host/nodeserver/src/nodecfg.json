@@ -4,6 +4,7 @@
 	"socketport": 8001,
 	"tty": "/dev/ttyUSB0",
 	"baud": 115200,
+	"timeout": 1,
 	"logfile": "/var/log/rrserver/nodeserver.log",
 	"nodes": [
 		{

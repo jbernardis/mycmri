@@ -40,11 +40,11 @@ class Bus:
 	def registerDefaultCallback(self, cbDefault):
 		self.callbackDefault = cbDefault		
 
-	def connect(self, tty, baud):
+	def connect(self, tty, baud, timeout):
 		self.tty = tty
 		self.baud = baud
 		try:
-			self.port = serial.Serial(port=self.tty, baudrate=self.baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_TWO, timeout=5)
+			self.port = serial.Serial(port=self.tty, baudrate=self.baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_TWO, timeout=timeout)
 
 		except serial.SerialException:
 			self.port = None
