@@ -128,11 +128,13 @@ class NodeServerMain:
 			self.socketServer.start()
 			
 	def startNode(self, addr):
+		self.bus.setPoll(addr, True)
 		self.bus.getIdentity(addr)		
 
 	def stopNode(self, addr):
 		self.bus.setPoll(addr, False)
-		self.nodes[addr].uninitialize()
+		self.nodes[addr].stop()
+		self.updateNodesRpt()
 		
 	def process(self):
 		self.HTTPProcess()
@@ -154,10 +156,9 @@ class NodeServerMain:
 					self.socketServer.sendToOne(skt, saddr, rpt)
 				
 		for ad in self.nodes.keys():
-			if self.errors[ad] > ERROR_THRESHOLD and not ad in self.nodesToInit:
-				logging.error("Error threshold exceeded for node at address %s.  Restarting node" % ad)
+			if self.errors[ad] > ERROR_THRESHOLD and not self.nodes[ad].isStopped():
+				logging.error("Error threshold exceeded for node at address %s.  Stopping node" % ad)
 				self.stopNode(ad)
-				self.nodesToInit[ad] = 8
 
 		for ad in list(self.nodesToInit.keys()):
 			self.nodesToInit[ad] -= 1
@@ -181,6 +182,13 @@ class NodeServerMain:
 			self.bus.getCurrentInput(addr)
 			self.bus.getCurrentOutput(addr)
 			self.bus.getTurnouts(addr)
+			self.updateNodesRpt()
+
+	def updateNodesRpt(self):
+		rpt = self.nodesReport()
+		logging.info(rpt)
+		if self.createSocketServer:
+			self.socketServer.sendToAll(rpt.encode())
 
 	def inputRcvd(self, addr, vals, delta):
 		if len(vals) == 0:
@@ -334,14 +342,14 @@ class NodeServerMain:
 		if cmd == ERRORRESPONSE:
 			logging.error("Error from node at address %d: %s" % (addr, msg))
 			self.errors[addr] += 1
-			if not self.nodes[addr].isInitialized():
-				logging.error("This node has not responded with initial identity - resending identity request")
-				self.startNode(addr)
+			#if not self.nodes[addr].isInitialized():
+				#logging.error("This node has not responded with initial identity")
+				#self.startNode(addr)
 		elif cmd == WARNINGRESPONSE:
-			logging.error("Warning from node at address %d: %s" % (addr, msg))
-			self.errors[addr] += 1
-			if not self.nodes[addr].isInitialized():
-				logging.error("This node has not responded with initial identity")
+			logging.warning("Warning from node at address %d: %s" % (addr, msg))
+			#self.errors[addr] += 1
+			#if not self.nodes[addr].isInitialized():
+				#logging.error("This node has not responded with initial identity")
 		else:
 			s = "Unknown message received from address %d %02x: " % (addr, ord(cmd))   
 			for c in msg:
@@ -750,9 +758,15 @@ class NodeServerMain:
 		
 	def serve_forever(self, interval):
 		ticker = threading.Event()
-		while not ticker.wait(interval) and self.serving:
-			if self.serving:
-				self.process()
+		try:
+			while not ticker.wait(interval) and self.serving:
+				if self.serving:
+					self.process()
+		
+		except KeyboardInterrupt:
+			logging.info("Keyboard Interrupt - exiting...")
+			print("Keyboard Interrupt - exiting...")
+
 		ticker = None
 		logging.info("Stopping HTTP Server...")
 		self.stopHttpServer()

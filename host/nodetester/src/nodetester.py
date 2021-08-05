@@ -14,6 +14,7 @@ from nodeconfigdlg import NodeConfigDlg
 
 import os
 import queue
+import pprint
 
 SVRLABELW = 80
 CFGLABELW = 80
@@ -810,7 +811,7 @@ class NodeTester(wx.Frame):
 				self.dlgOutputs.pulseOutput(idx, pl)
 			
 		elif "nodes" in evt.data:
-			pass
+			pprint.pprint(evt.data)
 		
 		else:
 			print("Unknown report type (%s)" % list(evt.data.keys())[0])

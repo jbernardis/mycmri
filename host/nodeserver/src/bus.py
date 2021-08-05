@@ -44,7 +44,7 @@ class Bus:
 		self.tty = tty
 		self.baud = baud
 		try:
-			self.port = serial.Serial(port=self.tty, baudrate=self.baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_TWO, timeout=5)
+			self.port = serial.Serial(port=self.tty, baudrate=self.baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_TWO, timeout=1)
 
 		except serial.SerialException:
 			self.port = None
@@ -73,7 +73,7 @@ class Bus:
 			return
 		
 		self.sender.setPoll(addr, flag)
-		
+
 	def process(self):
 		while not self.resultQ.empty():
 			try:

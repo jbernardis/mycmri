@@ -6,6 +6,7 @@ class Node:
 		self.noutputs = 0
 		self.nservos = 0
 		self.initialized = False
+		self.stopped = False
 		
 		self.inputs = []		
 		self.outputs = []
@@ -14,11 +15,16 @@ class Node:
 	def isInitialized(self):
 		return self.initialized
 
-	def uninitialize(self):
+	def stop(self):
+		self.stopped = True
 		self.initialized = False
+
+	def isStopped(self):
+		return self.stopped
 		
 	def setConfig(self, i, o, s):
 		self.initialized = True
+		self.stopped = False
 		self.setNInputs(i)
 		self.setNOutputs(o)
 		self.setNServos(s)
@@ -107,7 +113,7 @@ class Node:
 		return self.servos[sx][3] == self.servos[sx][1]
 
 	def __str__(self):
-		active = "true" if self.initialized else "false"
+		active = "true" if self.initialized and not self.stopped else "false"
 		return("{\"name\": \"%s\", \"address\": %d, \"inputs\": %d,  \"outputs\": %d,  \"servos\": %d, \"active\": %s}" % (self.name, self.addr, self.ninputs*8, self.noutputs*8, self.nservos*16, active))
 
 
