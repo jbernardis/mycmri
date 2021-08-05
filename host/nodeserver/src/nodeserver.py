@@ -75,7 +75,7 @@ class NodeServerMain:
 						level=logging.INFO)		
 			
 		self.bus = Bus()
-		self.bus.registerIdentityCallback(self.identityRcvd)
+		# self.bus.registerIdentityCallback(self.identityRcvd)
 		self.bus.registerInputCallback(self.inputRcvd)
 		self.bus.registerOutputCallback(self.outputRcvd)
 		self.bus.registerTurnoutCallback(self.turnoutRcvd)
@@ -178,10 +178,10 @@ class NodeServerMain:
 		msg += "  Outputs: %d - %d channels\n" % (outp, outp*8)
 		msg += "  Servos: %d - %d channels\n" % (servo, servo*16)	
 		logging.info(msg)
+		self.errors[addr] = 0
 
 		# things to do the first time through		
 		if not self.nodes[addr].isInitialized():
-			self.errors[addr] = 0
 			self.nodes[addr].setConfig(inp, outp, servo)
 			self.bus.setPoll(addr, True)
 			self.bus.getCurrentInput(addr)
@@ -191,11 +191,19 @@ class NodeServerMain:
 
 	def updateNodesRpt(self):
 		rpt = self.nodesReport()
-		logging.info(rpt)
+		
+		rptj = json.loads(rpt)
+		logEntry = "Nodes report:\n"
+		logEntry += "  Name  Address  Inputs  Outputs  Servos  Active\n"
+		for n in rptj["nodes"]:
+			logEntry += ("10.10s     %4d    %4d    %4d   %s\n" % (n["name"], n["address"], n["inputs"], n["outputs"], n["servos"], n["active"]))			
+		logging.info(logEntry+"\n")
+		
 		if self.createSocketServer:
 			self.socketServer.sendToAll(rpt.encode())
 
 	def inputRcvd(self, addr, vals, delta):
+		self.errors[addr] = 0
 		if len(vals) == 0:
 			return 
 		
@@ -319,6 +327,7 @@ class NodeServerMain:
 		self.bus.setConfig(addr, naddr, inputs, outputs, servos)
 
 	def outputRcvd(self, addr, vals):
+		self.errors[addr] = 0
 		rpt = "Output report for addr %d" % addr
 		for i in range(len(vals)):
 			self.nodes[addr].setOutput(i, vals[i]==1)
@@ -331,6 +340,7 @@ class NodeServerMain:
 			self.socketServer.sendToAll(s)
 			
 	def turnoutRcvd(self, addr, vals):
+		self.errors[addr] = 0
 		rpt = "Turnout report for address %d: (norm, rev, ini, cur)" % addr
 		for i in range(len(vals)):
 			v = vals[i]
@@ -347,14 +357,11 @@ class NodeServerMain:
 		if cmd == ERRORRESPONSE:
 			logging.error("Error from node at address %d: %s" % (addr, msg))
 			self.errors[addr] += 1
-			#if not self.nodes[addr].isInitialized():
-				#logging.error("This node has not responded with initial identity")
-				#self.startNode(addr)
+
 		elif cmd == WARNINGRESPONSE:
 			logging.warning("Warning from node at address %d: %s" % (addr, msg))
 			#self.errors[addr] += 1
-			#if not self.nodes[addr].isInitialized():
-				#logging.error("This node has not responded with initial identity")
+
 		else:
 			s = "Unknown message received from address %d %02x: " % (addr, ord(cmd))   
 			for c in msg:
