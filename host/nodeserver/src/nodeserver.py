@@ -194,9 +194,9 @@ class NodeServerMain:
 		
 		rptj = json.loads(rpt)
 		logEntry = "Nodes report:\n"
-		logEntry += "  Name  Address  Inputs  Outputs  Servos  Active\n"
+		logEntry += "      Name  Address  Inputs Outputs Servos  Active\n"
 		for n in rptj["nodes"]:
-			logEntry += ("10.10s     %4d    %4d    %4d   %s\n" % (n["name"], n["address"], n["inputs"], n["outputs"], n["servos"], n["active"]))			
+			logEntry += ("%10.10s     %4d    %4d    %4d   %4d   %s\n" % (n["name"], n["address"], n["inputs"], n["outputs"], n["servos"], n["active"]))			
 		logging.info(logEntry+"\n")
 		
 		if self.createSocketServer:
