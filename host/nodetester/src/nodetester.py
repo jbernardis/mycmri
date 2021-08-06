@@ -6,7 +6,7 @@ import json
 from images import Images 
 from server import Server
 from listener import Listener
-from nodedlg import NodeDlg
+from nodedlg import NodeDlg, ID_INIT
 from inputsdlg import InputsDlg
 from outputsdlg import OutputsDlg
 from servosdlg import ServosDlg
@@ -14,6 +14,7 @@ from nodeconfigdlg import NodeConfigDlg
 
 import os
 import queue
+
 import pprint
 
 SVRLABELW = 80
@@ -235,6 +236,9 @@ class NodeTester(wx.Frame):
 		self.Bind(EVT_DELIVERY, self.onDeliveryEvent)
 		self.Bind(EVT_DISCONNECT, self.onDisconnectEvent)
 		
+		self.sz = self.GetSize()
+		print("size = ", self.sz)
+		
 	def onMenuInputs(self, _):
 		if self.currentNodeAddr is None:
 			self.setStatusText("Retrieve configuration first")
@@ -257,7 +261,12 @@ class NodeTester(wx.Frame):
 		self.dlgInputs =  InputsDlg(self, self.inputsMap, self.inputs, self.currentNodeAddr)
 		if pos is not None:
 			self.dlgInputs.SetPosition(pos)
+		else:
+			ppos = self.GetScreenPosition()
+			self.dlgInputs.SetPosition((ppos[0], ppos[1]+self.sz[1]))
+			
 		self.dlgInputs.Show()
+		self.szInputs = self.dlgInputs.GetSize()
 		
 	def dlgInputsExit(self):
 		self.dlgInputs = None
@@ -284,7 +293,12 @@ class NodeTester(wx.Frame):
 		self.dlgOutputs =  OutputsDlg(self, self.outputsMap, self.outputs, self.currentNodeAddr)
 		if pos is not None:
 			self.dlgOutputs.SetPosition(pos)
+		else:
+			ppos = self.GetScreenPosition()
+			self.dlgOutputs.SetPosition((ppos[0], ppos[1]+self.sz[1]+self.szInputs[1]))
+
 		self.dlgOutputs.Show()
+		self.szOutputs = self.GetSize()
 		
 	def dlgOutputsExit(self):
 		self.dlgOutputs = None
@@ -311,6 +325,11 @@ class NodeTester(wx.Frame):
 		self.dlgServos =  ServosDlg(self, self.servosMap, self.servos, self.currentNodeAddr)
 		if pos is not None:
 			self.dlgServos.SetPosition(pos)
+		else:
+			ppos = self.GetScreenPosition()
+			self.dlgServos.SetPosition((ppos[0]+self.sz[0], ppos[1]))
+			
+			
 		self.dlgServos.Show()
 		
 	def dlgServosExit(self):
@@ -597,19 +616,23 @@ class NodeTester(wx.Frame):
 		
 		dlg = NodeDlg(self, self.currentNodeAddr, nr)
 		rc = dlg.ShowModal()
-		if rc == wx.ID_OK:
+		if rc in [ wx.ID_OK, ID_INIT ]:
 			n = dlg.getValues()
 			
 		dlg.Destroy()
-		if rc != wx.ID_OK:
+		if rc not in [ wx.ID_OK, ID_INIT ]:
 			return 
 
 		if n is None:
 			return 
 		
-		self.currentNodeAddr = n
-		self.stAddr.SetLabel("%d" % self.currentNodeAddr)		
-		self.loadConfig()
+		if rc == wx.ID_OK:
+			self.currentNodeAddr = n
+			self.stAddr.SetLabel("%d" % self.currentNodeAddr)		
+			self.loadConfig()
+			
+		else:
+			self.doInit(n)
 		
 	def onBRefresh(self, _):
 		ip = self.teIpAddr.GetValue()
@@ -811,7 +834,29 @@ class NodeTester(wx.Frame):
 				self.dlgOutputs.pulseOutput(idx, pl)
 			
 		elif "nodes" in evt.data:
-			pprint.pprint(evt.data)
+			print(json.dumps(evt.data))
+			if self.currentNodeAddr is None:
+				# nothing to do with this is we are not currently looking at a node
+				return 
+			
+			for nd in evt.data["nodes"]:
+				if nd["address"] == self.currentNodeAddr and not nd["active"]:
+					# we are looking at an inactive node - tear down the dialog boxes
+					if self.dlgInputs is not None:
+						self.dlgInputs.Destroy()
+						self.dlgInputs = None
+						
+					if self.dlgOutputs is not None:
+						self.dlgOutputs.Destroy()
+						self.dlgOutputs = None
+						
+					if self.dlgServos is not None:
+						self.dlgServos.Destroy()
+						self.dlgServos = None
+						
+					self.currentNodeAddr = None
+					self.stAddr.SetLabel("  ")
+					break
 		
 		else:
 			print("Unknown report type (%s)" % list(evt.data.keys())[0])
@@ -844,12 +889,18 @@ class NodeTester(wx.Frame):
 		d = self.getNodeRpt()
 		if d is None:
 			return False
+		
+		try:
+			nl = d["nodes"]
+		except:
+			return False
+		
 		rpt = ""
-		for nd in sorted(d.keys()):
-			active = "Active" if d[nd]["active"] else "Inactive" 
+		for nd in nl:
+			active = "Active" if nd["active"] else "Inactive" 
 			rpt += "%20.20s: A:%-2d   I:%-2d   O:%-2d   S:%-2d   %s\n" % (
-				nd, d[nd]["addr"], d[nd]["input"], d[nd]["output"],
-				d[nd]["servo"], active)
+				nd["name"], nd["address"], nd["inputs"], nd["outputs"],
+				nd["servos"], active)
 			
 		dlg = wx.MessageDialog(self, rpt, "Nodes Report", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
@@ -889,8 +940,12 @@ class NodeTester(wx.Frame):
 				return False
 			
 	def onMenuInit(self, _):
-		addr = self.currentNodeAddr
+		if self.currentNodeAddr is None:
+			return
+
+		self.doInit(self.currentNodeAddr)
 		
+	def doInit(self, addr):		
 		ip = self.teIpAddr.GetValue()
 		pt = self.teHPort.GetValue()
 		try:

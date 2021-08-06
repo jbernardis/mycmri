@@ -20,14 +20,20 @@ class InputsDlg(wx.Dialog):
 		vsizer.AddSpacer(10)
 		
 		hsizer = wx.BoxSizer(wx.HORIZONTAL)
+		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % 0, size=(20, -1), style=wx.ALIGN_RIGHT), 0, wx.TOP, 6)
+		hsizer.AddSpacer(10)
 		
 		self.bmpMap = []
 		
 		for i in range(maxbit):
 			if i != 0 and i%8 == 0:
+				hsizer.AddSpacer(10)
+				hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % (i-1), size=(20, -1), style=wx.ALIGN_LEFT), 0, wx.TOP, 6)
 				vsizer.Add(hsizer)
 				vsizer.AddSpacer(2)
 				hsizer = wx.BoxSizer(wx.HORIZONTAL)
+				hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % i, size=(20, -1), style=wx.ALIGN_RIGHT), 0, wx.TOP, 6)
+				hsizer.AddSpacer(10)
 			elif i != 0 and i%4 == 0:
 				hsizer.AddSpacer(10)
 			
@@ -42,6 +48,8 @@ class InputsDlg(wx.Dialog):
 			hsizer.AddSpacer(2)
 			self.bmpMap.append(bmp)
 						
+		hsizer.AddSpacer(10)
+		hsizer.Add(wx.StaticText(self, wx.ID_ANY, "%2d" % (maxbit-1), size=(20, -1), style=wx.ALIGN_LEFT), 0, wx.TOP, 6)
 		vsizer.Add(hsizer)
 		
 		vsizer.AddSpacer(10)
