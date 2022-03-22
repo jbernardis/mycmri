@@ -2,7 +2,7 @@
 # pseudo-python for specifying rules
 #
 # Node(n)
-#             Sets the default value to ne used as the node address
+#             Sets the default value to be used as the node address
 #
 #
 # ****************************************************************************
