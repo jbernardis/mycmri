@@ -37,7 +37,6 @@ bool getPacket() {
 
   if (bitBuffHead == nextBitSlot(bitBuffTail))
   	return false;
-
   while (! packetEnd) {
     if (preambleFound)
       getNextByte();
@@ -128,16 +127,24 @@ byte nextBitSlot(byte slot) {
 
 //========================
 
+//====================
+
 #include "locolist.h"
 
 LocoList locoList;
 
+char locoId[8];
+int lx = 0;
+char speedBuf[8];
 
-char strBuf[32];
+unsigned long ledOff;
 
 void setup() {
 	Serial.begin(115200);
 	beginBitDetection(); 
+	pinMode(LED_BUILTIN, OUTPUT);
+	digitalWrite(LED_BUILTIN, LOW);
+	ledOff = 0;
 }
 
 void loop() {
@@ -148,14 +155,19 @@ void loop() {
 	byte instruction;
 	unsigned int decoderAddress;
 
-	if (!getPacket())
+	if (ledOff != 0) {
+		if (millis() > ledOff) {
+			digitalWrite(LED_BUILTIN, LOW);
+			ledOff = 0;
+		}
+	}
+	if (!getPacket()) 
 		return; // No new packet available
 	
 	pktByteCount = dccPacket[0];
-	if (!pktByteCount) {
+	if (!pktByteCount)
 		return; // No new packet available
-	}
-	
+
 	checksum = 0;
 	for (byte n = 1; n <= pktByteCount; n++)
 		checksum ^= dccPacket[n];
@@ -187,7 +199,7 @@ void loop() {
 	}
 	if (!decoderLoco) 
 		return;
-	
+
 	byte instructionType = instruction>>5;
 	cmd = CMD_NULL;
 
@@ -198,16 +210,16 @@ void loop() {
 				cmd = CMD_FOR128;
 			else
 				cmd = CMD_REV128;
-		
+			
 			speed = dccPacket[pktByteCount-1]&B01111111;
 			if (!speed)
 				cmd = CMD_STOP;
 			else if (speed==1) {
 				cmd = CMD_ESTOP;
-				speed = 0;
-			}
-			else
-				speed--;
+			speed = 0;
+		}
+		else
+			speed--;
 		}
 		break;
 
@@ -241,8 +253,23 @@ void loop() {
 	}
 	if (cmd != CMD_NULL) {    
 		if (locoList.addLoco(decoderAddress, cmd, speed)) {
-			sprintf(strBuf, "%c %4d %3d", cmd, decoderAddress, speed);
-			Serial.println(strBuf);
+			digitalWrite(LED_BUILTIN, HIGH);
+			ledOff = millis() + 200;
 		}
+	}
+}
+
+void serialEvent() {
+    char c = Serial.read();
+    if (c == '\n') {
+		int lid = atoi(locoId);
+		Serial.println(locoList.getLocoSpeed(lid));
+		lx = 0;
+    }
+    else {
+    	if (isDigit(c)) {
+			locoId[lx++] = c;
+			locoId[lx] = '\0';
+    	}
 	}
 }
